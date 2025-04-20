@@ -11961,7 +11961,7 @@
 				line_style 	0
 				label      	(object SegLabel @517
 				    Parent_View 	@516
-				    location   	(3957, 783)
+				    location   	(4008, 740)
 				    font       	(object Font
 					size       	10
 					face       	"Arial"
@@ -11977,8 +11977,8 @@
 				    max_width  	15
 				    justify    	0
 				    label      	"1..*"
-				    pctDist    	0.549603
-				    height     	73
+				    pctDist    	0.793646
+				    height     	75
 				    orientation 	1))))
 		    (object AssocAttachView "" @518
 			stereotype 	TRUE
