@@ -1,0 +1,27 @@
+{
+    "nhanvien": [
+        {
+            "MaNhanVien": "AD001",
+            "TenNhanVien": "Nguyễn Văn Admin",
+            "SoDT": "0901234567",
+            "CCCD": "079123456789",
+            "Email": "admin@congty.com",
+            "NgayVao": "2020-01-01 00:00:00",
+            "MaLoaiNhanVien": "AD",
+            "TenLoaiNhanVien": "Admin"
+            "loainhanvien": [
+                {
+                    "MaLoaiNhanVien": "AD",
+                    "TenLoai": "Admin"
+                }
+            ]
+             "taikhoan": [
+                {
+                    "MaTaiKhoan": "TK001",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin"
+                }
+            ]
+        }
+    ]
+}
