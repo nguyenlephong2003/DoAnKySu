@@ -25,7 +25,7 @@ create table NhanVien
 
 create table BangChamCong
 (
-	MaChamCong int primary key,
+	MaChamCong varchar(6) primary key,
 	SoNgayLam float,
 	KyLuong int,
 	MaNhanVien varchar(6)
@@ -69,16 +69,16 @@ create table LoaiCongTrinh
 
 create table LoaiBaoGia
 (
-	MaLoai int primary key,
+	MaLoai varchar(6) primary key,
 	TenLoai nvarchar(255),
 )
 
 create table BangBaoGia
 (
-	MaBaoGia int primary key,
+	MaBaoGia varchar(6) primary key,
 	TenBaoGia nvarchar(255),
 	TrangThai nvarchar(255),
-	MaLoai int
+	MaLoai varchar(6)
 	constraint fk_BangBaoGia_LoaiBaoGia foreign key (MaLoai) references LoaiBaoGia(MaLoai)
 )
 
@@ -93,14 +93,14 @@ create table CongTrinh
 	MaLoaiCongTrinh varchar(6),
 	NgayDuKienHoanThanh datetime
 	constraint fk_CongTrinh_KhachHang foreign key (MaKhachHang) references KhachHang(MaKhachHang),
-	constraint fk_CongTrinh_HopDong foreign key (MaKhachHang) references HopDong(MaHopDong),
+	constraint fk_CongTrinh_HopDong foreign key (MaHopDong) references HopDong(MaHopDong),
 	constraint fk_CongTrinh_LoaiCongTrinh foreign key (MaLoaiCongTrinh) references LoaiCongTrinh(MaLoaiCongTrinh)
 )
 
 create table ChiTietBaoGia
 (
 	MaChiTietBaoGia int primary key, 
-	MaBaoGia int,
+	MaBaoGia varchar(6),
 	MaCongTrinh varchar(6),
 	GiaThapNhat float,
 	GiaCaoNhat float
@@ -110,7 +110,7 @@ create table ChiTietBaoGia
 
 create table BangBaoCaoTienDo
 (
-	MaTienDo int primary key,
+	MaTienDo varchar(6) primary key,
 	ThoiGianHoanThanhThucTe DateTime,
 	NoiDungCongViec nvarchar(255),
 	NgayBaoCao DateTime,
@@ -123,7 +123,7 @@ create table BangBaoCaoTienDo
 
  create table BangPhanCong
  (
-	MaBangPhanCong int primary key,
+	MaBangPhanCong varchar(6) primary key,
 	MaCongTrinh varchar(6),
 	MaNhanVien varchar(6),
 	NgayThamGia Date,
@@ -144,18 +144,18 @@ create table NhaCungCap
 
 create table LoaiThietBiVatTu 
 (
-	MaLoaiThietBiVatTu int primary key,
+	MaLoaiThietBiVatTu varchar(6) primary key,
 	TenLoai nvarchar(255),
 	DonViTinh nvarchar(20)
 )
 
 create table ThietBiVatTu 
 (
-	MaThietBiVatTu int primary key,
+	MaThietBiVatTu varchar(6) primary key,
 	TenThietBiVatTu nvarchar(255),
 	SoLuongTon float,
 	TrangThai nvarchar(255),
-	MaLoaiThietBiVatTu int,
+	MaLoaiThietBiVatTu varchar(6),
 	MaNhaCungCap varchar(6)
 	constraint fk_ThietBiVatTu_NhaCungCap foreign key (MaNhaCungCap) references NhaCungCap(MaNhaCungCap),
 	constraint fk_ThietBiVatTu_LoaiThietBiVatTu foreign key (MaLoaiThietBiVatTu) references LoaiThietBiVatTu(MaLoaiThietBiVatTu)
@@ -163,7 +163,7 @@ create table ThietBiVatTu
 
 create table PhieuNhap
 (
-	MaPhieuNhap int primary key,
+	MaPhieuNhap varchar(6) primary key,
 	NgayNhap DateTime,
 	TongTien float,
 	TrangThai nvarchar(50),
@@ -176,8 +176,8 @@ create table PhieuNhap
 create table ChiTietPhieuNhap
 (
 	MaChiTietPhieuNhap int primary key,
-	MaPhieuNhap int,
-	MaThietBiVatTu int,
+	MaPhieuNhap varchar(6),
+	MaThietBiVatTu varchar(6),
 	SoLuong float,
 	DonGia float
 	constraint fk_ChiTietPhieuNhap_PhieuNhap foreign key (MaPhieuNhap) references PhieuNhap(MaPhieuNhap),
@@ -188,7 +188,7 @@ create table ChiTietThiCong
 (
 	MaChiTietThiCong int primary key,
 	MaCongTrinh varchar(6),
-	MaThietBiVatTu int,
+	MaThietBiVatTu varchar(6),
 	TrangThai nvarchar(50),
 	NgayRoiKho Datetime,
 	NgayHoanKho Datetime
