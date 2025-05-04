@@ -60,12 +60,33 @@ function LoginPage() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
         localStorage.setItem("expires", data.expires);
-
+      
         setSuccess("Đăng nhập thành công!");
         setError("");
-
+      
+        // Lấy 2 ký tự đầu của MaNhanVien
+        const maNV = data.nhanvien[0].MaNhanVien;
+        const maLoai = maNV.substring(0, 2);
+        
+        // Chuyển hướng dựa vào mã loại
         setTimeout(() => {
-          navigate("/dashboard");
+          switch (maLoai) {
+            case "AD":
+              navigate("/admin");
+              break;
+            case "GD":
+              navigate("/giamdoc");
+              break;
+            case "KT":
+              navigate("/ketoan");
+              break;
+            case "NS":
+              navigate("/nhansu");
+              break;
+            case "QL":
+              navigate("/qlcongtrinh");
+              break;
+          }
         }, 1000);
       } else {
         console.warn("Phản hồi không thành công:", data);
@@ -75,7 +96,7 @@ function LoginPage() {
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
       setError(
-        `Lỗi kết nối đến máy chủ: ${error.message || "Không rõ nguyên nhân"}`
+        `Vui lòng kiểm trả lại thông tin`
       );
       setSuccess("");
     } finally {
