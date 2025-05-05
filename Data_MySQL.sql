@@ -1,4 +1,4 @@
-﻿INSERT INTO LoaiNhanVien (MaLoaiNhanVien, TenLoai) VALUES
+INSERT INTO LoaiNhanVien (MaLoaiNhanVien, TenLoai) VALUES
 ('AD', 'Admin'),
 ('GD', 'Giám đốc'),
 ('KT', 'Kế toán'),
