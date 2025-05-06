@@ -86,6 +86,12 @@ function LoginPage() {
             case "QL":
               navigate("/qlcongtrinh");
               break;
+            case "K":
+              navigate("/nhanvienkho");
+              break;
+              case "TV":
+                navigate("/nhanvientuvan");
+                break;
           }
         }, 1000);
       } else {
