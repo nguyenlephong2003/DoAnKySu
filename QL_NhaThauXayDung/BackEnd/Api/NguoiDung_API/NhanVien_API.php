@@ -5,7 +5,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once __DIR__ . '/../../Config/Database.php';
-require_once __DIR__ . '/../../Model/NhanVien.php';
+require_once __DIR__ . '/../../Model/NguoiDung/NhanVien.php';
 
 // Kết nối cơ sở dữ liệu
 $database = new Database();
