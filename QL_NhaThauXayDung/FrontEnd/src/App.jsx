@@ -5,6 +5,8 @@ import GiamDocPage from './page/GiamDoc.jsx'
 import KeToanPage from './page/KeToan.jsx'
 import NhanSuPage from './page/NhanSu.jsx'
 import QLCongTrinhPage from './page/QLCongTrinh.jsx'
+import PageNhanVienKho from './page/NhanVienKho.jsx'
+import PageNhanVienTuVan from './page/NhanVienTuVan.jsx'
 import Page404 from './page/404.jsx'
 import { useEffect, useState } from 'react'
 
@@ -98,7 +100,16 @@ function App() {
           <QLCongTrinhPage />
         </ProtectedRoute>
       } />
-      
+      <Route path="/nhanvienkho" element={
+        <ProtectedRoute allowedRole="K">
+          <PageNhanVienKho />
+        </ProtectedRoute>
+      } />
+      <Route path="/nhanvientuvan" element={
+        <ProtectedRoute allowedRole="TV">
+          <PageNhanVienTuVan />
+        </ProtectedRoute>
+      } />
       {/* Xử lý tất cả các route không xác định */}
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
