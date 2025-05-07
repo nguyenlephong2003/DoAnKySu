@@ -5,7 +5,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once __DIR__ . '/../../Config/Database.php';
-require_once __DIR__ . '/../../Model/NguoiDung/TaiKhoan.php';
+require_once __DIR__ . '/../../Model/TaiKhoan.php';
 
 $database = new Database();
 $db = $database->getConn();
@@ -30,7 +30,10 @@ switch ($method) {
                     unset($item['MatKhau']);
                 }
             }
-            echo json_encode($result);
+            echo json_encode([
+                'status' => 'success',
+                'data' => $result
+            ]);
         } elseif ($action === "getById") {
             $taikhoan->MaTaiKhoan = isset($_GET['MaTaiKhoan']) ? $_GET['MaTaiKhoan'] : null;
             if ($taikhoan->MaTaiKhoan) {
@@ -41,7 +44,10 @@ switch ($method) {
                     unset($result['MatKhau']);
                 }
                 
-                echo json_encode($result);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
             } else {
                 echo json_encode(["message" => "Thiếu MaTaiKhoan"]);
                 http_response_code(400);
@@ -57,7 +63,10 @@ switch ($method) {
                     unset($result['MatKhau']);
                 }
                 
-                echo json_encode($result);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
             } else {
                 echo json_encode(["message" => "Thiếu MaNhanVien"]);
                 http_response_code(400);

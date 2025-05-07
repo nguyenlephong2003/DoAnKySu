@@ -31,15 +31,11 @@ const PageQuanLy = ({ children }) => {
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "chitietgv", label: "Chi tiết đề tài GV", icon: <FaClipboardList />, path: "/admin/chitietgv" },
-    { id: "chitietsv", label: "Chi tiết đề tài SV", icon: <FaClipboardList />, path: "/admin/chitietsv" },
-    { id: "hoithao", label: "Hội thảo khoa học", icon: <FaLaptopCode />, path: "/admin/hoithao" },
-    { id: "nhomsinhvien", label: "Chỉnh nhóm sinh viên", icon: <FaUserFriends />, path: "/admin/nhomsinhvien" },
-    { id: "sanpham", label: "Quản lý sản phẩm sinh viên", icon: <FaBox />, path: "/admin/sanpham" },
-    { id: "hososvnckh", label: "Duyệt hồ sơ NCKH sinh viên", icon: <FaCheckCircle />, path: "/admin/hososvnckh" },
-    { id: "hosogvnckh", label: "Duyệt hồ sơ NCKH giảng viên", icon: <FaCheckCircle />, path: "/admin/hosogvnckh" },
-    { id: "hosohoithao", label: "Duyệt hồ sơ hội thảo", icon: <FaCheckCircle />, path: "/admin/hosohoithao" },
-    { id: "hosobaibao", label: "Duyệt hồ sơ bài báo", icon: <FaCheckCircle />, path: "/admin/hosobaibao" },
+    { id: "quanlycongtrinh", label: "Quản lý công trình", icon: <FaClipboardList />, path: "/congtrinh/quanlycongtrinh" },
+    { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaClipboardList />, path: "/congtrinh/quanlytiendo" },
+    { id: "lapdexuatmuavatlieuthietbi", label: "Lập đề xuất mua vật liệu thiết bị", icon: <FaLaptopCode />, path: "/congtrinh/hoithao" },
+    { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaUserFriends />, path: "/congtrinh/quanlydanhmuc" },
+    { id: "timkiem", label: "Tìm kiếm", icon: <FaBox />, path: "/congtrinh/timkiem" },
   ];
 
   const handleClickOutside = (event) => {
