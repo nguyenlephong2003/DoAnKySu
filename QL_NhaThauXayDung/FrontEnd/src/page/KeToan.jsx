@@ -31,15 +31,10 @@ const PageKeToan = ({ children }) => {
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "chitietgv", label: "Chi tiết đề tài GV", icon: <FaClipboardList />, path: "/admin/chitietgv" },
-    { id: "chitietsv", label: "Chi tiết đề tài SV", icon: <FaClipboardList />, path: "/admin/chitietsv" },
-    { id: "hoithao", label: "Hội thảo khoa học", icon: <FaLaptopCode />, path: "/admin/hoithao" },
-    { id: "nhomsinhvien", label: "Chỉnh nhóm sinh viên", icon: <FaUserFriends />, path: "/admin/nhomsinhvien" },
-    { id: "sanpham", label: "Quản lý sản phẩm sinh viên", icon: <FaBox />, path: "/admin/sanpham" },
-    { id: "hososvnckh", label: "Duyệt hồ sơ NCKH sinh viên", icon: <FaCheckCircle />, path: "/admin/hososvnckh" },
-    { id: "hosogvnckh", label: "Duyệt hồ sơ NCKH giảng viên", icon: <FaCheckCircle />, path: "/admin/hosogvnckh" },
-    { id: "hosohoithao", label: "Duyệt hồ sơ hội thảo", icon: <FaCheckCircle />, path: "/admin/hosohoithao" },
-    { id: "hosobaibao", label: "Duyệt hồ sơ bài báo", icon: <FaCheckCircle />, path: "/admin/hosobaibao" },
+    { id: "quanlyluong", label: "Quản lý lương", icon: <FaClipboardList />, path: "/ketoan/quanlyluong" },
+    { id: "thanhtoanvatlieuthietbi", label: "Thanh toán vật liệu thiết bị", icon: <FaClipboardList />, path: "/ketoan/thanhtoanvatlieuthietbi" },
+    { id: "quanlygiaingan", label: "Quản lý giải ngân", icon: <FaLaptopCode />, path: "/ketoan/quanlygiaingan" },
+    { id: "lapbaogia", label: "Lập báo giá", icon: <FaUserFriends />, path: "/ketoan/lapbaogia" },
   ];
 
   const handleClickOutside = (event) => {

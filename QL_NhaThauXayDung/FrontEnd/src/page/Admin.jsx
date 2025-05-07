@@ -31,15 +31,15 @@ const PageAdmin = ({ children }) => {
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "chitietgv", label: "Chi tiết đề tài GV", icon: <FaClipboardList />, path: "/admin/chitietgv" },
-    { id: "chitietsv", label: "Chi tiết đề tài SV", icon: <FaClipboardList />, path: "/admin/chitietsv" },
-    { id: "hoithao", label: "Hội thảo khoa học", icon: <FaLaptopCode />, path: "/admin/hoithao" },
-    { id: "nhomsinhvien", label: "Chỉnh nhóm sinh viên", icon: <FaUserFriends />, path: "/admin/nhomsinhvien" },
-    { id: "sanpham", label: "Quản lý sản phẩm sinh viên", icon: <FaBox />, path: "/admin/sanpham" },
-    { id: "hososvnckh", label: "Duyệt hồ sơ NCKH sinh viên", icon: <FaCheckCircle />, path: "/admin/hososvnckh" },
-    { id: "hosogvnckh", label: "Duyệt hồ sơ NCKH giảng viên", icon: <FaCheckCircle />, path: "/admin/hosogvnckh" },
-    { id: "hosohoithao", label: "Duyệt hồ sơ hội thảo", icon: <FaCheckCircle />, path: "/admin/hosohoithao" },
-    { id: "hosobaibao", label: "Duyệt hồ sơ bài báo", icon: <FaCheckCircle />, path: "/admin/hosobaibao" },
+    { id: "quantringuoidung", label: "Quản trị người dùng", icon: <FaClipboardList />, path: "/admin/quantringuoidung" },
+    { id: "saoluuphuchoi", label: "Sao lưu phục hồi", icon: <FaClipboardList />, path: "/admin/saoluuphuchoi" },
+    // { id: "hoithao", label: "Hội thảo khoa học", icon: <FaLaptopCode />, path: "/admin/hoithao" },
+    // { id: "nhomsinhvien", label: "Chỉnh nhóm sinh viên", icon: <FaUserFriends />, path: "/admin/nhomsinhvien" },
+    // { id: "sanpham", label: "Quản lý sản phẩm sinh viên", icon: <FaBox />, path: "/admin/sanpham" },
+    // { id: "hososvnckh", label: "Duyệt hồ sơ NCKH sinh viên", icon: <FaCheckCircle />, path: "/admin/hososvnckh" },
+    // { id: "hosogvnckh", label: "Duyệt hồ sơ NCKH giảng viên", icon: <FaCheckCircle />, path: "/admin/hosogvnckh" },
+    // { id: "hosohoithao", label: "Duyệt hồ sơ hội thảo", icon: <FaCheckCircle />, path: "/admin/hosohoithao" },
+    // { id: "hosobaibao", label: "Duyệt hồ sơ bài báo", icon: <FaCheckCircle />, path: "/admin/hosobaibao" },
   ];
 
   const handleClickOutside = (event) => {
