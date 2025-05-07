@@ -9,13 +9,15 @@ import {
   FaClipboardList,
   FaCheckCircle,
   FaUserEdit,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaListAlt,
 } from "react-icons/fa";
 
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
+import QuanLyDanhMuc from "../components/QuanLyDanhMuc";
 
 const PageKeToan = ({ children }) => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
@@ -23,7 +25,8 @@ const PageKeToan = ({ children }) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("chitietgv"); // Menu mặc định
-  
+  const [currentComponent, setCurrentComponent] = useState(null);
+
   const sidebarRef = useRef();
   const userMenuRef = useRef();
   const navigate = useNavigate();
@@ -31,17 +34,37 @@ const PageKeToan = ({ children }) => {
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "quanlyluong", label: "Quản lý lương", icon: <FaClipboardList />, path: "/ketoan/quanlyluong" },
-    { id: "thanhtoanvatlieuthietbi", label: "Thanh toán vật liệu thiết bị", icon: <FaClipboardList />, path: "/ketoan/thanhtoanvatlieuthietbi" },
-    { id: "quanlygiaingan", label: "Quản lý giải ngân", icon: <FaLaptopCode />, path: "/ketoan/quanlygiaingan" },
-    { id: "lapbaogia", label: "Lập báo giá", icon: <FaUserFriends />, path: "/ketoan/lapbaogia" },
+    {
+      id: "quanlydanhmuc",
+      label: "Quản lý danh mục",
+      icon: <FaListAlt />,
+      path: "/ketoan/quanlydanhmuc",
+    },
+    {
+      id: "quanlyluong",
+      label: "Quản lý lương",
+      icon: <FaClipboardList />,
+      path: "/ketoan/quanlyluong",
+    },
+    {
+      id: "thanhtoanvatlieuthietbi",
+      label: "Thanh toán vật liệu thiết bị",
+      icon: <FaClipboardList />,
+      path: "/ketoan/thanhtoanvatlieuthietbi",
+    },
+    {
+      id: "quanlygiaingan",
+      label: "Quản lý giải ngân",
+      icon: <FaLaptopCode />,
+      path: "/ketoan/quanlygiaingan",
+    },
   ];
 
   const handleClickOutside = (event) => {
     if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
       setSidebarToggle(false);
     }
-    
+
     if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
       setUserMenuOpen(false);
     }
@@ -49,11 +72,13 @@ const PageKeToan = ({ children }) => {
 
   useEffect(() => {
     try {
-      const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || '{}');
+      const storedUserInfo = JSON.parse(
+        localStorage.getItem("userInfo") || "{}"
+      );
       if (storedUserInfo && storedUserInfo.TenNhanVien) {
-        setUserInfo({ 
-          name: storedUserInfo.TenNhanVien, 
-          role: storedUserInfo.TenLoaiNhanVien || "Admin" 
+        setUserInfo({
+          name: storedUserInfo.TenNhanVien,
+          role: storedUserInfo.TenLoaiNhanVien || "Admin",
         });
       }
     } catch (error) {
@@ -61,7 +86,7 @@ const PageKeToan = ({ children }) => {
     }
 
     const currentPath = location.pathname;
-    const activeItem = menuItems.find(item => currentPath.includes(item.id));
+    const activeItem = menuItems.find((item) => currentPath.includes(item.id));
     if (activeItem) {
       setActiveMenu(activeItem.id);
     }
@@ -75,26 +100,27 @@ const PageKeToan = ({ children }) => {
   const handleLogout = () => {
     // Xác nhận đăng xuất
     setIsLogoutModalOpen(false);
-    
+
     // Xóa tất cả thông tin đăng nhập
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
     localStorage.removeItem("expires");
-    
+
     // Chuyển hướng về trang đăng nhập
     navigate("/login");
   };
-  
+
   const handleProfileEdit = () => {
     // Đóng menu người dùng
     setUserMenuOpen(false);
-    
+
     // Chuyển hướng đến trang chỉnh sửa hồ sơ
     navigate("/profile");
   };
 
   const handleMenuClick = (menuId, path) => {
     setActiveMenu(menuId);
+    setCurrentComponent(menuId); // Thêm dòng này
     navigate(path);
   };
 
@@ -120,15 +146,15 @@ const PageKeToan = ({ children }) => {
         <div className="py-6 px-4">
           <ul className="space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
             {menuItems.map((item) => (
-              <li 
-              key={item.id}
-              onClick={() => handleMenuClick(item.id, item.path)}
-              className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
-                activeMenu === item.id 
-                ? "bg-[#2e7d32] text-white font-medium" 
-                : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
-              }`}
-            >
+              <li
+                key={item.id}
+                onClick={() => handleMenuClick(item.id, item.path)}
+                className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
+                  activeMenu === item.id
+                    ? "bg-[#2e7d32] text-white font-medium"
+                    : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
+                }`}
+              >
                 <div className="flex items-center space-x-3">
                   {item.icon}
                   <span className="font-semibold">{item.label}</span>
@@ -170,21 +196,21 @@ const PageKeToan = ({ children }) => {
                 >
                   <CiUser className="text-xl text-gray-600" />
                 </div>
-                
+
                 {/* Menu người dùng */}
                 {userMenuOpen && (
-                  <div 
+                  <div
                     ref={userMenuRef}
                     className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-30 border border-gray-200"
                   >
-                    <div 
+                    <div
                       onClick={handleProfileEdit}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
                       <FaUserEdit className="mr-2" />
                       Chỉnh sửa hồ sơ
                     </div>
-                    <div 
+                    <div
                       onClick={() => setIsLogoutModalOpen(true)}
                       className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
                     >
@@ -198,7 +224,9 @@ const PageKeToan = ({ children }) => {
           </div>
         </div>
 
-        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>
+        <div className="flex-1 bg-[#e4e4e4] p-6">
+          <Outlet />
+        </div>
       </div>
 
       {/* Modal xác nhận đăng xuất */}
