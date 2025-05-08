@@ -17,7 +17,6 @@ import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
-import QuanLyDanhMuc from "../components/QuanLyDanhMuc";
 
 const PageKeToan = ({ children }) => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
@@ -170,7 +169,7 @@ const PageKeToan = ({ children }) => {
         <div className="sticky top-0 z-10 w-full bg-white shadow px-4 py-4 flex justify-between items-center border-b border-gray-300">
           <div className="flex items-center space-x-4">
             <div
-              className="block lg:hidden rounded-sm border border-stroke p-2 shadow-sm text-xl rounded-xl"
+              className="block lg:hidden border border-stroke p-2 shadow-sm text-xl rounded-xl"
               onClick={() => setSidebarToggle(true)}
             >
               <FaBars />
