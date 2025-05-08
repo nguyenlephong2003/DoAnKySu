@@ -90,7 +90,7 @@ function LoginPage() {
               navigate("/nhanvienkho");
               break;
               case "TV":
-                navigate("/nhanvientuvan");
+                navigate("/nhanvientuvan/lapbaogia");
                 break;
           }
         }, 1000);
