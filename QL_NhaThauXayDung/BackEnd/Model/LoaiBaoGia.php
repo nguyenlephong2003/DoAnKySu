@@ -1,7 +1,7 @@
 <?php
 class LoaiBaoGia {
     private $conn;
-    private $table_name = 'LoaiBaoGia';
+    private $table_name = "loaibaogia";
 
     // Table columns
     public $MaLoai;
@@ -14,111 +14,88 @@ class LoaiBaoGia {
 
     // Create new LoaiBaoGia
     public function create() {
-        $query = "INSERT INTO " . $this->table_name . " 
-                  (TenLoai) 
-                  VALUES (:tenLoai)";
+        try {
+            $query = "INSERT INTO " . $this->table_name . " (TenLoai) VALUES (:TenLoai)";
+            $stmt = $this->conn->prepare($query);
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            $this->TenLoai = htmlspecialchars(strip_tags($this->TenLoai));
+            $stmt->bindParam(":TenLoai", $this->TenLoai);
 
-        // Clean and bind data
-        $this->TenLoai = htmlspecialchars(strip_tags($this->TenLoai));
-
-        $stmt->bindParam(":tenLoai", $this->TenLoai);
-
-        // Execute query
-        if($stmt->execute()) {
-            // Get the last inserted ID
-            $this->MaLoai = $this->conn->lastInsertId();
-            return true;
+            if ($stmt->execute()) {
+                $this->MaLoai = $this->conn->lastInsertId();
+                return true;
+            }
+            return false;
+        } catch (PDOException $e) {
+            error_log("Error in create(): " . $e->getMessage());
+            throw $e;
         }
-
-        return false;
     }
 
     // Read Single LoaiBaoGia
     public function readSingle() {
-        $query = "SELECT MaLoai, TenLoai 
-                  FROM " . $this->table_name . " 
-                  WHERE MaLoai = ? 
-                  LIMIT 0,1";
-
-        // Prepare statement
+        $query = "SELECT * FROM " . $this->table_name . " WHERE MaLoai = :MaLoai LIMIT 0,1";
         $stmt = $this->conn->prepare($query);
-
-        // Bind ID
-        $stmt->bindParam(1, $this->MaLoai);
-
-        // Execute query
+        $stmt->bindParam(":MaLoai", $this->MaLoai);
         $stmt->execute();
-
-        // Get row
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Set properties
-        $this->MaLoai = $row['MaLoai'];
-        $this->TenLoai = $row['TenLoai'];
+        if ($row) {
+            $this->TenLoai = $row['TenLoai'];
+            return true;
+        }
+        return false;
     }
 
     // Read All LoaiBaoGia
     public function readAll() {
-        $query = "SELECT MaLoai, TenLoai 
-                  FROM " . $this->table_name . " 
-                  ORDER BY MaLoai";
-
-        // Prepare statement
+        $query = "SELECT * FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
-
-        // Execute query
         $stmt->execute();
-
         return $stmt;
     }
 
     // Update LoaiBaoGia
     public function update() {
-        $query = "UPDATE " . $this->table_name . " 
-                  SET TenLoai = :tenLoai 
-                  WHERE MaLoai = :maLoai";
+        try {
+            if (!$this->exists()) {
+                return false;
+            }
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            $query = "UPDATE " . $this->table_name . " SET TenLoai = :TenLoai WHERE MaLoai = :MaLoai";
+            $stmt = $this->conn->prepare($query);
 
-        // Clean and bind data
-        $this->TenLoai = htmlspecialchars(strip_tags($this->TenLoai));
-        $this->MaLoai = htmlspecialchars(strip_tags($this->MaLoai));
+            $this->TenLoai = htmlspecialchars(strip_tags($this->TenLoai));
+            $this->MaLoai = htmlspecialchars(strip_tags($this->MaLoai));
 
-        $stmt->bindParam(":tenLoai", $this->TenLoai);
-        $stmt->bindParam(":maLoai", $this->MaLoai);
+            $stmt->bindParam(":TenLoai", $this->TenLoai);
+            $stmt->bindParam(":MaLoai", $this->MaLoai);
 
-        // Execute query
-        if($stmt->execute()) {
-            return true;
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error in update(): " . $e->getMessage());
+            throw $e;
         }
-
-        return false;
     }
 
     // Delete LoaiBaoGia
     public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " 
-                  WHERE MaLoai = ?";
+        try {
+            if (!$this->exists()) {
+                return false;
+            }
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            $query = "DELETE FROM " . $this->table_name . " WHERE MaLoai = :MaLoai";
+            $stmt = $this->conn->prepare($query);
 
-        // Clean data
-        $this->MaLoai = htmlspecialchars(strip_tags($this->MaLoai));
+            $this->MaLoai = htmlspecialchars(strip_tags($this->MaLoai));
+            $stmt->bindParam(":MaLoai", $this->MaLoai);
 
-        // Bind ID
-        $stmt->bindParam(1, $this->MaLoai);
-
-        // Execute query
-        if($stmt->execute()) {
-            return true;
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error in delete(): " . $e->getMessage());
+            throw $e;
         }
-
-        return false;
     }
 
     // Search LoaiBaoGia
@@ -141,6 +118,26 @@ class LoaiBaoGia {
         $stmt->execute();
 
         return $stmt;
+    }
+
+    // Check if LoaiBaoGia exists
+    public function exists() {
+        $query = "SELECT COUNT(*) as count FROM " . $this->table_name . " WHERE MaLoai = :MaLoai";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":MaLoai", $this->MaLoai);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['count'] > 0;
+    }
+
+    // Check if TenLoai already exists
+    public function isNameExists($tenLoai) {
+        $query = "SELECT COUNT(*) as count FROM " . $this->table_name . " WHERE TenLoai = :TenLoai";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":TenLoai", $tenLoai);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['count'] > 0;
     }
 }
 ?>
