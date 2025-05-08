@@ -8,7 +8,7 @@ import QLCongTrinhPage from "./page/QLCongTrinh.jsx";
 import PageNhanVienKho from "./page/NhanVienKho.jsx";
 import PageNhanVienTuVan from "./page/NhanVienTuVan.jsx";
 import Page404 from "./page/404.jsx";
-// import UserManager from './components/QL_NguoiDung.jsx';
+import UserManager from './components/QL_NguoiDung.jsx';
 import QuanLyDanhMuc from "./components/QuanLyDanhMuc.jsx";
 import { useEffect, useState } from "react";
 
@@ -140,11 +140,11 @@ function App() {
           </ProtectedRoute>
         }
       />
-      {/* <Route path="admin/quantringuoidung" element={
+      <Route path="admin/quantringuoidung" element={
         <ProtectedRoute allowedRole="AD">
           <UserManager />
         </ProtectedRoute>
-      } /> */}
+      } />
       {/* Xử lý tất cả các route không xác định */}
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
