@@ -214,26 +214,31 @@ class BangBaoGia {
     }
 
     // Get quotation details including associated projects
-    public function getQuotationDetails() {
-        $query = "SELECT bg.MaBaoGia, bg.TenBaoGia, bg.TrangThai, 
-                         ctbg.MaCongTrinh, ct.TenCongTrinh,
-                         ctbg.GiaThapNhat, ctbg.GiaCaoNhat
-                  FROM " . $this->table_name . " bg
-                  LEFT JOIN ChiTietBaoGia ctbg ON bg.MaBaoGia = ctbg.MaBaoGia
-                  LEFT JOIN CongTrinh ct ON ctbg.MaCongTrinh = ct.MaCongTrinh
-                  WHERE bg.MaBaoGia = ?";
+ public function getQuotationDetails() {
+    $query = "SELECT bg.MaBaoGia, bg.TenBaoGia, bg.TrangThai, 
+                     ctbg.MaCongTrinh, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, 
+                     ct.MaKhachHang, kh.TenKhachHang, kh.SoDT,
+                     ct.MaLoaiCongTrinh, lct.TenLoaiCongTrinh, 
+                     ct.MaHopDong, ct.NgayDuKienHoanThanh,
+                     ctbg.GiaBaoGia
+              FROM " . $this->table_name . " bg
+              LEFT JOIN ChiTietBaoGia ctbg ON bg.MaBaoGia = ctbg.MaBaoGia
+              LEFT JOIN CongTrinh ct ON ctbg.MaCongTrinh = ct.MaCongTrinh
+              LEFT JOIN LoaiCongTrinh lct ON ct.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
+              LEFT JOIN KhachHang kh ON ct.MaKhachHang = kh.MaKhachHang
+              WHERE bg.MaBaoGia = ?";
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+    // Prepare statement
+    $stmt = $this->conn->prepare($query);
 
-        // Bind quotation ID
-        $stmt->bindParam(1, $this->MaBaoGia);
+    // Bind quotation ID
+    $stmt->bindParam(1, $this->MaBaoGia);
 
-        // Execute query
-        $stmt->execute();
+    // Execute query
+    $stmt->execute();
 
-        return $stmt;
-    }
+    return $stmt;
+}
 
     // Get quotations by status
     public function getQuotationsByStatus($trangThai) {

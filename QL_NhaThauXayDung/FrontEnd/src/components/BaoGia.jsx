@@ -4,6 +4,7 @@ import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, InfoCircleO
 import axios from 'axios';
 import BASE_URL from '../Config'; // Đường dẫn đến file config của bạn
 import AddBaoGiaForm from './AddBaoGia'; // Import component form thêm mới
+import DetailBaoGiaModal from './ChiTietBaoGia'; // Import component modal chi tiết
 
 const { Option } = Select;
 
@@ -19,6 +20,8 @@ const BaoGia = () => {
     total: 0
   });
   const [addModalVisible, setAddModalVisible] = useState(false); // State cho modal thêm mới
+  const [detailModalVisible, setDetailModalVisible] = useState(false); // State cho modal chi tiết
+  const [currentBaoGia, setCurrentBaoGia] = useState(null); // Báo giá đang được xem chi tiết
 
   const statusColors = {
     'Chờ duyệt': 'orange',
@@ -185,13 +188,10 @@ const BaoGia = () => {
     },
   ];
 
-  // Modal chi tiết
-  const [detailVisible, setDetailVisible] = useState(false);
-  const [currentBaoGia, setCurrentBaoGia] = useState(null);
-
+  // Hiển thị modal chi tiết
   const showDetailModal = (record) => {
     setCurrentBaoGia(record);
-    setDetailVisible(true);
+    setDetailModalVisible(true);
   };
 
   // Hàm xử lý sửa (có thể mở modal sửa)
@@ -248,9 +248,10 @@ const BaoGia = () => {
   };
 
   return (
-    <div className="bao-gia-management" style={{ padding: '20px' }}>
-      <h1>Quản lý báo giá</h1>
-      
+    <div className="bao-gia-management" >
+<h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">
+  Quản lý báo giá
+</h1>      
       {/* Thanh tìm kiếm và lọc */}
       <div style={{ marginBottom: 16, display: 'flex', gap: '16px' }}>
         <Input
@@ -305,46 +306,19 @@ const BaoGia = () => {
         />
       </Spin>
       
-      {/* Modal chi tiết báo giá */}
-      <Modal
-        title="Chi tiết báo giá"
-        visible={detailVisible}
-        onCancel={() => setDetailVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setDetailVisible(false)}>
-            Đóng
-          </Button>
-        ]}
-        width={700}
-      >
-        {currentBaoGia && (
-          <div>
-            <div style={{ marginBottom: 16 }}>
-              <p><strong>Mã báo giá:</strong> {currentBaoGia.MaBaoGia}</p>
-              <p><strong>Tên báo giá:</strong> {currentBaoGia.TenBaoGia}</p>
-              <p>
-                <strong>Trạng thái:</strong> 
-                <Tag color={statusColors[currentBaoGia.TrangThai] || 'default'} style={{ marginLeft: 8 }}>
-                  {currentBaoGia.TrangThai}
-                </Tag>
-              </p>
-              <p><strong>Loại báo giá:</strong> {currentBaoGia.TenLoaiBaoGia || `Loại ${currentBaoGia.MaLoai}`}</p>
-            </div>
-            
-            <div style={{ marginTop: 16 }}>
-              <h3>Thông tin thêm</h3>
-              <p>Đây là nơi hiển thị thêm thông tin chi tiết của báo giá khi bạn mở rộng API hoặc lấy thêm thông tin.</p>
-            </div>
-          </div>
-        )}
-      </Modal>
-
       {/* Form thêm mới báo giá */}
       <AddBaoGiaForm
         visible={addModalVisible}
         onCancel={() => setAddModalVisible(false)}
         onSuccess={handleAddSuccess}
         loaiBaoGiaList={loaiBaoGiaList}
+      />
+      
+      {/* Modal chi tiết báo giá */}
+      <DetailBaoGiaModal
+        visible={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        baoGia={currentBaoGia}
       />
     </div>
   );
