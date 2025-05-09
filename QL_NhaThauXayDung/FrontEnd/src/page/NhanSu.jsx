@@ -201,7 +201,7 @@ const PageNhanSu = ({ children }) => {
           </div>
         </div>
 
-        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>
+        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>  
       </div>
 
       {/* Modal xác nhận đăng xuất */}

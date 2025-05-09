@@ -92,6 +92,7 @@ function App() {
         }
       >
         </Route>
+
       <Route
         path="/giamdoc"
         element={
@@ -100,6 +101,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/ketoan"
         element={
@@ -113,6 +115,7 @@ function App() {
         <Route path="thanhtoanvatlieuthietbi" element={<h1>Thanh toán vật liệu thiết bị</h1>}/>
         <Route path="quanlygiaingan" element={<h1>Quản lý giải ngân</h1>} />
       </Route>
+
       <Route
         path="/nhansu"
         element={
@@ -120,9 +123,16 @@ function App() {
             <PageNhanSu />
           </ProtectedRoute>
         }
-      > 
-      <Route path="quan-ly-nhan-vien" element={<QL_NhanVien />} />
-      </Route>
+      /> 
+      <Route
+        path="/nhansu/quan-ly-nhan-vien"
+        element={
+          <ProtectedRoute allowedRole="NS">
+            <PageNhanSu children={<QL_NhanVien />}  />  
+          </ProtectedRoute>
+        }
+      /> 
+
       <Route
         path="/qlcongtrinh"
         element={
@@ -131,6 +141,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/nhanvienkho"
         element={

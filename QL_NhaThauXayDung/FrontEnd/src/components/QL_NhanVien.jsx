@@ -9,10 +9,10 @@ import {
   message,
   Popconfirm,
 } from 'antd';
-import axios from 'axios';
+// import axios from 'axios';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import PageNhanSu from '../page/NhanSu'; // Giữ nguyên import này
-import BASE_URL from '../Config';
+// import BASE_URL from '../Config';
 
 const { Option } = Select;
 
@@ -153,8 +153,9 @@ const QL_NhanVien = () => {
     {
       title: 'Hành động',
       key: 'actions',
-      render: (_, record) => (
+      render: (_, record) => ( 
         <>
+        
           <Button icon={<EditOutlined />} onClick={() => openEditModal(record)} style={{ marginRight: 8 }}>
             Sửa
           </Button>
@@ -231,15 +232,20 @@ const QL_NhanVien = () => {
       </Modal>
     </div>
   );
-
-  // Nếu chúng ta đang ở route "/nhansu/quan-ly-nhan-vien", bọc nội dung trong PageNhanSu
-  // Điều này đảm bảo menu của PageNhanSu sẽ hiển thị
-  if (isDirectRoute) {
-    return <PageNhanSu>{mainContent}</PageNhanSu>;
-  }
-  
-  // Nếu không (ví dụ: component đang được sử dụng ở nơi khác), chỉ trả về nội dung
-  return mainContent;
 };
 
 export default QL_NhanVien;
+
+
+// const QL_NhanVien = () => {
+
+//   console.log("Render QL Nhân Viên");
+//   return(
+//     <div>
+//       <h2>Quản lý nhân viên</h2>
+//       <p>Chức năng này đang được phát triển...</p>
+//     </div>
+//   )
+// }
+
+// export default QL_NhanVien;
