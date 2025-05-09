@@ -82,6 +82,7 @@ CREATE TABLE `ChiTietBaoGia` (
   `MaBaoGia` varchar(20),
   `MaCongTrinh` varchar(20),
   `GiaBaoGia` float
+  `NoiDung` varchar(250),
 );
 
 CREATE TABLE `BangBaoCaoTienDo` (
