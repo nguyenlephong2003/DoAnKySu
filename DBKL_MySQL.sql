@@ -81,8 +81,8 @@ CREATE TABLE `ChiTietBaoGia` (
   `MaChiTietBaoGia` int AUTO_INCREMENT PRIMARY KEY,
   `MaBaoGia` varchar(20),
   `MaCongTrinh` varchar(20),
-  `GiaBaoGia` float
-  `NoiDung` varchar(250),
+  `GiaBaoGia` float,
+  `NoiDung` varchar(250)
 );
 
 CREATE TABLE `BangBaoCaoTienDo` (
