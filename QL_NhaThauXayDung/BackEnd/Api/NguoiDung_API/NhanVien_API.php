@@ -5,7 +5,7 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once __DIR__ . '/../../Config/Database.php';
-require_once __DIR__ . '/../../Model/NguoiDung/NhanVien.php';
+require_once __DIR__ . '/../../Model/NhanVien.php';
 
 // Kết nối cơ sở dữ liệu
 $database = new Database();
@@ -27,13 +27,17 @@ switch ($method) {
         if ($action === "GET") {
             $stmt = $nhanvien->getAll();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode($result);
+            echo json_encode([
+                    'status' => 'success',
+                    'data' => $result]);
         } elseif ($action === "getById") {
             $nhanvien->MaNhanVien = isset($_GET['MaNhanVien']) ? $_GET['MaNhanVien'] : null;
             if ($nhanvien->MaNhanVien) {
                 $stmt = $nhanvien->getById();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                echo json_encode($result);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result]);
             } else {
                 echo json_encode(["message" => "Thiếu MaNhanVien"]);
                 http_response_code(400);
@@ -43,7 +47,9 @@ switch ($method) {
             if ($nhanvien->MaLoaiNhanVien) {
                 $stmt = $nhanvien->getByLoaiNhanVien();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode($result);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result]);
             } else {
                 echo json_encode(["message" => "Thiếu MaLoaiNhanVien"]);
                 http_response_code(400);
