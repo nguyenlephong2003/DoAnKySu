@@ -13,6 +13,8 @@ import QuanLyDanhMuc from "./components/QuanLyDanhMuc.jsx";
 import BaoGia from "./components/Baogia.jsx";
 import { useEffect, useState } from "react";
 import PageTuVan from "./page/NhanVienTuVan.jsx";
+import QL_NhanVien from './components/QL_NhanVien.jsx';
+import PageNhanSu from "./page/NhanSu.jsx";
 
 // Component bảo vệ route với kiểm tra token hết hạn
 function ProtectedRoute({ children, allowedRole }) {
@@ -88,7 +90,8 @@ function App() {
             <AdminPage />
           </ProtectedRoute>
         }
-      />
+      >
+        </Route>
       <Route
         path="/giamdoc"
         element={
@@ -114,10 +117,12 @@ function App() {
         path="/nhansu"
         element={
           <ProtectedRoute allowedRole="NS">
-            <NhanSuPage />
+            <PageNhanSu />
           </ProtectedRoute>
         }
-      />
+      > 
+      <Route path="quan-ly-nhan-vien" element={<QL_NhanVien />} />
+      </Route>
       <Route
         path="/qlcongtrinh"
         element={
@@ -149,7 +154,8 @@ function App() {
         <ProtectedRoute allowedRole="AD">
           <UserManager />
         </ProtectedRoute>
-      } />
+      } /> 
+    
       {/* Xử lý tất cả các route không xác định */}
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>

@@ -22,7 +22,7 @@ const PageNhanSu = ({ children }) => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("chitietgv"); // Menu mặc định
+  const [activeMenu, setActiveMenu] = useState("qlnhanvien"); // Menu mặc định
   
   const sidebarRef = useRef();
   const userMenuRef = useRef();
@@ -31,7 +31,7 @@ const PageNhanSu = ({ children }) => {
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "quanlynhanvien", label: "Quản lý nhân viên", icon: <FaClipboardList />, path: "/nhansu/quanlynhanvien" },
+    { id: "quan-ly-nhan-vien", label: "Quản lý nhân viên", icon: <FaClipboardList />, path: "/nhansu/quan-ly-nhan-vien" },
     { id: "chamcong", label: "Chấm công", icon: <FaClipboardList />, path: "/nhansu/chamcong" },
     { id: "timkiem", label: "Tìm kiếm", icon: <FaLaptopCode />, path: "/nhansu/timkiem" },
     { id: "baocaothongke", label: "Báo cáo thống kê", icon: <FaChartBar />, path: "/nhansu/baocaothongke" },
@@ -99,7 +99,9 @@ const PageNhanSu = ({ children }) => {
     navigate(path);
   };
 
+
   return (
+    
     <div className="flex h-screen overflow-hidden bg-gray-100">
       <div
         ref={sidebarRef}
@@ -226,6 +228,7 @@ const PageNhanSu = ({ children }) => {
           </div>
         </div>
       )}
+       
     </div>
   );
 };
