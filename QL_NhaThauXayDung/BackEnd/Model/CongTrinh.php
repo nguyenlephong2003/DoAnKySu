@@ -208,7 +208,11 @@ class CongTrinh {
 
     // Lấy tất cả công trình
     public function readAll() {
-        $query = "SELECT * FROM " . $this->table_name . " ORDER BY MaCongTrinh DESC";
+        $query = "SELECT ct.MaCongTrinh, ct.TenCongTrinh, lct.TenLoaiCongTrinh, kh.TenKhachHang, ct.NgayDuKienHoanThanh
+                  FROM " . $this->table_name . " ct
+                  LEFT JOIN LoaiCongTrinh lct ON ct.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
+                  LEFT JOIN KhachHang kh ON ct.MaKhachHang = kh.MaKhachHang
+                  ORDER BY ct.MaCongTrinh DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;

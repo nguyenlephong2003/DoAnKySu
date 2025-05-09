@@ -213,6 +213,35 @@ switch ($method) {
         }
         break;
 
+    case 'DELETE':
+        if ($action === "DELETE") {
+            $data = json_decode(file_get_contents("php://input"));
+            if (!isset($data->MaLoai)) {
+                echo json_encode(["message" => "Dữ liệu không đầy đủ"]);
+                http_response_code(400);
+                exit;
+            }
+
+            $loaibaogiao->MaLoai = $data->MaLoai;
+
+            if ($loaibaogiao->delete()) {
+                echo json_encode([
+                    "status" => "success",
+                    "message" => "Loại báo giá đã được xóa thành công"
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Xóa loại báo giá thất bại"
+                ]);
+                http_response_code(500);
+            }
+        } else {
+            echo json_encode(["message" => "Action không hợp lệ cho phương thức DELETE"]);
+            http_response_code(400);
+        }
+        break;
+
     default:
         echo json_encode([
             'status' => 'error',

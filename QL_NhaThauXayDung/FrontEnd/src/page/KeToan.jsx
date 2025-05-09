@@ -46,10 +46,10 @@ const PageKeToan = ({ children }) => {
       path: "/ketoan/quanlyluong",
     },
     {
-      id: "thanhtoanvatlieuthietbi",
-      label: "Thanh toán vật liệu thiết bị",
+      id: "thanhtoan",
+      label: "Thanh toán",
       icon: <FaClipboardList />,
-      path: "/ketoan/thanhtoanvatlieuthietbi",
+      path: "/ketoan/thanhtoan",
     },
     {
       id: "quanlygiaingan",
@@ -127,9 +127,9 @@ const PageKeToan = ({ children }) => {
     <div className="flex h-screen overflow-hidden bg-gray-100">
       <div
         ref={sidebarRef}
-        className={`h-screen w-64 bg-[#ffffff] border-r border-gray-300 text-gray-700 lg:static absolute z-20 ${
+        className={`h-screen w-auto min-w-[170px] bg-[#ffffff] border-r border-gray-300 text-gray-700 lg:static absolute z-20 ${
           sidebarToggle ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 transition-all duration-300`}
+        } lg:translate-x-0 transition-all duration-300 overflow-x-hidden`}
       >
         <div className="flex p-4 text-center text-2xl font-bold justify-between items-center">
           <img src={LogoHUIT} alt="Logo" className="h-9" />
@@ -143,20 +143,28 @@ const PageKeToan = ({ children }) => {
         <hr className="border-gray-400" />
 
         <div className="py-6 px-4">
-          <ul className="space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <ul className="space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1">
             {menuItems.map((item) => (
               <li
                 key={item.id}
                 onClick={() => handleMenuClick(item.id, item.path)}
-                className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
+                className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                   activeMenu === item.id
-                    ? "bg-[#2e7d32] text-white font-medium"
-                    : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
+                    ? "bg-[#2e7d32] text-white font-medium shadow-md transform scale-[1.02]"
+                    : "text-gray-700 hover:bg-[#e8f5e9] hover:text-[#2e7d32] hover:shadow-sm"
                 }`}
               >
                 <div className="flex items-center space-x-3">
-                  {item.icon}
-                  <span className="font-semibold">{item.label}</span>
+                  <span className={`text-lg transition-colors duration-200 whitespace-nowrap ${
+                    activeMenu === item.id ? "text-white" : "text-[#2e7d32]"
+                  }`}>
+                    {item.icon}
+                  </span>
+                  <span className={`font-medium transition-colors duration-200 whitespace-nowrap ${
+                    activeMenu === item.id ? "text-white" : "text-gray-700"
+                  }`}>
+                    {item.label}
+                  </span>
                 </div>
               </li>
             ))}

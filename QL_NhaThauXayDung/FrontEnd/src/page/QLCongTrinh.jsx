@@ -11,10 +11,9 @@ import {
   FaUserEdit,
   FaSignOutAlt
 } from "react-icons/fa";
-
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
 
 const PageQuanLy = ({ children }) => {
@@ -22,8 +21,8 @@ const PageQuanLy = ({ children }) => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("chitietgv"); // Menu mặc định
-  
+  const [activeMenu, setActiveMenu] = useState("quanlycongtrinh");
+
   const sidebarRef = useRef();
   const userMenuRef = useRef();
   const navigate = useNavigate();
@@ -42,7 +41,6 @@ const PageQuanLy = ({ children }) => {
     if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
       setSidebarToggle(false);
     }
-    
     if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
       setUserMenuOpen(false);
     }
@@ -74,23 +72,15 @@ const PageQuanLy = ({ children }) => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    // Xác nhận đăng xuất
     setIsLogoutModalOpen(false);
-    
-    // Xóa tất cả thông tin đăng nhập
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
     localStorage.removeItem("expires");
-    
-    // Chuyển hướng về trang đăng nhập
     navigate("/login");
   };
-  
+
   const handleProfileEdit = () => {
-    // Đóng menu người dùng
     setUserMenuOpen(false);
-    
-    // Chuyển hướng đến trang chỉnh sửa hồ sơ
     navigate("/profile");
   };
 
@@ -103,9 +93,9 @@ const PageQuanLy = ({ children }) => {
     <div className="flex h-screen overflow-hidden bg-gray-100">
       <div
         ref={sidebarRef}
-        className={`h-screen w-64 bg-[#ffffff] border-r border-gray-300 text-gray-700 lg:static absolute z-20 ${
+        className={`h-screen w-auto min-w-[170px] bg-[#ffffff] border-r border-gray-300 text-gray-700 lg:static absolute z-20 ${
           sidebarToggle ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 transition-all duration-300`}
+        } lg:translate-x-0 transition-all duration-300 overflow-x-hidden`}
       >
         <div className="flex p-4 text-center text-2xl font-bold justify-between items-center">
           <img src={LogoHUIT} alt="Logo" className="h-9" />
@@ -119,20 +109,28 @@ const PageQuanLy = ({ children }) => {
         <hr className="border-gray-400" />
 
         <div className="py-6 px-4">
-          <ul className="space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <ul className="space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1">
             {menuItems.map((item) => (
-              <li 
-              key={item.id}
-              onClick={() => handleMenuClick(item.id, item.path)}
-              className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
-                activeMenu === item.id 
-                ? "bg-[#2e7d32] text-white font-medium" 
-                : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
-              }`}
-            >
+              <li
+                key={item.id}
+                onClick={() => handleMenuClick(item.id, item.path)}
+                className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  activeMenu === item.id
+                    ? "bg-[#2e7d32] text-white font-medium shadow-md transform scale-[1.02]"
+                    : "text-gray-700 hover:bg-[#e8f5e9] hover:text-[#2e7d32] hover:shadow-sm"
+                }`}
+              >
                 <div className="flex items-center space-x-3">
-                  {item.icon}
-                  <span className="font-semibold">{item.label}</span>
+                  <span className={`text-lg transition-colors duration-200 whitespace-nowrap ${
+                    activeMenu === item.id ? "text-white" : "text-[#2e7d32]"
+                  }`}>
+                    {item.icon}
+                  </span>
+                  <span className={`font-medium transition-colors duration-200 whitespace-nowrap ${
+                    activeMenu === item.id ? "text-white" : "text-gray-700"
+                  }`}>
+                    {item.label}
+                  </span>
                 </div>
               </li>
             ))}
@@ -171,21 +169,20 @@ const PageQuanLy = ({ children }) => {
                 >
                   <CiUser className="text-xl text-gray-600" />
                 </div>
-                
                 {/* Menu người dùng */}
                 {userMenuOpen && (
-                  <div 
+                  <div
                     ref={userMenuRef}
                     className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-30 border border-gray-200"
                   >
-                    <div 
+                    <div
                       onClick={handleProfileEdit}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
                       <FaUserEdit className="mr-2" />
                       Chỉnh sửa hồ sơ
                     </div>
-                    <div 
+                    <div
                       onClick={() => setIsLogoutModalOpen(true)}
                       className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
                     >
@@ -199,7 +196,9 @@ const PageQuanLy = ({ children }) => {
           </div>
         </div>
 
-        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>
+        <div className="flex-1 bg-[#e4e4e4] p-8">
+          <Outlet />
+        </div>
       </div>
 
       {/* Modal xác nhận đăng xuất */}
