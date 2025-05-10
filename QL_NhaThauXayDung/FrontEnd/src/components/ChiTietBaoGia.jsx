@@ -8,6 +8,7 @@ import {
   Typography,
   Divider,
   List,
+  Table,
 } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -50,8 +51,8 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
         }
       );
 
-      if (response.data.status === "success" && response.data.data.length > 0) {
-        setBaoGiaDetails(response.data.data[0]);
+      if (response.data.status === "success") {
+        setBaoGiaDetails(response.data.data);
       } else {
         console.error("Không thể lấy chi tiết báo giá:", response.data.message);
       }
@@ -81,31 +82,20 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
     }).format(date);
   };
 
-  // Kiểm tra xem thông tin công trình có dữ liệu không
-  const hasConstructionInfo = () => {
-    if (!baoGiaDetails) return false;
-    
-    return !!(
-      baoGiaDetails.TenCongTrinh || 
-      baoGiaDetails.Dientich || 
-      baoGiaDetails.TenKhachHang || 
-      baoGiaDetails.SoDienThoai || 
-      baoGiaDetails.SoDT ||
-      baoGiaDetails.TenLoaiCongTrinh || 
-      baoGiaDetails.NgayDuKienHoanThanh
-    );
-  };
-
-  // Kiểm tra xem thông tin giá có dữ liệu không
-  const hasPriceInfo = () => {
-    if (!baoGiaDetails) return false;
-    
-    return (
-      baoGiaDetails.GiaBaoGia  !== null && 
-      baoGiaDetails.GiaBaoGia  !== undefined && 
-      baoGiaDetails.GiaBaoGia  !== ""
-    );
-  };
+  const columns = [
+    {
+      title: "Nội dung",
+      dataIndex: "NoiDung",
+      key: "NoiDung",
+    },
+    {
+      title: "Giá báo giá",
+      dataIndex: "GiaBaoGia",
+      key: "GiaBaoGia",
+      render: (value) => formatCurrency(value),
+      align: "right",
+    },
+  ];
 
   return (
     <Modal
@@ -118,39 +108,34 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
       open={visible}
       onCancel={onCancel}
       footer={[]}
-      width={700}
+      width={800}
     >
       {baoGia ? (
         <Spin spinning={loading}>
           <div
             style={{
-              height: "450px", // Chiều cao cố định bạn mong muốn (có thể điều chỉnh)
-              overflowY: "auto", // Cho phép cuộn dọc
-              paddingRight: "8px", // Tránh bị che nội dung bởi thanh cuộn
+              height: "600px",
+              overflowY: "auto",
+              paddingRight: "8px",
             }}
           >
             {/* Thông tin chung về báo giá */}
-
             <div style={{ marginBottom: 24 }}>
               <Title level={4}>Thông tin báo giá</Title>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
                 <div style={{ minWidth: "200px" }}>
                   <Text strong>Mã báo giá:</Text>
-                  <div>{baoGia.MaBaoGia}</div>
+                  <div>{baoGiaDetails?.bao_gia?.MaBaoGia}</div>
                 </div>
                 <div style={{ minWidth: "200px" }}>
                   <Text strong>Tên báo giá:</Text>
-                  <div>{baoGia.TenBaoGia}</div>
-                </div>
-                <div style={{ minWidth: "200px" }}>
-                  <Text strong>Loại báo giá:</Text>
-                  <div>{baoGia.TenLoaiBaoGia || `Loại ${baoGia.MaLoai}`}</div>
+                  <div>{baoGiaDetails?.bao_gia?.TenBaoGia}</div>
                 </div>
                 <div>
                   <Text strong>Trạng thái:</Text>
                   <div>
-                    <Tag color={statusColors[baoGia.TrangThai] || "default"}>
-                      {baoGia.TrangThai}
+                    <Tag color={statusColors[baoGiaDetails?.bao_gia?.TrangThai] || "default"}>
+                      {baoGiaDetails?.bao_gia?.TrangThai}
                     </Tag>
                   </div>
                 </div>
@@ -159,65 +144,67 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
 
             <Divider />
 
-            {baoGiaDetails ? (
-              <>
-                {/* Thông tin về giá thấp nhất - chỉ hiển thị nếu có dữ liệu */}
-                {hasPriceInfo() && (
-                  <div style={{ display: "flex", gap: "16px", marginBottom: 20 }}>
-                    <Card
-                      title="Giá báo giá"
-                      style={{ width: "50%" }}
-                      bordered={false}
-                    >
-                      <Text
-                        style={{
-                          fontSize: 18,
-                          color: "#ff4d4f",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {formatCurrency(baoGiaDetails.GiaBaoGia)}
-                      </Text>
-                    </Card>
+            {/* Thông tin công trình */}
+            {baoGiaDetails?.cong_trinh && (
+              <Card title="Thông tin công trình" style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
+                  <div style={{ minWidth: "45%" }}>
+                    <Text strong>Tên công trình:</Text>
+                    <div>{baoGiaDetails.cong_trinh.TenCongTrinh}</div>
                   </div>
-                )}
+                  <div style={{ minWidth: "45%" }}>
+                    <Text strong>Diện tích:</Text>
+                    <div>{baoGiaDetails.cong_trinh.Dientich} m²</div>
+                  </div>
+                  <div style={{ minWidth: "45%" }}>
+                    <Text strong>Thông tin khách hàng:</Text>
+                    <div>{baoGiaDetails.cong_trinh.khach_hang.TenKhachHang}</div>
+                    <div>{baoGiaDetails.cong_trinh.khach_hang.SoDT}</div>
+                  </div>
+                  <div style={{ minWidth: "45%" }}>
+                    <Text strong>Loại công trình:</Text>
+                    <div>{baoGiaDetails.cong_trinh.loai_cong_trinh.TenLoaiCongTrinh}</div>
+                  </div>
+                  <div style={{ minWidth: "45%" }}>
+                    <Text strong>Ngày dự kiến hoàn thành:</Text>
+                    <div>{formatDate(baoGiaDetails.cong_trinh.NgayDuKienHoanThanh)}</div>
+                  </div>
+                </div>
+              </Card>
+            )}
 
-                {/* Thông tin công trình - chỉ hiển thị nếu có dữ liệu */}
-                {hasConstructionInfo() && (
-                  <Card title="Thông tin công trình" style={{ marginBottom: 16 }}>
-                    <div
-                      style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}
-                    >
-                      <div style={{ minWidth: "45%" }}>
-                        <Text strong>Tên công trình:</Text>
-                        <div>{baoGiaDetails.TenCongTrinh}</div>
-                      </div>
-                      <div style={{ minWidth: "45%" }}>
-                        <Text strong>Diện tích:</Text>
-                        <div>{baoGiaDetails.Dientich} m²</div>
-                      </div>
-
-                      <div style={{ minWidth: "45%" }}>
-                        <Text strong>Thông tin khách hàng:</Text>
-                        <div>{baoGiaDetails.TenKhachHang}</div>
-                        <div>{baoGiaDetails.SoDienThoai || baoGiaDetails.SoDT}</div>
-                      </div>
-                      <div style={{ minWidth: "45%" }}>
-                        <Text strong>Loại công trình:</Text>
-                        <div>{baoGiaDetails.TenLoaiCongTrinh}</div>
-                      </div>
-                      <div style={{ minWidth: "45%" }}>
-                        <Text strong>Ngày dự kiến hoàn thành:</Text>
-                        <div>{formatDate(baoGiaDetails.NgayDuKienHoanThanh)}</div>
-                      </div>
-                    </div>
-                  </Card>
-                )}
-              </>
-            ) : (
-              <div style={{ textAlign: "center", padding: 20, color: "#999" }}>
-                <Spin size="small" /> Đang tải thông tin chi tiết...
-              </div>
+            {/* Chi tiết báo giá */}
+            {baoGiaDetails?.chi_tiet_bao_gia && (
+              <Card 
+                title="Chi tiết báo giá" 
+                style={{ marginBottom: 16 }}
+                extra={
+                  <Text strong style={{ fontSize: 16, color: "#ff4d4f" }}>
+                    Tổng giá: {formatCurrency(baoGiaDetails.tong_gia)}
+                  </Text>
+                }
+              >
+                <Table
+                  columns={columns}
+                  dataSource={baoGiaDetails.chi_tiet_bao_gia.map((item, index) => ({
+                    ...item,
+                    key: index,
+                  }))}
+                  pagination={false}
+                  summary={() => (
+                    <Table.Summary.Row>
+                      <Table.Summary.Cell index={0}>
+                        <Text strong>Tổng cộng</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={1} align="right">
+                        <Text strong style={{ color: "#ff4d4f" }}>
+                          {formatCurrency(baoGiaDetails.tong_gia)}
+                        </Text>
+                      </Table.Summary.Cell>
+                    </Table.Summary.Row>
+                  )}
+                />
+              </Card>
             )}
           </div>
         </Spin>

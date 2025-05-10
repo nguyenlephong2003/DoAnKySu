@@ -8,6 +8,7 @@ class ChiTietBaoGia {
     public $MaBaoGia;
     public $MaCongTrinh;
     public $GiaBaoGia;
+    public $NoiDung;
 
     // Constructor
     public function __construct($db) {
@@ -18,19 +19,21 @@ class ChiTietBaoGia {
     public function create() {
         try {
             $query = "INSERT INTO " . $this->table_name . " 
-                      (MaBaoGia, MaCongTrinh, GiaBaoGia) 
-                      VALUES (:maBaoGia, :maCongTrinh, :giaBaoGia)";
+                      (MaBaoGia, MaCongTrinh, GiaBaoGia, NoiDung) 
+                      VALUES (:maBaoGia, :maCongTrinh, :giaBaoGia, :noiDung)";
 
             $stmt = $this->conn->prepare($query);
 
             // Clean and bind data
             $this->MaBaoGia = htmlspecialchars(strip_tags($this->MaBaoGia));
-            $this->MaCongTrinh = htmlspecialchars(strip_tags($this->MaCongTrinh));
+            $this->MaCongTrinh = $this->MaCongTrinh ? htmlspecialchars(strip_tags($this->MaCongTrinh)) : null;
             $this->GiaBaoGia = filter_var($this->GiaBaoGia, FILTER_VALIDATE_FLOAT);
+            $this->NoiDung = htmlspecialchars(strip_tags($this->NoiDung));
 
             $stmt->bindParam(":maBaoGia", $this->MaBaoGia);
             $stmt->bindParam(":maCongTrinh", $this->MaCongTrinh);
             $stmt->bindParam(":giaBaoGia", $this->GiaBaoGia);
+            $stmt->bindParam(":noiDung", $this->NoiDung);
 
             if($stmt->execute()) {
                 $this->MaChiTietBaoGia = $this->conn->lastInsertId();
@@ -65,6 +68,7 @@ class ChiTietBaoGia {
                 $this->MaBaoGia = $row['MaBaoGia'];
                 $this->MaCongTrinh = $row['MaCongTrinh'];
                 $this->GiaBaoGia = $row['GiaBaoGia'];
+                $this->NoiDung = $row['NoiDung'];
 
                 return [
                     'TenBaoGia' => $row['TenBaoGia'],
@@ -106,7 +110,8 @@ class ChiTietBaoGia {
             $query = "UPDATE " . $this->table_name . " 
                       SET MaBaoGia = :maBaoGia, 
                           MaCongTrinh = :maCongTrinh, 
-                          GiaBaoGia = :giaBaoGia 
+                          GiaBaoGia = :giaBaoGia,
+                          NoiDung = :noiDung 
                       WHERE MaChiTietBaoGia = :maChiTietBaoGia";
 
             $stmt = $this->conn->prepare($query);
@@ -115,11 +120,13 @@ class ChiTietBaoGia {
             $this->MaBaoGia = htmlspecialchars(strip_tags($this->MaBaoGia));
             $this->MaCongTrinh = htmlspecialchars(strip_tags($this->MaCongTrinh));
             $this->GiaBaoGia = filter_var($this->GiaBaoGia, FILTER_VALIDATE_FLOAT);
+            $this->NoiDung = htmlspecialchars(strip_tags($this->NoiDung));
             $this->MaChiTietBaoGia = filter_var($this->MaChiTietBaoGia, FILTER_VALIDATE_INT);
 
             $stmt->bindParam(":maBaoGia", $this->MaBaoGia);
             $stmt->bindParam(":maCongTrinh", $this->MaCongTrinh);
             $stmt->bindParam(":giaBaoGia", $this->GiaBaoGia);
+            $stmt->bindParam(":noiDung", $this->NoiDung);
             $stmt->bindParam(":maChiTietBaoGia", $this->MaChiTietBaoGia);
 
             return $stmt->execute();

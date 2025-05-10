@@ -220,7 +220,7 @@ class BangBaoGia {
                      ct.MaKhachHang, kh.TenKhachHang, kh.SoDT,
                      ct.MaLoaiCongTrinh, lct.TenLoaiCongTrinh, 
                      ct.MaHopDong, ct.NgayDuKienHoanThanh,
-                     ctbg.GiaBaoGia
+                     ctbg.GiaBaoGia, ctbg.NoiDung
               FROM " . $this->table_name . " bg
               LEFT JOIN ChiTietBaoGia ctbg ON bg.MaBaoGia = ctbg.MaBaoGia
               LEFT JOIN CongTrinh ct ON ctbg.MaCongTrinh = ct.MaCongTrinh
