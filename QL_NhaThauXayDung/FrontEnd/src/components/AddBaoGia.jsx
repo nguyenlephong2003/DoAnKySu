@@ -220,7 +220,7 @@ const AddBaoGiaForm = ({ visible, onCancel, onSuccess, loaiBaoGiaList = [] }) =>
               <Input 
                 placeholder="Mã báo giá" 
                 disabled={useAutoMaBaoGia}
-                style={{ width: '100%' }}
+                style={{ width: '100%', fontWeight: '500' }}
               />
             </Form.Item>
           </Form.Item>
@@ -230,21 +230,15 @@ const AddBaoGiaForm = ({ visible, onCancel, onSuccess, loaiBaoGiaList = [] }) =>
             label="Tên báo giá"
             rules={[{ required: true, message: 'Vui lòng nhập tên báo giá' }]}
           >
-            <Input placeholder="Nhập tên báo giá" />
+            <Input placeholder="Nhập tên báo giá" style={{ fontWeight: '500' }} />
           </Form.Item>
 
           <Form.Item
             name="TrangThai"
             label="Trạng thái"
-            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+            initialValue="Chờ duyệt"
           >
-            <Select placeholder="Chọn trạng thái">
-              {trangThaiOptions.map(option => (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
-                </Option>
-              ))}
-            </Select>
+            <Input disabled value="Chờ duyệt" style={{ fontWeight: '500' }} />
           </Form.Item>
 
           <Form.Item
@@ -287,7 +281,7 @@ const AddBaoGiaForm = ({ visible, onCancel, onSuccess, loaiBaoGiaList = [] }) =>
                       name={[name, 'NoiDung']}
                       rules={[{ required: true, message: 'Vui lòng nhập nội dung' }]}
                     >
-                      <Input placeholder="Nội dung" style={{ width: 200 }} />
+                      <Input placeholder="Nội dung" style={{ width: 200, fontWeight: '500' }} />
                     </Form.Item>
 
                     <Form.Item

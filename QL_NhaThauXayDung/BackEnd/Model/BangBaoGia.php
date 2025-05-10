@@ -122,26 +122,34 @@ class BangBaoGia {
         return false;
     }
 
-    // Delete BangBaoGia entry
+    // Delete BangBaoGia entry and related data
     public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " 
-                  WHERE MaBaoGia = ?";
+        try {
+            // Start transaction
+            $this->conn->beginTransaction();
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            // 1. Delete from ChiTietBaoGia first (child table)
+            $query1 = "DELETE FROM ChiTietBaoGia WHERE MaBaoGia = ?";
+            $stmt1 = $this->conn->prepare($query1);
+            $stmt1->bindParam(1, $this->MaBaoGia);
+            $stmt1->execute();
 
-        // Clean data
-        $this->MaBaoGia = htmlspecialchars(strip_tags($this->MaBaoGia));
+            // 2. Delete from BangBaoGia (main table)
+            $query2 = "DELETE FROM " . $this->table_name . " WHERE MaBaoGia = ?";
+            $stmt2 = $this->conn->prepare($query2);
+            $stmt2->bindParam(1, $this->MaBaoGia);
+            $stmt2->execute();
 
-        // Bind ID
-        $stmt->bindParam(1, $this->MaBaoGia);
-
-        // Execute query
-        if($stmt->execute()) {
+            // Commit transaction
+            $this->conn->commit();
             return true;
-        }
 
-        return false;
+        } catch(PDOException $e) {
+            // Rollback transaction on error
+            $this->conn->rollBack();
+            throw $e;
+            return false;
+        }
     }
 
     // Search BangBaoGia entries
