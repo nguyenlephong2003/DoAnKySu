@@ -14,6 +14,7 @@ const BaoGia = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedLoai, setSelectedLoai] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
@@ -103,6 +104,14 @@ const BaoGia = () => {
       filteredData = filteredData.filter(item => item.MaLoai === selectedLoai);
     }
 
+    // Lọc theo trạng thái
+    if (selectedStatus !== 'all') {
+      filteredData = filteredData.filter(item => item.TrangThai === selectedStatus);
+    }
+
+    // Sắp xếp theo mã báo giá giảm dần (mới nhất lên đầu)
+    filteredData.sort((a, b) => b.MaBaoGia.localeCompare(a.MaBaoGia));
+
     return filteredData;
   };
 
@@ -127,30 +136,22 @@ const BaoGia = () => {
       title: 'Mã báo giá',
       dataIndex: 'MaBaoGia',
       key: 'MaBaoGia',
-      sorter: (a, b) => a.MaBaoGia.localeCompare(b.MaBaoGia),
     },
     {
       title: 'Tên báo giá',
       dataIndex: 'TenBaoGia',
       key: 'TenBaoGia',
-      sorter: (a, b) => a.TenBaoGia.localeCompare(b.TenBaoGia),
     },
     {
       title: 'Loại báo giá',
       dataIndex: 'TenLoaiBaoGia',
       key: 'TenLoaiBaoGia',
-      sorter: (a, b) => {
-        if (!a.TenLoaiBaoGia) return -1;
-        if (!b.TenLoaiBaoGia) return 1;
-        return a.TenLoaiBaoGia.localeCompare(b.TenLoaiBaoGia);
-      },
       render: (text, record) => text || `Loại ${record.MaLoai}`,
     },
     {
       title: 'Trạng thái',
       dataIndex: 'TrangThai',
       key: 'TrangThai',
-      sorter: (a, b) => a.TrangThai.localeCompare(b.TrangThai),
       render: (text) => (
         <Tag color={statusColors[text] || 'default'}>
           {text}
@@ -274,6 +275,19 @@ const BaoGia = () => {
               {loai.TenLoai}
             </Option>
           ))}
+        </Select>
+
+        <Select
+          placeholder="Chọn trạng thái"
+          style={{ width: 200 }}
+          value={selectedStatus}
+          onChange={value => setSelectedStatus(value)}
+        >
+          <Option value="all">Tất cả trạng thái</Option>
+          <Option value="Chờ duyệt">Chờ duyệt</Option>
+          <Option value="Đã duyệt">Đã duyệt</Option>
+          <Option value="Từ chối">Từ chối</Option>
+          <Option value="Hoàn thành">Hoàn thành</Option>
         </Select>
         
         <Button
