@@ -208,7 +208,7 @@ class CongTrinh {
 
     // Lấy tất cả công trình
     public function readAll() {
-        $query = "SELECT ct.MaCongTrinh, ct.TenCongTrinh, lct.TenLoaiCongTrinh, kh.TenKhachHang, ct.NgayDuKienHoanThanh
+        $query = "SELECT ct.MaCongTrinh, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, ct.MaKhachHang, ct.MaHopDong, ct.MaLoaiCongTrinh, ct.NgayDuKienHoanThanh, lct.TenLoaiCongTrinh, kh.TenKhachHang
                   FROM " . $this->table_name . " ct
                   LEFT JOIN LoaiCongTrinh lct ON ct.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
                   LEFT JOIN KhachHang kh ON ct.MaKhachHang = kh.MaKhachHang
