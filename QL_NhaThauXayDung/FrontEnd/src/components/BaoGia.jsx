@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Select, Tag, Spin, message, Pagination, Modal } from 'antd';
+import { Table, Button, Input, Select, Tag, Spin, message, Pagination, Modal, Form } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import BASE_URL from '../Config'; // Đường dẫn đến file config của bạn
@@ -7,6 +7,7 @@ import AddBaoGiaForm from './AddBaoGia'; // Import component form thêm mới
 import DetailBaoGiaModal from './ChiTietBaoGia'; // Import component modal chi tiết
 
 const { Option } = Select;
+const { confirm } = Modal;
 
 const BaoGia = () => {
   const [bangBaoGiaList, setBangBaoGiaList] = useState([]);
@@ -23,6 +24,11 @@ const BaoGia = () => {
   const [addModalVisible, setAddModalVisible] = useState(false); // State cho modal thêm mới
   const [detailModalVisible, setDetailModalVisible] = useState(false); // State cho modal chi tiết
   const [currentBaoGia, setCurrentBaoGia] = useState(null); // Báo giá đang được xem chi tiết
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [baoGiaToDelete, setBaoGiaToDelete] = useState(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [form] = Form.useForm();
+  const [chiTietBaoGia, setChiTietBaoGia] = useState([]);
 
   const statusColors = {
     'Chờ duyệt': 'orange',
@@ -130,6 +136,59 @@ const BaoGia = () => {
     return filteredData.slice(startIndex, endIndex);
   };
 
+  // Hàm xử lý xóa
+  const handleDelete = (record) => {
+    console.log('Bắt đầu xóa báo giá:', record);
+    setBaoGiaToDelete(record);
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!baoGiaToDelete) return;
+
+    console.log('Người dùng xác nhận xóa');
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+      console.log('Gửi request xóa đến API...');
+      
+      const response = await axios({
+        method: 'DELETE',
+        url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=DELETE`,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          MaBaoGia: baoGiaToDelete.MaBaoGia
+        }
+      });
+      console.log('Phản hồi từ API:', response.data);
+
+      if (response.data.status === 'success') {
+        message.success('Xóa báo giá thành công');
+        fetchData(); // Tải lại dữ liệu
+      } else {
+        message.error(response.data.message || 'Xóa báo giá thất bại');
+      }
+    } catch (error) {
+      console.error('Lỗi khi xóa:', error);
+      console.error('Chi tiết lỗi:', error.response?.data);
+      message.error('Lỗi khi xóa báo giá: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+      setDeleteModalVisible(false);
+      setBaoGiaToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    console.log('Người dùng hủy xóa');
+    setDeleteModalVisible(false);
+    setBaoGiaToDelete(null);
+  };
+
   // Columns của bảng
   const columns = [
     {
@@ -180,7 +239,10 @@ const BaoGia = () => {
           <Button 
             icon={<DeleteOutlined />} 
             danger
-            onClick={() => handleDelete(record)}
+            onClick={() => {
+              console.log('Nút xóa được nhấn');
+              handleDelete(record);
+            }}
           >
             Xóa
           </Button>
@@ -195,47 +257,85 @@ const BaoGia = () => {
     setDetailModalVisible(true);
   };
 
-  // Hàm xử lý sửa (có thể mở modal sửa)
+  // Hàm xử lý sửa
   const handleEdit = (record) => {
-    message.info(`Đang chuẩn bị sửa báo giá: ${record.MaBaoGia}`);
-    // Thêm code xử lý sửa báo giá ở đây
+    console.log('Bắt đầu sửa báo giá:', record);
+    setCurrentBaoGia(record);
+    form.setFieldsValue({
+      TenBaoGia: record.TenBaoGia,
+      MaLoai: record.MaLoai,
+      TrangThai: record.TrangThai
+    });
+    setEditModalVisible(true);
+
+    // Lấy chi tiết báo giá
+    const fetchChiTietBaoGia = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getQuotationDetails&MaBaoGia=${record.MaBaoGia}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        if (response.data.status === 'success') {
+          setChiTietBaoGia(response.data.data.chi_tiet_bao_gia || []);
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy chi tiết báo giá:', error);
+        message.error('Không thể lấy chi tiết báo giá');
+      }
+    };
+
+    fetchChiTietBaoGia();
   };
 
-  // Hàm xử lý xóa (hiển thị xác nhận trước khi xóa)
-  const handleDelete = (record) => {
-    Modal.confirm({
-      title: 'Xác nhận xóa',
-      content: `Bạn có chắc chắn muốn xóa báo giá "${record.TenBaoGia}" không?`,
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await axios({
-            method: 'DELETE',
-            url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=deleteBangBaoGia`,
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            data: {
-              MaBaoGia: record.MaBaoGia
-            }
-          });
-
-          if (response.data.status === 'success') {
-            message.success('Xóa báo giá thành công');
-            fetchData(); // Tải lại dữ liệu
-          } else {
-            message.error(response.data.message || 'Xóa báo giá thất bại');
-          }
-        } catch (error) {
-          console.error('Error deleting data:', error);
-          message.error('Lỗi khi xóa báo giá');
+  // Hàm xử lý khi submit form sửa
+  const handleEditSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      console.log('Giá trị form sửa:', values);
+      
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios({
+        method: 'PUT',
+        url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=updateBangBaoGia`,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          MaBaoGia: currentBaoGia.MaBaoGia,
+          TenBaoGia: values.TenBaoGia,
+          MaLoai: values.MaLoai,
+          TrangThai: values.TrangThai,
+          ChiTietLoaiBaoGia: chiTietBaoGia
         }
+      });
+
+      console.log('Phản hồi từ API:', response.data);
+
+      if (response.data.status === 'success') {
+        message.success('Cập nhật báo giá thành công');
+        fetchData(); // Tải lại dữ liệu
+        setEditModalVisible(false);
+        form.resetFields();
+        setChiTietBaoGia([]);
+      } else {
+        message.error(response.data.message || 'Cập nhật báo giá thất bại');
       }
-    });
+    } catch (error) {
+      console.error('Lỗi khi cập nhật:', error);
+      console.error('Chi tiết lỗi:', error.response?.data);
+      message.error('Lỗi khi cập nhật báo giá: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Hàm thêm báo giá mới - mở modal thêm mới
@@ -246,6 +346,28 @@ const BaoGia = () => {
   // Hàm xử lý sau khi thêm thành công
   const handleAddSuccess = () => {
     fetchData(); // Tải lại dữ liệu
+  };
+
+  // Hàm thêm chi tiết báo giá mới
+  const handleAddChiTiet = () => {
+    setChiTietBaoGia([...chiTietBaoGia, { NoiDung: '', GiaBaoGia: 0 }]);
+  };
+
+  // Hàm xóa chi tiết báo giá
+  const handleRemoveChiTiet = (index) => {
+    const newChiTiet = [...chiTietBaoGia];
+    newChiTiet.splice(index, 1);
+    setChiTietBaoGia(newChiTiet);
+  };
+
+  // Hàm cập nhật chi tiết báo giá
+  const handleUpdateChiTiet = (index, field, value) => {
+    const newChiTiet = [...chiTietBaoGia];
+    newChiTiet[index] = {
+      ...newChiTiet[index],
+      [field]: value
+    };
+    setChiTietBaoGia(newChiTiet);
   };
 
   return (
@@ -334,6 +456,116 @@ const BaoGia = () => {
         onCancel={() => setDetailModalVisible(false)}
         baoGia={currentBaoGia}
       />
+      
+      {/* Modal xác nhận xóa */}
+      <Modal
+        title="Xác nhận xóa"
+        open={deleteModalVisible}
+        onOk={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true }}
+      >
+        {baoGiaToDelete && (
+          <p>Bạn có chắc chắn muốn xóa báo giá "{baoGiaToDelete.TenBaoGia}" không?</p>
+        )}
+      </Modal>
+      
+      {/* Modal sửa báo giá */}
+      <Modal
+        title="Sửa báo giá"
+        open={editModalVisible}
+        onOk={handleEditSubmit}
+        onCancel={() => {
+          setEditModalVisible(false);
+          form.resetFields();
+          setChiTietBaoGia([]);
+        }}
+        okText="Lưu"
+        cancelText="Hủy"
+        width={800}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            TenBaoGia: currentBaoGia?.TenBaoGia,
+            MaLoai: currentBaoGia?.MaLoai,
+            TrangThai: currentBaoGia?.TrangThai
+          }}
+        >
+          <Form.Item
+            name="TenBaoGia"
+            label="Tên báo giá"
+            rules={[{ required: true, message: 'Vui lòng nhập tên báo giá' }]}
+          >
+            <Input placeholder="Nhập tên báo giá" />
+          </Form.Item>
+
+          <Form.Item
+            name="MaLoai"
+            label="Loại báo giá"
+            rules={[{ required: true, message: 'Vui lòng chọn loại báo giá' }]}
+          >
+            <Select placeholder="Chọn loại báo giá">
+              {loaiBaoGiaList.map(loai => (
+                <Option key={loai.MaLoai} value={loai.MaLoai}>
+                  {loai.TenLoai}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="TrangThai"
+            label="Trạng thái"
+            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+          >
+            <Select placeholder="Chọn trạng thái">
+              <Option value="Chờ duyệt">Chờ duyệt</Option>
+              <Option value="Đã duyệt">Đã duyệt</Option>
+              <Option value="Từ chối">Từ chối</Option>
+              <Option value="Hoàn thành">Hoàn thành</Option>
+            </Select>
+          </Form.Item>
+
+          <div style={{ marginBottom: 16 }}>
+            <Button type="dashed" onClick={handleAddChiTiet} block icon={<PlusOutlined />}>
+              Thêm chi tiết báo giá
+            </Button>
+          </div>
+
+          {chiTietBaoGia.map((chiTiet, index) => (
+            <div key={index} style={{ marginBottom: 16, padding: 16, border: '1px solid #d9d9d9', borderRadius: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <h4>Chi tiết {index + 1}</h4>
+                <Button 
+                  type="text" 
+                  danger 
+                  icon={<DeleteOutlined />} 
+                  onClick={() => handleRemoveChiTiet(index)}
+                />
+              </div>
+              <Form.Item label="Nội dung" required>
+                <Input
+                  value={chiTiet.NoiDung}
+                  onChange={(e) => handleUpdateChiTiet(index, 'NoiDung', e.target.value)}
+                  placeholder="Nhập nội dung"
+                />
+              </Form.Item>
+              <Form.Item label="Giá báo giá" required>
+                <Input
+                  type="number"
+                  value={chiTiet.GiaBaoGia}
+                  onChange={(e) => handleUpdateChiTiet(index, 'GiaBaoGia', parseFloat(e.target.value))}
+                  placeholder="Nhập giá"
+                />
+              </Form.Item>
+            </div>
+          ))}
+        </Form>
+      </Modal>
     </div>
   );
 };

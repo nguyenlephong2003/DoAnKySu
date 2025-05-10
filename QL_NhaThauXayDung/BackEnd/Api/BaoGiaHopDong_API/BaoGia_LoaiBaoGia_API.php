@@ -420,20 +420,59 @@ switch ($method) {
                 exit;
             }
 
-            $bangBaoGia->MaBaoGia = $data->MaBaoGia;
-            $bangBaoGia->TenBaoGia = $data->TenBaoGia;
-            $bangBaoGia->TrangThai = $data->TrangThai;
-            $bangBaoGia->MaLoai = $data->MaLoai;
+            // Bắt đầu transaction
+            $db->beginTransaction();
 
-            if ($bangBaoGia->update()) {
+            try {
+                // Cập nhật bảng báo giá
+                $bangBaoGia->MaBaoGia = $data->MaBaoGia;
+                $bangBaoGia->TenBaoGia = $data->TenBaoGia;
+                $bangBaoGia->TrangThai = $data->TrangThai;
+                $bangBaoGia->MaLoai = $data->MaLoai;
+
+                if (!$bangBaoGia->update()) {
+                    throw new Exception("Cập nhật bảng báo giá thất bại");
+                }
+
+                // Cập nhật chi tiết báo giá nếu có
+                if (isset($data->ChiTietLoaiBaoGia) && is_array($data->ChiTietLoaiBaoGia)) {
+                    // Xóa tất cả chi tiết cũ
+                    $query = "DELETE FROM ChiTietBaoGia WHERE MaBaoGia = ?";
+                    $stmt = $db->prepare($query);
+                    $stmt->bindParam(1, $data->MaBaoGia);
+                    $stmt->execute();
+
+                    // Thêm chi tiết mới
+                    foreach ($data->ChiTietLoaiBaoGia as $chiTiet) {
+                        if (!isset($chiTiet->NoiDung, $chiTiet->GiaBaoGia)) {
+                            throw new Exception("Dữ liệu chi tiết báo giá không đầy đủ");
+                        }
+
+                        $chiTietBaoGia->MaBaoGia = $data->MaBaoGia;
+                        $chiTietBaoGia->MaCongTrinh = null; // Luôn set là null
+                        $chiTietBaoGia->NoiDung = $chiTiet->NoiDung;
+                        $chiTietBaoGia->GiaBaoGia = $chiTiet->GiaBaoGia;
+
+                        if (!$chiTietBaoGia->create()) {
+                            throw new Exception("Cập nhật chi tiết báo giá thất bại");
+                        }
+                    }
+                }
+
+                // Commit transaction
+                $db->commit();
+
                 echo json_encode([
                     "status" => "success",
-                    "message" => "Bảng báo giá đã được cập nhật thành công"
+                    "message" => "Bảng báo giá và chi tiết đã được cập nhật thành công"
                 ]);
-            } else {
+            } catch (Exception $e) {
+                // Rollback transaction
+                $db->rollBack();
+
                 echo json_encode([
                     "status" => "error",
-                    "message" => "Cập nhật bảng báo giá thất bại"
+                    "message" => $e->getMessage()
                 ]);
                 http_response_code(500);
             }
@@ -470,7 +509,7 @@ switch ($method) {
 
     case 'DELETE':
         // Xóa BangBaoGia
-        if ($action === "deleteBangBaoGia") {
+        if ($action === "DELETE") {
             $data = json_decode(file_get_contents("php://input"));
             if (!isset($data->MaBaoGia)) {
                 echo json_encode(["message" => "Dữ liệu không đầy đủ"]);

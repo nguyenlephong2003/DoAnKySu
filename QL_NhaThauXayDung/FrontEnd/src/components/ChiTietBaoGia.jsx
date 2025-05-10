@@ -191,18 +191,7 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
                     key: index,
                   }))}
                   pagination={false}
-                  summary={() => (
-                    <Table.Summary.Row>
-                      <Table.Summary.Cell index={0}>
-                        <Text strong>Tổng cộng</Text>
-                      </Table.Summary.Cell>
-                      <Table.Summary.Cell index={1} align="right">
-                        <Text strong style={{ color: "#ff4d4f" }}>
-                          {formatCurrency(baoGiaDetails.tong_gia)}
-                        </Text>
-                      </Table.Summary.Cell>
-                    </Table.Summary.Row>
-                  )}
+                  
                 />
               </Card>
             )}

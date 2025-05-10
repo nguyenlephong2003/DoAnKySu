@@ -9,21 +9,23 @@ import {
   FaClipboardList,
   FaCheckCircle,
   FaUserEdit,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaListAlt,
 } from "react-icons/fa";
 
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
 
-const PageGiamDoc = ({ children }) => {
+const PageGiamDoc = () => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("chitietgv"); // Menu mặc định
-  
+  const [activeMenu, setActiveMenu] = useState("duyetdexuat"); // Menu mặc định
+  const [currentComponent, setCurrentComponent] = useState(null);
+
   const sidebarRef = useRef();
   const userMenuRef = useRef();
   const navigate = useNavigate();
@@ -31,13 +33,42 @@ const PageGiamDoc = ({ children }) => {
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "duyetdexuat", label: "Duyệt đề xuất", icon: <FaClipboardList />, path: "/giamdoc/duyetdexuat" },
-    { id: "duyetbaogia", label: "Duyệt báo giá", icon: <FaClipboardList />, path: "/giamdoc/duyetbaogia" },
-    { id: "baocaothongke", label: "Báo cáo thống kê", icon: <FaUserFriends />, path: "/giamdoc/baocaothongke" },
-    { id: "duyethopdong", label: "Duyệt hợp đồng", icon: <FaLaptopCode />, path: "/giamdoc/duyethopdong" },
-    { id: "quanlynhanvien", label: "Quản lý nhân viên", icon: <FaBox />, path: "/giamdoc/quanlynhanvien" },
-    { id: "timkiem", label: "TÌm kiếm", icon: <FaCheckCircle />, path: "/giamdoc/timkiem" },
-    { id: "quanlyluong", label: "Quản lý lương", icon: <FaCheckCircle />, path: "/giamdoc/quanlyluong" },
+    { 
+      id: "duyetdexuat", 
+      label: "Duyệt đề xuất", 
+      icon: <FaClipboardList />, 
+      path: "/giamdoc/duyetdexuat" 
+    },
+    { 
+      id: "duyetbaogia", 
+      label: "Duyệt báo giá", 
+      icon: <FaListAlt />, 
+      path: "/giamdoc/duyetbaogia" 
+    },
+    { 
+      id: "baocaothongke", 
+      label: "Báo cáo thống kê", 
+      icon: <FaChartBar />, 
+      path: "/giamdoc/baocaothongke" 
+    },
+    { 
+      id: "duyethopdong", 
+      label: "Duyệt hợp đồng", 
+      icon: <FaClipboardList />, 
+      path: "/giamdoc/duyethopdong" 
+    },
+    { 
+      id: "quanlynhanvien", 
+      label: "Quản lý nhân viên", 
+      icon: <FaUserFriends />, 
+      path: "/giamdoc/quanlynhanvien" 
+    },
+    { 
+      id: "quanlyluong", 
+      label: "Quản lý lương", 
+      icon: <FaBox />, 
+      path: "/giamdoc/quanlyluong" 
+    },
   ];
 
   const handleClickOutside = (event) => {
@@ -76,28 +107,21 @@ const PageGiamDoc = ({ children }) => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    // Xác nhận đăng xuất
     setIsLogoutModalOpen(false);
-    
-    // Xóa tất cả thông tin đăng nhập
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
     localStorage.removeItem("expires");
-    
-    // Chuyển hướng về trang đăng nhập
     navigate("/login");
   };
   
   const handleProfileEdit = () => {
-    // Đóng menu người dùng
     setUserMenuOpen(false);
-    
-    // Chuyển hướng đến trang chỉnh sửa hồ sơ
     navigate("/profile");
   };
 
   const handleMenuClick = (menuId, path) => {
     setActiveMenu(menuId);
+    setCurrentComponent(menuId);
     navigate(path);
   };
 
@@ -124,14 +148,14 @@ const PageGiamDoc = ({ children }) => {
           <ul className="space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
             {menuItems.map((item) => (
               <li 
-              key={item.id}
-              onClick={() => handleMenuClick(item.id, item.path)}
-              className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
-                activeMenu === item.id 
-                ? "bg-[#2e7d32] text-white font-medium" 
-                : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
-              }`}
-            >
+                key={item.id}
+                onClick={() => handleMenuClick(item.id, item.path)}
+                className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
+                  activeMenu === item.id 
+                  ? "bg-[#2e7d32] text-white font-medium" 
+                  : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
+                }`}
+              >
                 <div className="flex items-center space-x-3">
                   {item.icon}
                   <span className="font-semibold">{item.label}</span>
@@ -143,7 +167,6 @@ const PageGiamDoc = ({ children }) => {
       </div>
 
       <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        {/* Header với thông tin người dùng một hàng */}
         <div className="sticky top-0 z-10 w-full bg-white shadow px-4 py-4 flex justify-between items-center border-b border-gray-300">
           <div className="flex items-center space-x-4">
             <div
@@ -174,7 +197,6 @@ const PageGiamDoc = ({ children }) => {
                   <CiUser className="text-xl text-gray-600" />
                 </div>
                 
-                {/* Menu người dùng */}
                 {userMenuOpen && (
                   <div 
                     ref={userMenuRef}
@@ -201,10 +223,11 @@ const PageGiamDoc = ({ children }) => {
           </div>
         </div>
 
-        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>
+        <div className="flex-1 bg-[#e4e4e4] p-6">
+          <Outlet />
+        </div>
       </div>
 
-      {/* Modal xác nhận đăng xuất */}
       {isLogoutModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-40">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
