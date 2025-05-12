@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, message, Modal, Input, Select, DatePicker } from 'antd';
+import { Table, Button, message, Modal, Input, Select, DatePicker, Form, Switch, Tooltip } from 'antd';
 import axios from 'axios';
 import BASE_URL from '../Config';
-import { SearchOutlined, EditOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const QuanLyCongTrinh = () => {
@@ -17,9 +17,20 @@ const QuanLyCongTrinh = () => {
   const [editForm, setEditForm] = useState({
     NgayDuKienHoanThanh: null,
   });
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addForm] = Form.useForm();
+  const [useAutoMaCongTrinh, setUseAutoMaCongTrinh] = useState(true);
+  const [autoMaCongTrinh, setAutoMaCongTrinh] = useState('');
+  const [khachHangList, setKhachHangList] = useState([]);
+  const [hopDongList, setHopDongList] = useState([]);
+  const [loaiCongTrinhList, setLoaiCongTrinhList] = useState([]);
+  const [hopDongLoading, setHopDongLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
+    fetchKhachHangList();
+    fetchHopDongList();
+    fetchLoaiCongTrinhList();
   }, []);
 
   useEffect(() => {
@@ -42,6 +53,131 @@ const QuanLyCongTrinh = () => {
       }
     } catch {
       message.error('Lỗi khi kết nối đến server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchKhachHangList = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/KhachHang_API.php?action=GET`);
+      console.log('KhachHang Response:', response.data);
+      if (response.data.status === 'success') {
+        setKhachHangList(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setKhachHangList(response.data);
+      } else {
+        console.error('Invalid response format for KhachHang:', response.data);
+        message.error('Định dạng dữ liệu khách hàng không hợp lệ');
+      }
+    } catch (error) {
+      console.error('Error fetching khách hàng:', error);
+      message.error('Không thể lấy danh sách khách hàng');
+    }
+  };
+
+  const fetchHopDongList = async () => {
+    setHopDongLoading(true);
+    try {
+      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET_UNUSED`);
+      console.log('HopDong Response:', response.data);
+      if (response.data.status === 'success') {
+        setHopDongList(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setHopDongList(response.data);
+      } else {
+        console.error('Invalid response format for HopDong:', response.data);
+        message.error('Định dạng dữ liệu hợp đồng không hợp lệ');
+      }
+    } catch (error) {
+      console.error('Error fetching hợp đồng:', error);
+      message.error('Không thể lấy danh sách hợp đồng');
+    } finally {
+      setHopDongLoading(false);
+    }
+  };
+
+  const fetchLoaiCongTrinhList = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=GET`);
+      console.log('LoaiCongTrinh Response:', response.data);
+      if (response.data.status === 'success') {
+        setLoaiCongTrinhList(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setLoaiCongTrinhList(response.data);
+      } else {
+        console.error('Invalid response format for LoaiCongTrinh:', response.data);
+        message.error('Định dạng dữ liệu loại công trình không hợp lệ');
+      }
+    } catch (error) {
+      console.error('Error fetching loại công trình:', error);
+      message.error('Không thể lấy danh sách loại công trình');
+    }
+  };
+
+  const generateAutoMaCongTrinh = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+    
+    const newMaCongTrinh = `CT${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+    setAutoMaCongTrinh(newMaCongTrinh);
+    
+    if (useAutoMaCongTrinh) {
+      addForm.setFieldsValue({ MaCongTrinh: newMaCongTrinh });
+    }
+  };
+
+  const handleAutoMaCongTrinhChange = (checked) => {
+    setUseAutoMaCongTrinh(checked);
+    if (checked) {
+      addForm.setFieldsValue({ MaCongTrinh: autoMaCongTrinh });
+    } else {
+      addForm.setFieldsValue({ MaCongTrinh: '' });
+    }
+  };
+
+  const refreshAutoMaCongTrinh = () => {
+    generateAutoMaCongTrinh();
+    message.success('Đã làm mới mã công trình');
+  };
+
+  useEffect(() => {
+    if (addModalVisible) {
+      generateAutoMaCongTrinh();
+      addForm.resetFields();
+      addForm.setFieldsValue({
+        MaCongTrinh: useAutoMaCongTrinh ? autoMaCongTrinh : '',
+      });
+    }
+  }, [addModalVisible]);
+
+  const handleAddSubmit = async () => {
+    try {
+      setLoading(true);
+      const values = await addForm.validateFields();
+      
+      const response = await axios.post(
+        `${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=POST`,
+        values
+      );
+
+      if (response.data.status === 'success') {
+        message.success('Thêm mới công trình thành công');
+        setAddModalVisible(false);
+        addForm.resetFields();
+        await fetchData();
+      } else {
+        message.error(response.data.message || 'Thêm mới thất bại');
+      }
+    } catch (error) {
+      console.error('Error adding:', error.response?.data || error);
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm mới');
     } finally {
       setLoading(false);
     }
@@ -111,6 +247,10 @@ const QuanLyCongTrinh = () => {
     }
   };
 
+  const handleAdd = () => {
+    setAddModalVisible(true);
+  };
+
   const columns = [
     { title: 'Mã công trình', dataIndex: 'MaCongTrinh', key: 'MaCongTrinh', width: 120, align: 'center' },
     { title: 'Tên công trình', dataIndex: 'TenCongTrinh', key: 'TenCongTrinh', width: 250, align: 'center' },
@@ -147,7 +287,7 @@ const QuanLyCongTrinh = () => {
           className="self-end md:self-auto"
         />
       </div>
-      <div className="mb-4">
+      <div className="mb-4 flex justify-between items-center">
         <Input
           placeholder="Tìm kiếm..."
           prefix={<SearchOutlined />}
@@ -156,6 +296,13 @@ const QuanLyCongTrinh = () => {
           style={{ width: '100%', maxWidth: 350 }}
           allowClear
         />
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />}
+          onClick={handleAdd}
+        >
+          Thêm mới
+        </Button>
       </div>
       <div className="mt-6">
         <Table
@@ -305,6 +452,211 @@ const QuanLyCongTrinh = () => {
             </div>
           </div>
         )}
+      </Modal>
+      {/* Add Modal */}
+      <Modal
+        title={
+          <div className="text-xl font-semibold text-gray-800 border-b pb-4">
+            Thêm công trình mới
+          </div>
+        }
+        open={addModalVisible}
+        onCancel={() => setAddModalVisible(false)}
+        maskClosable={false}
+        keyboard={false}
+        closable={false}
+        width={600}
+        className="custom-modal"
+        bodyStyle={{ padding: '24px' }}
+        footer={[
+          <div key="footer" className="flex justify-end gap-2 border-t pt-4">
+            <Button 
+              key="cancel" 
+              onClick={() => {
+                setAddModalVisible(false);
+                addForm.resetFields();
+              }}
+              className="px-6"
+            >
+              Đóng
+            </Button>
+            <Button 
+              key="submit" 
+              type="primary" 
+              onClick={handleAddSubmit}
+              loading={loading}
+              className="px-6 bg-blue-600 hover:bg-blue-700"
+            >
+              Thêm
+            </Button>
+          </div>
+        ]}
+      >
+        <Form
+          form={addForm}
+          layout="vertical"
+          className="mt-4"
+        >
+          <Form.Item label="Mã công trình">
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+              <Switch
+                checked={useAutoMaCongTrinh}
+                onChange={handleAutoMaCongTrinhChange}
+                style={{ marginRight: '8px' }}
+              />
+              <span>Sử dụng mã tự động</span>
+              {useAutoMaCongTrinh && (
+                <Button 
+                  type="link" 
+                  onClick={refreshAutoMaCongTrinh} 
+                  style={{ marginLeft: '8px' }}
+                >
+                  Làm mới
+                </Button>
+              )}
+              <Tooltip title="Mã sẽ được tạo theo định dạng CT + năm tháng ngày giờ phút giây">
+                <InfoCircleOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+              </Tooltip>
+            </div>
+            
+            <Form.Item
+              name="MaCongTrinh"
+              noStyle
+              rules={[{ required: true, message: 'Vui lòng nhập mã công trình' }]}
+            >
+              <Input 
+                placeholder="Mã công trình" 
+                disabled={useAutoMaCongTrinh}
+                style={{ width: '100%', fontWeight: '500' }}
+              />
+            </Form.Item>
+          </Form.Item>
+
+          <Form.Item
+            name="TenCongTrinh"
+            label="Tên công trình"
+            rules={[{ required: true, message: 'Vui lòng nhập tên công trình' }]}
+          >
+            <Input placeholder="Nhập tên công trình" />
+          </Form.Item>
+
+          <Form.Item
+            name="Dientich"
+            label="Diện tích (m²)"
+            rules={[{ required: true, message: 'Vui lòng nhập diện tích' }]}
+          >
+            <Input type="number" placeholder="Nhập diện tích" suffix="m²" />
+          </Form.Item>
+
+          <Form.Item
+            name="FileThietKe"
+            label="File thiết kế"
+          >
+            <Input placeholder="Nhập đường dẫn file thiết kế" />
+          </Form.Item>
+
+          <Form.Item
+            name="MaKhachHang"
+            label="Khách hàng"
+            rules={[{ required: true, message: 'Vui lòng chọn khách hàng' }]}
+          >
+            <Select
+              placeholder="Chọn khách hàng"
+              showSearch
+              optionFilterProp="children"
+              optionLabelProp="label"
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              loading={!khachHangList.length}
+              notFoundContent={!khachHangList.length ? "Đang tải dữ liệu..." : "Không tìm thấy khách hàng"}
+            >
+              {khachHangList.map(kh => (
+                <Select.Option
+                  key={kh.MaKhachHang}
+                  value={kh.MaKhachHang}
+                  label={kh.TenKhachHang}
+                >
+                  <div>
+                    <div className="font-medium">{kh.TenKhachHang}</div>
+                    <div className="text-gray-500 text-sm">SĐT: {kh.SoDT}</div>
+                    {kh.Email && <div className="text-gray-500 text-sm">Email: {kh.Email}</div>}
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="MaHopDong"
+            label="Hợp đồng"
+            rules={[{ required: true, message: 'Vui lòng chọn hợp đồng' }]}
+          >
+            <Select
+              placeholder="Chọn hợp đồng"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              loading={hopDongLoading}
+              notFoundContent={hopDongLoading ? "Đang tải dữ liệu..." : "Không tìm thấy hợp đồng"}
+            >
+              {hopDongList.map(hd => (
+                <Select.Option
+                  key={hd.MaHopDong}
+                  value={hd.MaHopDong}
+                  label={`${hd.MaHopDong} - ${hd.MoTa}`}
+                >
+                  <div>
+                    <div className="font-medium">{hd.MaHopDong}</div>
+                    <div className="text-gray-500 text-sm">Ngày ký: {moment(hd.NgayKy).format('DD/MM/YYYY')}</div>
+                    <div className="text-gray-500 text-sm">Tổng tiền: {hd.TongTien?.toLocaleString('vi-VN')} VNĐ</div>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="MaLoaiCongTrinh"
+            label="Loại công trình"
+            rules={[{ required: true, message: 'Vui lòng chọn loại công trình' }]}
+          >
+            <Select 
+              placeholder="Chọn loại công trình"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+              loading={!loaiCongTrinhList.length}
+              notFoundContent={!loaiCongTrinhList.length ? "Đang tải dữ liệu..." : "Không tìm thấy loại công trình"}
+            >
+              {loaiCongTrinhList.map(lct => (
+                <Select.Option 
+                  key={lct.MaLoaiCongTrinh} 
+                  value={lct.MaLoaiCongTrinh}
+                  label={lct.TenLoaiCongTrinh}
+                >
+                  {lct.TenLoaiCongTrinh}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="NgayDuKienHoanThanh"
+            label="Ngày dự kiến hoàn thành"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày dự kiến hoàn thành' }]}
+          >
+            <DatePicker 
+              className="w-full"
+              format="YYYY-MM-DD"
+              placeholder="Chọn ngày"
+            />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );
