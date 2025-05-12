@@ -21,20 +21,19 @@ const PageQuanLy = ({ children }) => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("quanlycongtrinh");
+  const [activeMenu, setActiveMenu] = useState("qlcongtrinh/quanlycongtrinh");
 
   const sidebarRef = useRef();
   const userMenuRef = useRef();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Định nghĩa cấu trúc menu
   const menuItems = [
     { id: "quanlycongtrinh", label: "Quản lý công trình", icon: <FaClipboardList />, path: "/qlcongtrinh/quanlycongtrinh" },
     { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaClipboardList />, path: "/congtrinh/quanlytiendo" },
     { id: "lapdexuatmuavatlieuthietbi", label: "Lập đề xuất mua vật liệu thiết bị", icon: <FaLaptopCode />, path: "/congtrinh/hoithao" },
     { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaUserFriends />, path: "/congtrinh/quanlydanhmuc" },
-    { id: "timkiem", label: "Tìm kiếm", icon: <FaBox />, path: "/congtrinh/timkiem" },
+   
   ];
 
   const handleClickOutside = (event) => {
