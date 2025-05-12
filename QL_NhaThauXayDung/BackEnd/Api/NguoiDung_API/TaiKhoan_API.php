@@ -7,10 +7,12 @@ header("Access-Control-Allow-Headers: Content-Type");
 require_once __DIR__ . '/../../Config/Database.php';
 require_once __DIR__ . '/../../Model/TaiKhoan.php';
 
+// Kết nối cơ sở dữ liệu
 $database = new Database();
 $db = $database->getConn();
 $taikhoan = new TaiKhoan($db);
 
+// Lấy phương thức HTTP và tham số `action`
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : null;
 
@@ -25,11 +27,6 @@ switch ($method) {
         if ($action === "GET") {
             $stmt = $taikhoan->getAll();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($result as &$item) {
-                if (isset($item['MatKhau'])) {
-                    unset($item['MatKhau']);
-                }
-            }
             echo json_encode([
                 'status' => 'success',
                 'data' => $result
@@ -39,11 +36,6 @@ switch ($method) {
             if ($taikhoan->MaTaiKhoan) {
                 $stmt = $taikhoan->getById();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                if (isset($result['MatKhau'])) {
-                    unset($result['MatKhau']);
-                }
-                
                 echo json_encode([
                     'status' => 'success',
                     'data' => $result
@@ -57,12 +49,6 @@ switch ($method) {
             if ($taikhoan->MaNhanVien) {
                 $stmt = $taikhoan->getByNhanVien();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                // Loại bỏ mật khẩu trong kết quả trả về
-                if (isset($result['MatKhau'])) {
-                    unset($result['MatKhau']);
-                }
-                
                 echo json_encode([
                     'status' => 'success',
                     'data' => $result
@@ -71,6 +57,13 @@ switch ($method) {
                 echo json_encode(["message" => "Thiếu MaNhanVien"]);
                 http_response_code(400);
             }
+        } elseif ($action === "getNhanVienWithoutAccount") {
+            $stmt = $taikhoan->getNhanVienWithoutAccount();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode([
+                'status' => 'success',
+                'data' => $result
+            ]);
         } else {
             echo json_encode(["message" => "Action không hợp lệ"]);
             http_response_code(400);
@@ -93,7 +86,7 @@ switch ($method) {
             if ($taikhoan->add()) {
                 echo json_encode(["message" => "Tài khoản đã được thêm thành công"]);
             } else {
-                echo json_encode(["message" => "Thêm tài khoản thất bại"]);
+                // Message được trả về trong phương thức add() nếu có lỗi
                 http_response_code(500);
             }
         } elseif ($action === "login") {
@@ -107,16 +100,18 @@ switch ($method) {
             $taikhoan->MaTaiKhoan = $data->MaTaiKhoan;
             $taikhoan->MatKhau = $data->MatKhau;
 
-            $result = $taikhoan->login();
-            if ($result) {
-                // Loại bỏ mật khẩu trong kết quả trả về
-                unset($result['MatKhau']);
+            $user = $taikhoan->login();
+            if ($user) {
                 echo json_encode([
-                    "message" => "Đăng nhập thành công",
-                    "data" => $result
+                    'status' => 'success',
+                    'message' => 'Đăng nhập thành công',
+                    'data' => $user
                 ]);
             } else {
-                echo json_encode(["message" => "Tên đăng nhập hoặc mật khẩu không đúng"]);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Tên đăng nhập hoặc mật khẩu không đúng'
+                ]);
                 http_response_code(401);
             }
         } else {
@@ -141,7 +136,7 @@ switch ($method) {
             if ($taikhoan->update()) {
                 echo json_encode(["message" => "Tài khoản đã được cập nhật"]);
             } else {
-                echo json_encode(["message" => "Cập nhật tài khoản thất bại"]);
+                // Message được trả về trong phương thức update() nếu có lỗi
                 http_response_code(500);
             }
         } elseif ($action === "changePassword") {
@@ -156,9 +151,9 @@ switch ($method) {
             $taikhoan->MatKhau = $data->MatKhau;
 
             if ($taikhoan->changePassword()) {
-                echo json_encode(["message" => "Mật khẩu đã được cập nhật"]);
+                echo json_encode(["message" => "Mật khẩu đã được thay đổi"]);
             } else {
-                echo json_encode(["message" => "Cập nhật mật khẩu thất bại"]);
+                // Message được trả về trong phương thức changePassword() nếu có lỗi
                 http_response_code(500);
             }
         } else {
@@ -181,7 +176,7 @@ switch ($method) {
             if ($taikhoan->delete()) {
                 echo json_encode(["message" => "Tài khoản đã được xóa thành công"]);
             } else {
-                echo json_encode(["message" => "Xóa tài khoản thất bại"]);
+                // Message được trả về trong phương thức delete() nếu có lỗi
                 http_response_code(500);
             }
         } else {
