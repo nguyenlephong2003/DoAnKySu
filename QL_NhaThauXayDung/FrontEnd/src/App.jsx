@@ -17,6 +17,7 @@ import PageTuVan from "./page/NhanVienTuVan.jsx";
 import QL_NhanVien from "./components/QL_NhanVien.jsx";
 import PageNhanSu from "./page/NhanSu.jsx";
 import QuanLyCongTrinh from "./components/QuanLyCongTrinh.jsx";
+import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
 
 // Component bảo vệ route với kiểm tra token hết hạn
 function ProtectedRoute({ children, allowedRole }) {
@@ -149,7 +150,7 @@ function App() {
       >
         <Route path="quanlycongtrinh" element={<QuanLyCongTrinh />} />
         <Route path="quanlytiendo" element={<div>Quản lý tiến độ</div>} />
-        <Route path="lapdexuatmuavatlieuthietbi" element={<div>Lập đề xuất mua vật liệu thiết bị</div>} />
+        <Route path="lapdexuatmuavatlieuthietbi" element={<LapDeXuatMua />} />
         <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
         <Route path="timkiem" element={<div>Tìm kiếm</div>} />
       </Route>
