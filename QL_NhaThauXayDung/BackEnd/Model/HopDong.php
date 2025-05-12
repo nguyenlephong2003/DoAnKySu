@@ -260,5 +260,22 @@ class HopDong {
 
         return $row['TotalValue'];
     }
+
+    // Get unused contracts (contracts not assigned to any construction)
+    public function getUnusedContracts() {
+        $query = "SELECT hd.MaHopDong, hd.NgayKy, hd.MoTa, hd.TongTien, hd.FileHopDong, hd.MaNhanVien
+                  FROM " . $this->table_name . " hd
+                  LEFT JOIN CongTrinh ct ON hd.MaHopDong = ct.MaHopDong
+                  WHERE ct.MaHopDong IS NULL
+                  ORDER BY hd.NgayKy DESC";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
 }
 ?>
