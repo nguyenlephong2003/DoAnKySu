@@ -62,15 +62,15 @@ class TaiKhoan {
             return false;
         }
         
-        // Mã hóa mật khẩu
-        $hashed_password = password_hash($this->MatKhau, PASSWORD_DEFAULT);
+        // Mã hóa mật khẩu bằng MD5
+        $md5_password = md5($this->MatKhau);
         
         $query = "INSERT INTO " . $this->table . " (MaTaiKhoan, MatKhau, MaNhanVien) VALUES (:MaTaiKhoan, :MatKhau, :MaNhanVien)";
         $stmt = $this->conn->prepare($query);
         
         // Ràng buộc tham số
         $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
-        $stmt->bindParam(":MatKhau", $hashed_password);
+        $stmt->bindParam(":MatKhau", $md5_password);
         $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
         
         if ($stmt->execute()) {
@@ -106,7 +106,7 @@ class TaiKhoan {
         
         // Nếu mật khẩu được cập nhật
         if (!empty($this->MatKhau)) {
-            $hashed_password = password_hash($this->MatKhau, PASSWORD_DEFAULT);
+            $md5_password = md5($this->MatKhau);
             $query .= ", MatKhau = :MatKhau";
         }
         
@@ -118,7 +118,7 @@ class TaiKhoan {
         $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
         
         if (!empty($this->MatKhau)) {
-            $stmt->bindParam(":MatKhau", $hashed_password);
+            $stmt->bindParam(":MatKhau", $md5_password);
         }
         
         if ($stmt->execute()) {
@@ -150,9 +150,10 @@ class TaiKhoan {
     
     // Lấy tất cả tài khoản
     public function getAll() {
-        $query = "SELECT tk.*, nv.TenNhanVien
+        $query = "SELECT tk.*, nv.TenNhanVien, nv.MaLoaiNhanVien, lnv.TenLoai as LoaiNhanVien
                   FROM " . $this->table . " tk
-                  LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien";
+                  LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+                  LEFT JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt;
@@ -160,9 +161,10 @@ class TaiKhoan {
     
     // Lấy tài khoản theo ID
     public function getById() {
-        $query = "SELECT tk.*, nv.TenNhanVien
+        $query = "SELECT tk.*, nv.TenNhanVien, nv.MaLoaiNhanVien, lnv.TenLoai as LoaiNhanVien
                   FROM " . $this->table . " tk
                   LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+                  LEFT JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
                   WHERE tk.MaTaiKhoan = :MaTaiKhoan";
         $stmt = $this->conn->prepare($query);
         
@@ -174,9 +176,10 @@ class TaiKhoan {
     
     // Lấy tài khoản theo mã nhân viên
     public function getByNhanVien() {
-        $query = "SELECT tk.*, nv.TenNhanVien
+        $query = "SELECT tk.*, nv.TenNhanVien, nv.MaLoaiNhanVien, lnv.TenLoai as LoaiNhanVien
                   FROM " . $this->table . " tk
                   LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+                  LEFT JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
                   WHERE tk.MaNhanVien = :MaNhanVien";
         $stmt = $this->conn->prepare($query);
         
@@ -186,28 +189,29 @@ class TaiKhoan {
         return $stmt;
     }
     
-// Phương thức đăng nhập điều chỉnh cho mật khẩu dạng MD5
-public function login() {
-    $query = "SELECT tk.*, nv.TenNhanVien 
-              FROM " . $this->table . " tk
-              LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
-              WHERE tk.MaTaiKhoan = :MaTaiKhoan";
-    $stmt = $this->conn->prepare($query);
-    
-    // Ràng buộc tham số
-    $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
-    $stmt->execute();
-    
-    if ($stmt->rowCount() > 0) {
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        // Băm mật khẩu người dùng nhập bằng MD5 và so sánh
-        if (md5($this->MatKhau) === $row['MatKhau']) {
-            return $row;
+    // Phương thức đăng nhập với MD5
+    public function login() {
+        $query = "SELECT tk.*, nv.TenNhanVien, nv.MaLoaiNhanVien, lnv.TenLoai as LoaiNhanVien
+                  FROM " . $this->table . " tk
+                  LEFT JOIN NhanVien nv ON tk.MaNhanVien = nv.MaNhanVien
+                  LEFT JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                  WHERE tk.MaTaiKhoan = :MaTaiKhoan";
+        $stmt = $this->conn->prepare($query);
+        
+        // Ràng buộc tham số
+        $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
+        $stmt->execute();
+        
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Băm mật khẩu người dùng nhập bằng MD5 và so sánh
+            if (md5($this->MatKhau) === $row['MatKhau']) {
+                return $row;
+            }
         }
+        
+        return false;
     }
-    
-    return false;
-}
     
     // Đổi mật khẩu
     public function changePassword() {
@@ -218,20 +222,30 @@ public function login() {
             return false;
         }
         
-        // Mã hóa mật khẩu mới
-        $hashed_password = password_hash($this->MatKhau, PASSWORD_DEFAULT);
+        // Mã hóa mật khẩu mới bằng MD5
+        $md5_password = md5($this->MatKhau);
         
         $query = "UPDATE " . $this->table . " SET MatKhau = :MatKhau WHERE MaTaiKhoan = :MaTaiKhoan";
         $stmt = $this->conn->prepare($query);
         
         // Ràng buộc tham số
         $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
-        $stmt->bindParam(":MatKhau", $hashed_password);
+        $stmt->bindParam(":MatKhau", $md5_password);
         
         if ($stmt->execute()) {
             return true;
         }
         return false;
+    }
+    
+    // Lấy danh sách nhân viên chưa có tài khoản
+    public function getNhanVienWithoutAccount() {
+        $query = "SELECT MaNhanVien, TenNhanVien, MaLoaiNhanVien 
+                  FROM NhanVien 
+                  WHERE MaNhanVien NOT IN (SELECT MaNhanVien FROM " . $this->table . ")";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
     }
 }
 ?>

@@ -9,15 +9,15 @@ import {
   message,
   Popconfirm,
 } from 'antd';
+// Các import này sẽ được bỏ comment khi kết nối API thực tế
 // import axios from 'axios';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import PageNhanSu from '../page/NhanSu'; // Giữ nguyên import này
 // import BASE_URL from '../Config';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import PageNhanSu from '../page/NhanSu';
 
 const { Option } = Select;
 
 const QL_NhanVien = () => {
-   
   const [form] = Form.useForm();
   const [data, setData] = useState([]); // Danh sách nhân viên
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,13 +35,16 @@ const QL_NhanVien = () => {
   ];
 
   useEffect(() => {
+    console.log('Component QL_NhanVien mounted');
     fetchData();
+    return () => console.log('Component QL_NhanVien unmounted');
   }, []);
 
   const fetchData = async () => {
+    console.log('Fetching data...');
     setLoading(true);
     try {
-      // TODO: GỌI API GET DANH SÁCH NHÂN VIÊN TẠI ĐÂY
+      // Dữ liệu cứng cho giai đoạn phát triển UI
       const res = {
         status: 'success',
         data: [
@@ -51,7 +54,7 @@ const QL_NhanVien = () => {
             SoDT: '0901234567',
             CCCD: '079123456789',
             Email: 'admin@congty.com',
-            NgayVao: '2020-01-01 00:00:00',
+            NgayVao: '2020-01-01',
             MaLoaiNhanVien: 'AD',
             TenLoaiNhanVien: 'Admin',
           },
@@ -61,18 +64,105 @@ const QL_NhanVien = () => {
             SoDT: '0912345678',
             CCCD: '079234567890',
             Email: 'giamdoc@congty.com',
-            NgayVao: '2019-01-01 00:00:00',
+            NgayVao: '2019-01-01',
             MaLoaiNhanVien: 'GD',
             TenLoaiNhanVien: 'Giám đốc',
           },
+          {
+            MaNhanVien: 'KT001',
+            TenNhanVien: 'Lê Văn Kế Toán',
+            SoDT: '0923456789',
+            CCCD: '079345678901',
+            Email: 'ketoan@congty.com',
+            NgayVao: '2020-03-15',
+            MaLoaiNhanVien: 'KT',
+            TenLoaiNhanVien: 'Kế toán',
+          },
+          {
+            MaNhanVien: 'NS001',
+            TenNhanVien: 'Phạm Thị Nhân Sự',
+            SoDT: '0934567890',
+            CCCD: '079456789012',
+            Email: 'nhansu@congty.com',
+            NgayVao: '2020-05-10',
+            MaLoaiNhanVien: 'NS',
+            TenLoaiNhanVien: 'Nhân sự',
+          },
+          {
+            MaNhanVien: 'QL001',
+            TenNhanVien: 'Hoàng Quản Lý',
+            SoDT: '0945678901',
+            CCCD: '079567890123',
+            Email: 'quanly1@congty.com',
+            NgayVao: '2020-02-20',
+            MaLoaiNhanVien: 'QL',
+            TenLoaiNhanVien: 'Quản lý công trình',
+          },
+          {
+            MaNhanVien: 'QL002',
+            TenNhanVien: 'Lý Thị Quản Lý',
+            SoDT: '0956789012',
+            CCCD: '079678901234',
+            Email: 'quanly2@congty.com',
+            NgayVao: '2020-06-15',
+            MaLoaiNhanVien: 'QL',
+            TenLoaiNhanVien: 'Quản lý công trình',
+          },
+          {
+            MaNhanVien: 'TC001',
+            TenNhanVien: 'Trịnh Văn Thợ',
+            SoDT: '0967890123',
+            CCCD: '079789012345',
+            Email: 'thochinh1@congty.com',
+            NgayVao: '2020-07-10',
+            MaLoaiNhanVien: 'TC',
+            TenLoaiNhanVien: 'Thợ chính',
+          },
+          {
+            MaNhanVien: 'TC002',
+            TenNhanVien: 'Đặng Thợ Chính',
+            SoDT: '0978901234',
+            CCCD: '079890123456',
+            Email: 'thochinh2@congty.com',
+            NgayVao: '2020-08-05',
+            MaLoaiNhanVien: 'TC',
+            TenLoaiNhanVien: 'Thợ chính',
+          },
+          {
+            MaNhanVien: 'TP001',
+            TenNhanVien: 'Ngô Văn Phụ',
+            SoDT: '0989012345',
+            CCCD: '079901234567',
+            Email: 'thophu1@congty.com',
+            NgayVao: '2020-09-01',
+            MaLoaiNhanVien: 'TP',
+            TenLoaiNhanVien: 'Thợ phụ',
+          },
+          {
+            MaNhanVien: 'TP002',
+            TenNhanVien: 'Mai Thị Phụ',
+            SoDT: '0990123456',
+            CCCD: '079012345678',
+            Email: 'thophu2@congty.com',
+            NgayVao: '2020-10-10',
+            MaLoaiNhanVien: 'TP',
+            TenLoaiNhanVien: 'Thợ phụ',
+          },
         ],
       };
+
+      // Chuẩn bị cho API thực tế sau này
+      // const response = await axios.get(`${BASE_URL}/api/NhanVien.php?action=GET`);
+      // const res = response.data;
+
       if (res.status === 'success') {
         setData(res.data);
+        console.log('Data loaded:', res.data);
       } else {
         message.error('Không thể tải dữ liệu');
       }
     } catch (err) {
+      console.error('Error fetching data:', err);
       message.error('Lỗi khi kết nối API');
     } finally {
       setLoading(false);
@@ -92,25 +182,55 @@ const QL_NhanVien = () => {
   };
 
   const handleDelete = async (record) => {
-    // TODO: GỌI API DELETE TẠI ĐÂY
+    console.log('Deleting record:', record);
+    // TODO: Sẽ thực hiện API call khi kết nối thực tế
+    // try {
+    //   const response = await axios.delete(`${BASE_URL}/api/NhanVien.php?action=DELETE`, {
+    //     data: { MaNhanVien: record.MaNhanVien }
+    //   });
+    //   if (response.data.message) {
+    //     message.success('Xóa thành công');
+    //     fetchData();
+    //   }
+    // } catch (err) {
+    //   console.error('Error deleting:', err);
+    //   message.error('Lỗi khi xóa nhân viên');
+    // }
+    
+    // Giả lập xóa thành công với dữ liệu cứng
     message.success('Xóa thành công');
-    fetchData();
+    setData(data.filter(item => item.MaNhanVien !== record.MaNhanVien));
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      console.log('Form values:', values);
+      
       if (editingNV) {
-        // TODO: GỌI API UPDATE TẠI ĐÂY
+        // TODO: Cập nhật với API thực tế
+        // const response = await axios.put(`${BASE_URL}/api/NhanVien.php?action=PUT`, values);
+        
+        // Cập nhật dữ liệu cứng
+        setData(data.map(item => 
+          item.MaNhanVien === editingNV.MaNhanVien ? { ...values, TenLoaiNhanVien: loaiNhanVienOptions.find(opt => opt.MaLoaiNhanVien === values.MaLoaiNhanVien)?.TenLoaiNhanVien } : item
+        ));
         message.success('Cập nhật thành công');
       } else {
-        // TODO: GỌI API ADD TẠI ĐÂY
+        // TODO: Thêm mới với API thực tế
+        // const response = await axios.post(`${BASE_URL}/api/NhanVien.php?action=POST`, values);
+        
+        // Thêm mới với dữ liệu cứng
+        const newRecord = {
+          ...values,
+          TenLoaiNhanVien: loaiNhanVienOptions.find(opt => opt.MaLoaiNhanVien === values.MaLoaiNhanVien)?.TenLoaiNhanVien
+        };
+        setData([...data, newRecord]);
         message.success('Thêm mới thành công');
       }
       setModalVisible(false);
-      fetchData();
     } catch (err) {
-      console.error(err);
+      console.error('Error saving form:', err);
     }
   };
 
@@ -153,9 +273,8 @@ const QL_NhanVien = () => {
     {
       title: 'Hành động',
       key: 'actions',
-      render: (_, record) => ( 
+      render: (_, record) => (
         <>
-        
           <Button icon={<EditOutlined />} onClick={() => openEditModal(record)} style={{ marginRight: 8 }}>
             Sửa
           </Button>
@@ -168,15 +287,16 @@ const QL_NhanVien = () => {
       ),
     },
   ];
+
   console.log("Render QL Nhân Viên");
   
   // Kiểm tra nếu đang được render trong route trực tiếp (không phải qua PageNhanSu)
   const isDirectRoute = window.location.pathname.includes("/nhansu/quan-ly-nhan-vien");
   
-  // Nội dung chính của component
-  const mainContent = (
+  // Trả về JSX trực tiếp
+  return (
     <div style={{ padding: 24, backgroundColor: '#fff', borderRadius: 12, margin: isDirectRoute ? 0 : 24 }}>
-      <h2>Quản lý nhân viên</h2>
+         <h2 style={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '20px' }}>Quản lý nhân viên</h2>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <Input.Search placeholder="Tìm kiếm..." style={{ maxWidth: 300 }} />
         <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}>
@@ -189,11 +309,12 @@ const QL_NhanVien = () => {
         columns={columns}
         dataSource={data}
         loading={loading}
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 5}}
+        scroll={{ x: 'max-content' }}
       />
 
       <Modal
-        visible={modalVisible}
+        open={modalVisible} // Sử dụng open thay vì visible cho phiên bản Ant Design mới hơn
         title={editingNV ? 'Cập nhật nhân viên' : 'Thêm nhân viên'}
         onCancel={() => setModalVisible(false)}
         onOk={handleModalOk}
@@ -235,17 +356,3 @@ const QL_NhanVien = () => {
 };
 
 export default QL_NhanVien;
-
-
-// const QL_NhanVien = () => {
-
-//   console.log("Render QL Nhân Viên");
-//   return(
-//     <div>
-//       <h2>Quản lý nhân viên</h2>
-//       <p>Chức năng này đang được phát triển...</p>
-//     </div>
-//   )
-// }
-
-// export default QL_NhanVien;
