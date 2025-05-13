@@ -63,6 +63,7 @@ CREATE TABLE `BangBaoGia` (
   `MaBaoGia` varchar(20) PRIMARY KEY,
   `TenBaoGia` nvarchar(255),
   `TrangThai` nvarchar(255),
+  `GhiChu` nvarchar(255),
   `MaLoai` int
 );
 

@@ -8,6 +8,7 @@ class BangBaoGia {
     public $TenBaoGia;
     public $TrangThai;
     public $MaLoai;
+    public $GhiChu;
 
     // Constructor
     public function __construct($db) {
@@ -97,7 +98,8 @@ class BangBaoGia {
         $query = "UPDATE " . $this->table_name . " 
                   SET TenBaoGia = :tenBaoGia, 
                       TrangThai = :trangThai, 
-                      MaLoai = :maLoai 
+                      MaLoai = :maLoai,
+                      GhiChu = :ghiChu
                   WHERE MaBaoGia = :maBaoGia";
 
         // Prepare statement
@@ -107,11 +109,13 @@ class BangBaoGia {
         $this->TenBaoGia = htmlspecialchars(strip_tags($this->TenBaoGia));
         $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
         $this->MaLoai = filter_var($this->MaLoai, FILTER_VALIDATE_INT);
+        $this->GhiChu = htmlspecialchars(strip_tags($this->GhiChu));
         $this->MaBaoGia = htmlspecialchars(strip_tags($this->MaBaoGia));
 
         $stmt->bindParam(":tenBaoGia", $this->TenBaoGia);
         $stmt->bindParam(":trangThai", $this->TrangThai);
         $stmt->bindParam(":maLoai", $this->MaLoai);
+        $stmt->bindParam(":ghiChu", $this->GhiChu);
         $stmt->bindParam(":maBaoGia", $this->MaBaoGia);
 
         // Execute query
@@ -223,7 +227,7 @@ class BangBaoGia {
 
     // Get quotation details including associated projects
  public function getQuotationDetails() {
-    $query = "SELECT bg.MaBaoGia, bg.TenBaoGia, bg.TrangThai, 
+    $query = "SELECT bg.MaBaoGia, bg.TenBaoGia, bg.TrangThai, bg.GhiChu,
                      ctbg.MaCongTrinh, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, 
                      ct.MaKhachHang, kh.TenKhachHang, kh.SoDT,
                      ct.MaLoaiCongTrinh, lct.TenLoaiCongTrinh, 
