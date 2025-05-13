@@ -60,6 +60,7 @@ function LoginPage() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
         localStorage.setItem("expires", data.expires);
+        sessionStorage.setItem("maNhanVien", data.nhanvien[0].MaNhanVien);
       
         setSuccess("Đăng nhập thành công!");
         setError("");

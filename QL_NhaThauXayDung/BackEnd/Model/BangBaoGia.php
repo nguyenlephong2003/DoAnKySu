@@ -18,8 +18,8 @@ class BangBaoGia {
     // Create new BangBaoGia entry
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (MaBaoGia, TenBaoGia, TrangThai, MaLoai) 
-                  VALUES (:maBaoGia, :tenBaoGia, :trangThai, :maLoai)";
+                  (MaBaoGia, TenBaoGia, TrangThai, MaLoai, GhiChu) 
+                  VALUES (:maBaoGia, :tenBaoGia, :trangThai, :maLoai, :ghiChu)";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -29,11 +29,13 @@ class BangBaoGia {
         $this->TenBaoGia = htmlspecialchars(strip_tags($this->TenBaoGia));
         $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
         $this->MaLoai = filter_var($this->MaLoai, FILTER_VALIDATE_INT);
+        $this->GhiChu = htmlspecialchars(strip_tags($this->GhiChu));
 
         $stmt->bindParam(":maBaoGia", $this->MaBaoGia);
         $stmt->bindParam(":tenBaoGia", $this->TenBaoGia);
         $stmt->bindParam(":trangThai", $this->TrangThai);
         $stmt->bindParam(":maLoai", $this->MaLoai);
+        $stmt->bindParam(":ghiChu", $this->GhiChu);
 
         // Execute query
         if($stmt->execute()) {
@@ -46,7 +48,7 @@ class BangBaoGia {
     // Read Single BangBaoGia entry
     public function readSingle() {
         $query = "SELECT bg.MaBaoGia, bg.TenBaoGia, bg.TrangThai, 
-                         bg.MaLoai, lbg.TenLoai as TenLoaiBaoGia
+                         bg.MaLoai, bg.GhiChu, lbg.TenLoai as TenLoaiBaoGia
                   FROM " . $this->table_name . " bg
                   LEFT JOIN LoaiBaoGia lbg ON bg.MaLoai = lbg.MaLoai
                   WHERE bg.MaBaoGia = ? 
@@ -69,6 +71,7 @@ class BangBaoGia {
         $this->TenBaoGia = $row['TenBaoGia'];
         $this->TrangThai = $row['TrangThai'];
         $this->MaLoai = $row['MaLoai'];
+        $this->GhiChu = $row['GhiChu'];
         
         // Optional: return additional information
         return [
@@ -79,7 +82,7 @@ class BangBaoGia {
     // Read All BangBaoGia entries
     public function readAll() {
         $query = "SELECT bg.MaBaoGia, bg.TenBaoGia, bg.TrangThai, 
-                         bg.MaLoai, lbg.TenLoai as TenLoaiBaoGia
+                         bg.MaLoai, bg.GhiChu, lbg.TenLoai as TenLoaiBaoGia
                   FROM " . $this->table_name . " bg
                   LEFT JOIN LoaiBaoGia lbg ON bg.MaLoai = lbg.MaLoai
                   ORDER BY bg.MaBaoGia";
@@ -152,7 +155,6 @@ class BangBaoGia {
             // Rollback transaction on error
             $this->conn->rollBack();
             throw $e;
-            return false;
         }
     }
 

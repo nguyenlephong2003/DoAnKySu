@@ -4,9 +4,8 @@ import { SearchOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOut
 import axios from 'axios';
 import BASE_URL from '../Config';
 import DetailBaoGiaModal from './ChiTietBaoGia';
-import { storage } from '../Config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { docx } from 'docx';
+import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
+import * as docx from "docx";
 import { saveAs } from 'file-saver';
 
 const { Option } = Select;
