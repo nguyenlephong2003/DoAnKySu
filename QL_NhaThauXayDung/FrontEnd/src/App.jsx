@@ -18,7 +18,7 @@ import QL_NhanVien from "./components/QL_NhanVien.jsx";
 import PageNhanSu from "./page/NhanSu.jsx";
 import QuanLyCongTrinh from "./components/QuanLyCongTrinh.jsx";
 import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
-
+import DuyetHopDong from "./components/DuyetHopDong.jsx";
 // Component bảo vệ route với kiểm tra token hết hạn
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -172,7 +172,7 @@ function App() {
         }
       >
         <Route path="lapbaogia" element={<BaoGia />} />
-        <Route path="laphopdong" element={<h1>Quản lý lương</h1>} />
+        <Route path="laphopdong" element={<DuyetHopDong />} />
       </Route>
       <Route
         path="admin/quantringuoidung"

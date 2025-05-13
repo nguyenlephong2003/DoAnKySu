@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Select, Tag, Spin, message, Pagination, Modal, Form } from 'antd';
-import { SearchOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Select, Tag, Spin, message, Pagination, Modal, Form, Upload } from 'antd';
+import { SearchOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined, FileAddOutlined, UploadOutlined, FileOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import BASE_URL from '../Config';
 import DetailBaoGiaModal from './ChiTietBaoGia';
+import { storage } from '../Config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { docx } from 'docx';
+import { saveAs } from 'file-saver';
 
 const { Option } = Select;
 const { confirm } = Modal;
 
-const DuyetBaoGia = () => {
+const DuyetHopDong = () => {
   const [bangBaoGiaList, setBangBaoGiaList] = useState([]);
   const [loaiBaoGiaList, setLoaiBaoGiaList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,6 +29,11 @@ const DuyetBaoGia = () => {
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [noteForm] = Form.useForm();
   const [currentAction, setCurrentAction] = useState(null);
+  const [contractModalVisible, setContractModalVisible] = useState(false);
+  const [contractForm] = Form.useForm();
+  const [uploading, setUploading] = useState(false);
+  const [fileList, setFileList] = useState([]);
+  const [contractTemplate, setContractTemplate] = useState(null);
 
   const statusColors = {
     'Chờ duyệt': 'orange',
@@ -51,10 +60,12 @@ const DuyetBaoGia = () => {
       );
 
       if (baoGiaResponse.data.status === 'success') {
-        setBangBaoGiaList(baoGiaResponse.data.data);
+        // Filter only approved quotes
+        const approvedQuotes = baoGiaResponse.data.data.filter(item => item.TrangThai === 'Đã duyệt');
+        setBangBaoGiaList(approvedQuotes);
         setPagination(prev => ({
           ...prev,
-          total: baoGiaResponse.data.data.length
+          total: approvedQuotes.length
         }));
       } else {
         message.error('Không thể lấy dữ liệu báo giá');
@@ -90,17 +101,12 @@ const DuyetBaoGia = () => {
         item => 
           item.MaBaoGia.toLowerCase().includes(searchText.toLowerCase()) ||
           item.TenBaoGia.toLowerCase().includes(searchText.toLowerCase()) ||
-          item.TrangThai.toLowerCase().includes(searchText.toLowerCase()) ||
           (item.TenLoaiBaoGia && item.TenLoaiBaoGia.toLowerCase().includes(searchText.toLowerCase()))
       );
     }
 
     if (selectedLoai !== 'all') {
       filteredData = filteredData.filter(item => item.MaLoai === selectedLoai);
-    }
-
-    if (selectedStatus !== 'all') {
-      filteredData = filteredData.filter(item => item.TrangThai === selectedStatus);
     }
 
     filteredData.sort((a, b) => b.MaBaoGia.localeCompare(a.MaBaoGia));
@@ -131,6 +137,11 @@ const DuyetBaoGia = () => {
     setCurrentBaoGia(record);
     setCurrentAction('tuChoi');
     setNoteModalVisible(true);
+  };
+
+  const handleLapHopDong = async (record) => {
+    setCurrentBaoGia(record);
+    setContractModalVisible(true);
   };
 
   const handleNoteSubmit = async (values) => {
@@ -168,6 +179,165 @@ const DuyetBaoGia = () => {
       message.error('Lỗi: ' + (error.response?.data?.message || error.message));
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Hàm kiểm tra loại file
+  const beforeUpload = (file) => {
+    const isWord = file.type === 'application/msword' || 
+                  file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    if (!isWord) {
+      message.error('Chỉ chấp nhận file Word (.doc, .docx)!');
+      return Upload.LIST_IGNORE;
+    }
+    const isLt10M = file.size / 1024 / 1024 < 10;
+    if (!isLt10M) {
+      message.error('File không được vượt quá 10MB!');
+      return Upload.LIST_IGNORE;
+    }
+    return false;
+  };
+
+  // Hàm tạo hợp đồng từ template
+  const generateContract = async (baoGiaData) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Lấy thông tin chi tiết báo giá
+      const response = await axios.get(
+        `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getQuotationDetails&MaBaoGia=${baoGiaData.MaBaoGia}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.status === 'success') {
+        const chiTietBaoGia = response.data.data.chi_tiet_bao_gia || [];
+        
+        // Tạo document mới
+        const doc = new docx.Document({
+          sections: [{
+            properties: {},
+            children: [
+              new docx.Paragraph({
+                text: "HỢP ĐỒNG",
+                heading: docx.HeadingLevel.HEADING_1,
+                alignment: docx.AlignmentType.CENTER
+              }),
+              new docx.Paragraph({
+                text: `Số hợp đồng: ${baoGiaData.MaBaoGia}`,
+                spacing: { after: 200 }
+              }),
+              new docx.Paragraph({
+                text: `Tên hợp đồng: ${baoGiaData.TenBaoGia}`,
+                spacing: { after: 200 }
+              }),
+              new docx.Paragraph({
+                text: "CHI TIẾT BÁO GIÁ:",
+                heading: docx.HeadingLevel.HEADING_2,
+                spacing: { before: 400, after: 200 }
+              }),
+              new docx.Table({
+                width: {
+                  size: 100,
+                  type: docx.WidthType.PERCENTAGE,
+                },
+                rows: [
+                  new docx.TableRow({
+                    children: [
+                      new docx.TableCell({
+                        children: [new docx.Paragraph("STT")],
+                        width: { size: 10, type: docx.WidthType.PERCENTAGE }
+                      }),
+                      new docx.TableCell({
+                        children: [new docx.Paragraph("Nội dung")],
+                        width: { size: 60, type: docx.WidthType.PERCENTAGE }
+                      }),
+                      new docx.TableCell({
+                        children: [new docx.Paragraph("Giá")],
+                        width: { size: 30, type: docx.WidthType.PERCENTAGE }
+                      })
+                    ]
+                  }),
+                  ...chiTietBaoGia.map((item, index) => 
+                    new docx.TableRow({
+                      children: [
+                        new docx.TableCell({
+                          children: [new docx.Paragraph((index + 1).toString())]
+                        }),
+                        new docx.TableCell({
+                          children: [new docx.Paragraph(item.NoiDung)]
+                        }),
+                        new docx.TableCell({
+                          children: [new docx.Paragraph(item.GiaBaoGia.toLocaleString('vi-VN') + ' VNĐ')]
+                        })
+                      ]
+                    })
+                  )
+                ]
+              })
+            ]
+          }]
+        });
+
+        // Tạo file và tải xuống
+        const blob = await docx.Packer.toBlob(doc);
+        const fileName = `HopDong_${baoGiaData.MaBaoGia}.docx`;
+        saveAs(blob, fileName);
+
+        // Upload file lên Firebase
+        const storageRef = ref(storage, `hopdong/${baoGiaData.MaBaoGia}/${fileName}`);
+        await uploadBytes(storageRef, blob);
+        const fileUrl = await getDownloadURL(storageRef);
+
+        return fileUrl;
+      }
+    } catch (error) {
+      console.error('Lỗi khi tạo hợp đồng:', error);
+      throw error;
+    }
+  };
+
+  const handleContractSubmit = async (values) => {
+    try {
+      setUploading(true);
+      const token = localStorage.getItem('token');
+
+      // Tạo và tải xuống file hợp đồng
+      const fileUrl = await generateContract(currentBaoGia);
+
+      // Gửi thông tin hợp đồng lên server
+      const response = await axios({
+        method: 'POST',
+        url: `${BASE_URL}BaoGiaHopDong_API/HopDong_API.php?action=createHopDong`,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        data: {
+          MaBaoGia: currentBaoGia.MaBaoGia,
+          TenHopDong: values.TenHopDong,
+          NgayKy: values.NgayKy,
+          FileHopDong: fileUrl,
+          GhiChu: values.GhiChu
+        }
+      });
+
+      if (response.data.status === 'success') {
+        message.success('Lập hợp đồng thành công');
+        setContractModalVisible(false);
+        contractForm.resetFields();
+        fetchData();
+      } else {
+        message.error(response.data.message || 'Lập hợp đồng thất bại');
+      }
+    } catch (error) {
+      console.error('Lỗi:', error);
+      message.error('Lỗi: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -234,7 +404,39 @@ const DuyetBaoGia = () => {
               </Button>
             </>
           )}
+          {record.TrangThai === 'Đã duyệt' && (
+            <Button
+              icon={<FileAddOutlined />}
+              type="primary"
+              style={{ 
+                backgroundColor: '#52c41a',
+                borderColor: '#52c41a',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
+              onClick={() => handleLapHopDong(record)}
+            >
+              Lập hợp đồng
+            </Button>
+          )}
         </div>
+      ),
+    },
+    {
+      title: 'File hợp đồng',
+      key: 'FileHopDong',
+      render: (_, record) => (
+        record.FileHopDong ? (
+          <Button
+            type="link"
+            icon={<FileOutlined />}
+            onClick={() => window.open(record.FileHopDong, '_blank')}
+          >
+            Xem file
+          </Button>
+        ) : (
+          <span>Chưa có file</span>
+        )
       ),
     },
   ];
@@ -242,7 +444,7 @@ const DuyetBaoGia = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">
-        Duyệt báo giá
+        Lập hợp đồng 
       </h1>
       
       <div style={{ marginBottom: 16, display: 'flex', gap: '16px' }}>
@@ -266,18 +468,6 @@ const DuyetBaoGia = () => {
               {loai.TenLoai}
             </Option>
           ))}
-        </Select>
-
-        <Select
-          placeholder="Chọn trạng thái"
-          style={{ width: 200 }}
-          value={selectedStatus}
-          onChange={value => setSelectedStatus(value)}
-        >
-          <Option value="all">Tất cả trạng thái</Option>
-          <Option value="Chờ duyệt">Chờ duyệt</Option>
-          <Option value="Đã duyệt">Đã duyệt</Option>
-          <Option value="Từ chối">Từ chối</Option>
         </Select>
       </div>
       
@@ -359,8 +549,68 @@ const DuyetBaoGia = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <Modal
+        title="Lập hợp đồng"
+        open={contractModalVisible}
+        onCancel={() => {
+          setContractModalVisible(false);
+          contractForm.resetFields();
+        }}
+        footer={null}
+      >
+        <Form
+          form={contractForm}
+          onFinish={handleContractSubmit}
+          layout="vertical"
+        >
+          <Form.Item
+            name="TenHopDong"
+            label="Tên hợp đồng"
+            rules={[{ required: true, message: 'Vui lòng nhập tên hợp đồng' }]}
+          >
+            <Input placeholder="Nhập tên hợp đồng" />
+          </Form.Item>
+
+          <Form.Item
+            name="NgayKy"
+            label="Ngày ký"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày ký' }]}
+          >
+            <Input type="date" />
+          </Form.Item>
+
+          <Form.Item
+            name="GhiChu"
+            label="Ghi chú"
+          >
+            <Input.TextArea rows={4} placeholder="Nhập ghi chú (nếu có)" />
+          </Form.Item>
+
+          <Form.Item>
+            <div style={{ textAlign: 'right' }}>
+              <Button
+                onClick={() => {
+                  setContractModalVisible(false);
+                  contractForm.resetFields();
+                }}
+                style={{ marginRight: 8 }}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={uploading}
+              >
+                Lập hợp đồng
+              </Button>
+            </div>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
 
-export default DuyetBaoGia; 
+export default DuyetHopDong; 

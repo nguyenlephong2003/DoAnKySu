@@ -9,15 +9,16 @@ import {
   Divider,
   List,
   Table,
+  message,
 } from "antd";
-import { InfoCircleOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
 import BASE_URL from "../Config";
 
 const { Title, Text } = Typography;
 
 // Component hiển thị chi tiết báo giá với thông tin đơn giản
-const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
+const DetailBaoGiaModal = ({ visible, onCancel, baoGia, onEdit, onDelete }) => {
   const [loading, setLoading] = useState(false);
   const [baoGiaDetails, setBaoGiaDetails] = useState(null);
 
@@ -97,6 +98,16 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
     },
   ];
 
+  const handleDelete = async () => {
+    try {
+      await onDelete(baoGia.MaBaoGia);
+      message.success("Xóa báo giá thành công");
+      onCancel();
+    } catch (error) {
+      message.error("Xóa báo giá thất bại");
+    }
+  };
+
   return (
     <Modal
       title={
@@ -107,7 +118,33 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
       }
       open={visible}
       onCancel={onCancel}
-      footer={[]}
+      footer={[
+        <Button key="close" onClick={onCancel}>
+          Đóng
+        </Button>,
+        baoGiaDetails?.bao_gia?.TrangThai !== "Đã duyệt" && (
+          <>
+            <Button
+              key="edit"
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(baoGia)}
+              style={{ marginLeft: 8 }}
+            >
+              Sửa
+            </Button>
+            <Button
+              key="delete"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDelete}
+              style={{ marginLeft: 8 }}
+            >
+              Xóa
+            </Button>
+          </>
+        ),
+      ]}
       width={800}
     >
       {baoGia ? (
@@ -139,6 +176,12 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia }) => {
                     </Tag>
                   </div>
                 </div>
+                {baoGiaDetails?.bao_gia?.GhiChu && (
+                  <div style={{ minWidth: "100%" }}>
+                    <Text strong>Ghi chú:</Text>
+                    <div>{baoGiaDetails.bao_gia.GhiChu}</div>
+                  </div>
+                )}
               </div>
             </div>
 
