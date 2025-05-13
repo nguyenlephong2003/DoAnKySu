@@ -100,7 +100,8 @@ switch ($method) {
                     $formattedData['bao_gia'] = [
                         'MaBaoGia' => $allResults[0]['MaBaoGia'],
                         'TenBaoGia' => $allResults[0]['TenBaoGia'],
-                        'TrangThai' => $allResults[0]['TrangThai']
+                        'TrangThai' => $allResults[0]['TrangThai'],
+                        'GhiChu' => $allResults[0]['GhiChu']
                     ];
 
                     $formattedData['cong_trinh'] = [
@@ -429,6 +430,7 @@ switch ($method) {
                 $bangBaoGia->TenBaoGia = $data->TenBaoGia;
                 $bangBaoGia->TrangThai = $data->TrangThai;
                 $bangBaoGia->MaLoai = $data->MaLoai;
+                $bangBaoGia->GhiChu = $data->GhiChu ?? null;
 
                 if (!$bangBaoGia->update()) {
                     throw new Exception("Cập nhật bảng báo giá thất bại");
