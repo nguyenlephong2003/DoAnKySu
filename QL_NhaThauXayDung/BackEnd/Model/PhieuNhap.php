@@ -243,5 +243,19 @@ class PhieuNhap {
 
         return $stmt;
     }
+
+    public function getAll() {
+        $query = "SELECT pn.*, 
+                 ncc.TenNhaCungCap, 
+                 nv.TenNhanVien
+          FROM " . $this->table_name . " pn
+          LEFT JOIN NhaCungCap ncc ON pn.MaNhaCungCap = ncc.MaNhaCungCap
+          LEFT JOIN NhanVien nv ON pn.MaNhanVien = nv.MaNhanVien
+          ORDER BY pn.NgayNhap DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
+    }
 }
 ?>

@@ -13,12 +13,11 @@ import QuanLyDanhMuc from "./components/QuanLyDanhMuc.jsx";
 import BaoGia from "./components/Baogia.jsx";
 import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
 import { useEffect, useState } from "react";
-import PageTuVan from "./page/NhanVienTuVan.jsx";
 import QL_NhanVien from "./components/QL_NhanVien.jsx";
-import PageNhanSu from "./page/NhanSu.jsx";
 import QuanLyCongTrinh from "./components/QuanLyCongTrinh.jsx";
 import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
 import DuyetHopDong from "./components/DuyetHopDong.jsx";
+
 // Component bảo vệ route với kiểm tra token hết hạn
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -75,7 +74,6 @@ function ProtectedRoute({ children, allowedRole }) {
 }
 
 function App() {
-  // Cấu hình Routes giữ nguyên như trước
   return (
     <Routes>
       {/* Trang mặc định và trang đăng nhập */}
@@ -93,7 +91,7 @@ function App() {
             <AdminPage />
           </ProtectedRoute>
         }
-      ></Route>
+      />
       <Route
         path="/giamdoc"
         element={
@@ -105,7 +103,7 @@ function App() {
         <Route path="duyetdexuat" element={<h1>Duyệt đề xuất</h1>} />
         <Route path="duyetbaogia" element={<DuyetBaoGia />} />
         <Route path="baocaothongke" element={<h1>Báo cáo thống kê</h1>} />
-        <Route path="duyethopdong" element={<h1>Duyệt hợp đồng</h1>} />
+        <Route path="duyethopdong" element={<DuyetHopDong />} />
         <Route path="quanlynhanvien" element={<h1>Quản lý nhân viên</h1>} />
         <Route path="quanlyluong" element={<h1>Quản lý lương</h1>} />
       </Route>
@@ -127,7 +125,7 @@ function App() {
         path="/nhansu"
         element={
           <ProtectedRoute allowedRole="NS">
-            <PageNhanSu />
+            <NhanSuPage />
           </ProtectedRoute>
         }
       />
@@ -135,7 +133,7 @@ function App() {
         path="/nhansu/quan-ly-nhan-vien"
         element={
           <ProtectedRoute allowedRole="NS">
-            <PageNhanSu children={<QL_NhanVien />} />
+            <NhanSuPage children={<QL_NhanVien />} />
           </ProtectedRoute>
         }
       />
@@ -150,7 +148,7 @@ function App() {
       >
         <Route path="quanlycongtrinh" element={<QuanLyCongTrinh />} />
         <Route path="quanlytiendo" element={<div>Quản lý tiến độ</div>} />
-        <Route path="lapdexuatmuavatlieuthietbi" element={<LapDeXuatMua />} />
+        <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
         <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
         <Route path="timkiem" element={<div>Tìm kiếm</div>} />
       </Route>
@@ -164,10 +162,10 @@ function App() {
         }
       />
       <Route
-        path="/nhanvientuvan/"
+        path="/nhanvientuvan"
         element={
           <ProtectedRoute allowedRole="TV">
-            <PageTuVan />
+            <PageNhanVienTuVan />
           </ProtectedRoute>
         }
       >

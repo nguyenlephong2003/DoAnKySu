@@ -30,9 +30,9 @@ const PageQuanLy = ({ children }) => {
 
   const menuItems = [
     { id: "quanlycongtrinh", label: "Quản lý công trình", icon: <FaClipboardList />, path: "/qlcongtrinh/quanlycongtrinh" },
-    { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaClipboardList />, path: "/congtrinh/quanlytiendo" },
-    { id: "lapdexuatmua", label: "Lập đề xuất mua", icon: <FaLaptopCode />, path: "/congtrinh/hoithao" },
-    { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaUserFriends />, path: "/congtrinh/quanlydanhmuc" },
+    { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaClipboardList />, path: "/qlcongtrinh/quanlytiendo" },
+    { id: "lapdexuatmua", label: "Lập đề xuất mua", icon: <FaLaptopCode />, path: "/qlcongtrinh/lapdexuatmua" },
+    { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaUserFriends />, path: "/qlcongtrinh/quanlydanhmuc" },
    
   ];
 
