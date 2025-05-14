@@ -1,4 +1,3 @@
-
 <?php
 class NhanVien {
     private $conn;
@@ -11,6 +10,7 @@ class NhanVien {
     public $Email;
     public $NgayVao;
     public $MaLoaiNhanVien;
+    public $TenLoaiNhanVien; // Thêm trường này để lưu tên loại nhân viên
 
     public function __construct($db) {
         $this->conn = $db;
@@ -49,21 +49,21 @@ class NhanVien {
     public function add() {
         // Kiểm tra nếu nhân viên đã tồn tại
         if ($this->isNhanVienExist()) {
-            echo json_encode(["message" => "Mã nhân viên đã tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "Mã nhân viên đã tồn tại"]);
             http_response_code(400);
             return false;
         }
 
         // Kiểm tra nếu email đã tồn tại
         if ($this->isEmailExist()) {
-            echo json_encode(["message" => "Email đã tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "Email đã tồn tại"]);
             http_response_code(400);
             return false;
         }
         
         // Kiểm tra nếu CCCD đã tồn tại
         if ($this->isCCCDExist()) {
-            echo json_encode(["message" => "CCCD đã tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "CCCD đã tồn tại"]);
             http_response_code(400);
             return false;
         }
@@ -82,8 +82,20 @@ class NhanVien {
         $stmt->bindParam(":MaLoaiNhanVien", $this->MaLoaiNhanVien);
 
         if ($stmt->execute()) {
-            return true;
+            // Lấy thông tin nhân viên vừa thêm
+            $this->MaNhanVien = $this->MaNhanVien;
+            $stmt = $this->getById();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return [
+                "status" => "success",
+                "message" => "Nhân viên đã được thêm thành công",
+                "data" => $result
+            ];
         }
+        
+        echo json_encode(["status" => "error", "message" => "Thêm nhân viên thất bại"]);
+        http_response_code(500);
         return false;
     }
 
@@ -91,21 +103,21 @@ class NhanVien {
     public function update() {
         // Kiểm tra nếu nhân viên không tồn tại
         if (!$this->isNhanVienExist()) {
-            echo json_encode(["message" => "Nhân viên không tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "Nhân viên không tồn tại"]);
             http_response_code(400);
             return false;
         }
 
         // Kiểm tra nếu email đã tồn tại (trong trường hợp email thay đổi)
         if ($this->isEmailExist()) {
-            echo json_encode(["message" => "Email đã tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "Email đã tồn tại"]);
             http_response_code(400);
             return false;
         }
         
         // Kiểm tra nếu CCCD đã tồn tại (trong trường hợp CCCD thay đổi)
         if ($this->isCCCDExist()) {
-            echo json_encode(["message" => "CCCD đã tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "CCCD đã tồn tại"]);
             http_response_code(400);
             return false;
         }
@@ -125,8 +137,19 @@ class NhanVien {
         $stmt->bindParam(":MaLoaiNhanVien", $this->MaLoaiNhanVien);
 
         if ($stmt->execute()) {
-            return true;
+            // Lấy thông tin nhân viên sau khi cập nhật
+            $stmt = $this->getById();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return [
+                "status" => "success",
+                "message" => "Nhân viên đã được cập nhật thành công",
+                "data" => $result
+            ];
         }
+        
+        echo json_encode(["status" => "error", "message" => "Cập nhật nhân viên thất bại"]);
+        http_response_code(500);
         return false;
     }
 
@@ -134,10 +157,14 @@ class NhanVien {
     public function delete() {
         // Kiểm tra nếu nhân viên không tồn tại
         if (!$this->isNhanVienExist()) {
-            echo json_encode(["message" => "Nhân viên không tồn tại"]);
+            echo json_encode(["status" => "error", "message" => "Nhân viên không tồn tại"]);
             http_response_code(400);
             return false;
         }
+        
+        // Lấy thông tin nhân viên trước khi xóa
+        $stmt = $this->getById();
+        $nhanVienInfo = $stmt->fetch(PDO::FETCH_ASSOC);
         
         // Kiểm tra liên kết với các bảng khác
         $tables = [
@@ -156,7 +183,7 @@ class NhanVien {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($row['count'] > 0) {
-                echo json_encode(["message" => "Không thể xóa nhân viên này vì đã có dữ liệu liên quan trong bảng " . $table]);
+                echo json_encode(["status" => "error", "message" => "Không thể xóa nhân viên này vì đã có dữ liệu liên quan trong bảng " . $table]);
                 http_response_code(400);
                 return false;
             }
@@ -169,8 +196,15 @@ class NhanVien {
         $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
 
         if ($stmt->execute()) {
-            return true;
+            return [
+                "status" => "success",
+                "message" => "Nhân viên đã được xóa thành công",
+                "data" => $nhanVienInfo
+            ];
         }
+        
+        echo json_encode(["status" => "error", "message" => "Xóa nhân viên thất bại"]);
+        http_response_code(500);
         return false;
     }
 
@@ -210,6 +244,42 @@ class NhanVien {
         $stmt->bindParam(":MaLoaiNhanVien", $this->MaLoaiNhanVien);
         $stmt->execute();
         return $stmt;
+    }
+    
+    // Hàm sinh mã nhân viên tự động
+    public function generateEmployeeCode($prefix = "NV") {
+        try {
+            // Tìm mã nhân viên lớn nhất hiện tại có cùng prefix
+            $sql = "SELECT MaNhanVien FROM " . $this->table . " WHERE MaNhanVien LIKE :prefix ORDER BY MaNhanVien DESC LIMIT 1";
+            $stmt = $this->conn->prepare($sql);
+            $prefixParam = $prefix . "%";
+            $stmt->bindParam(":prefix", $prefixParam);
+            $stmt->execute();
+            
+            // Lấy mã nhân viên lớn nhất
+            $lastCode = $stmt->fetchColumn();
+            
+            if ($lastCode) {
+                // Nếu đã có mã nhân viên trong cơ sở dữ liệu
+                // Trích xuất phần số từ mã (loại bỏ phần prefix)
+                $lastNumber = (int)substr($lastCode, strlen($prefix));
+                
+                // Tăng số lên 1
+                $newNumber = $lastNumber + 1;
+                
+                // Đảm bảo số mới có 3 chữ số (thêm số 0 phía trước nếu cần)
+                $newCode = $prefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+            } else {
+                // Nếu chưa có mã nhân viên nào trong cơ sở dữ liệu với prefix này, bắt đầu với 001
+                $newCode = $prefix . "001";
+            }
+            
+            return $newCode;
+        } catch (PDOException $e) {
+            // Xử lý lỗi nếu có
+            error_log("Lỗi khi sinh mã nhân viên: " . $e->getMessage());
+            return false;
+        }
     }
 }
 ?>
