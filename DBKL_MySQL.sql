@@ -26,6 +26,7 @@ CREATE TABLE `NhanVien` (
   `CCCD` varchar(12),
   `Email` varchar(255),
   `NgayVao` datetime,
+  `LuongCanBan` float,
   `MaLoaiNhanVien` int
 );
 

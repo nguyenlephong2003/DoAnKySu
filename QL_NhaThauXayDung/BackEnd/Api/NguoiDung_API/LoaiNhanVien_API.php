@@ -27,13 +27,19 @@ switch ($method) {
         if ($action === "GET") {
             $stmt = $loainhanvien->getAll();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode($result);
+            echo json_encode([
+                'status' => 'success',
+                'data' => $result
+            ]);
         } elseif ($action === "getById") {
             $loainhanvien->MaLoaiNhanVien = isset($_GET['MaLoaiNhanVien']) ? $_GET['MaLoaiNhanVien'] : null;
             if ($loainhanvien->MaLoaiNhanVien) {
                 $stmt = $loainhanvien->getById();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                echo json_encode($result);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
             } else {
                 echo json_encode(["message" => "Thiếu MaLoaiNhanVien"]);
                 http_response_code(400);

@@ -11,7 +11,13 @@ import {
   Descriptions,
 } from 'antd';
 import axios from 'axios';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+} from '@ant-design/icons';
 import BASE_URL from '../Config';
 import PageAdmin from '../page/Admin';
 
@@ -20,6 +26,7 @@ const roles = ['Admin', 'Giám đốc', 'Kế toán', 'Nhân sự', 'Quản lý'
 
 const QL_NguoiDung = () => {
   const [users, setUsers] = useState([]);
+  const [employees, setEmployees] = useState([]); // Danh sách nhân viên cho combobox
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -27,9 +34,11 @@ const QL_NguoiDung = () => {
   const [detailVisible, setDetailVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     fetchUsers();
+    fetchEmployees();
   }, []);
 
   const roleMapping = {
@@ -47,13 +56,12 @@ const QL_NguoiDung = () => {
     try {
       const res = await axios.get(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=GET`);
       if (res.data.status === 'success') {
-        // Gán quyền dựa vào 2 ký tự đầu tiên của MaTaiKhoan
         const usersWithRole = res.data.data.map(user => {
-          const prefix = user.MaNhanVien.substring(0, 2); // lấy 2 ký tự đầu
+          const prefix = user.MaNhanVien.substring(0, 2);
           return {
             ...user,
             Quyen: roleMapping[prefix] || 'Không xác định',
-            MatKhau: user.MatKhau || '********', // Mặc định nếu API không trả về mật khẩu
+            MatKhau: user.MatKhau || '********',
           };
         });
         setUsers(usersWithRole);
@@ -61,9 +69,24 @@ const QL_NguoiDung = () => {
         message.error('Không thể tải danh sách người dùng');
       }
     } catch (error) {
+      console.error('Error fetching users:', error);
       message.error('Lỗi kết nối đến API');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`);
+      if (res.data.status === 'success') {
+        setEmployees(res.data.data);
+      } else {
+        message.error('Không thể tải danh sách nhân viên');
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      message.error('Lỗi khi tải danh sách nhân viên');
     }
   };
 
@@ -75,13 +98,21 @@ const QL_NguoiDung = () => {
 
   const openEditModal = (record) => {
     setEditingUser(record);
-    form.setFieldsValue(record);
+    
+    // Tìm nhân viên tương ứng để hiển thị trong form
+    const employee = employees.find(emp => emp.MaNhanVien === record.MaNhanVien);
+    
+    form.setFieldsValue({
+      ...record,
+      employeeId: employee ? employee.MaNhanVien : undefined,
+    });
+    
     setModalVisible(true);
   };
 
   const handleDelete = async (record) => {
     try {
-      const res = await axios.post(`${BASE_URL}TaiKhoan_API.php?action=delete`, {
+      const res = await axios.post(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=DELETE`, {
         MaTaiKhoan: record.MaTaiKhoan,
       });
       if (res.data.status === 'success') {
@@ -90,22 +121,41 @@ const QL_NguoiDung = () => {
       } else {
         message.error('Không thể xóa người dùng');
       }
-    } catch {
+    } catch (error) {
+      console.error('Error deleting user:', error);
       message.error('Lỗi khi xóa');
+    }
+  };
+
+  const handleEmployeeChange = (value) => {
+    // Tìm nhân viên được chọn
+    const selectedEmployee = employees.find(emp => emp.MaNhanVien === value);
+    if (selectedEmployee) {
+      // Cập nhật form với thông tin nhân viên được chọn
+      form.setFieldsValue({
+        MaNhanVien: selectedEmployee.MaNhanVien,
+        TenNhanVien: selectedEmployee.TenNhanVien,
+      });
     }
   };
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+
       const url = editingUser
-        ? `${BASE_URL}TaiKhoan_API.php?action=update`
-        : `${BASE_URL}TaiKhoan_API.php?action=add`;
+        ? `${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=PUT`
+        : `${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=POST`;
 
       const payload = {
         ...values,
         MaTaiKhoan: editingUser?.MaTaiKhoan,
       };
+
+      // Xóa trường employeeId nếu có (vì đây chỉ là trường trợ giúp, không phải trường thực trong API)
+      if (payload.employeeId) {
+        delete payload.employeeId;
+      }
 
       const res = await axios.post(url, payload);
 
@@ -114,7 +164,7 @@ const QL_NguoiDung = () => {
         setModalVisible(false);
         fetchUsers();
       } else {
-        message.error('Thao tác thất bại');
+        message.error('Thao tác thất bại: ' + (res.data.message || ''));
       }
     } catch (err) {
       console.error('Validation failed:', err);
@@ -126,6 +176,19 @@ const QL_NguoiDung = () => {
     setDetailVisible(true);
   };
 
+  // Xử lý tìm kiếm
+  const handleSearch = (value) => {
+    setSearchText(value);
+  };
+
+  // Lọc dữ liệu dựa trên từ khóa tìm kiếm
+  const filteredUsers = users.filter(item => 
+    item.MaTaiKhoan?.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.MaNhanVien?.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.TenNhanVien?.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.Quyen?.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'Mã Tài Khoản',
@@ -133,9 +196,19 @@ const QL_NguoiDung = () => {
       key: 'MaTaiKhoan',
     },
     {
+      title: 'Mã Nhân Viên',
+      dataIndex: 'MaNhanVien',
+      key: 'MaNhanVien',
+    },
+    {
       title: 'Tên Nhân Viên',
       dataIndex: 'TenNhanVien',
       key: 'TenNhanVien',
+    },
+    {
+      title: 'Quyền',
+      dataIndex: 'Quyen',
+      key: 'Quyen',
     },
     {
       title: 'Hành động',
@@ -179,13 +252,13 @@ const QL_NguoiDung = () => {
         <h2 style={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '20px' }}>Quản lý người dùng</h2>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-          <Input.Search placeholder="Tìm kiếm..." style={{ maxWidth: 300 }} />
-
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={openAddModal}
-          >
+          <Input.Search 
+            placeholder="Tìm kiếm..." 
+            style={{ maxWidth: 300 }} 
+            onSearch={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+          <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}>
             Thêm mới
           </Button>
         </div>
@@ -193,57 +266,105 @@ const QL_NguoiDung = () => {
         <Table
           rowKey="MaTaiKhoan"
           columns={columns}
-          dataSource={users}
+          dataSource={filteredUsers}
           loading={loading}
-          pagination={{ pageSize: 5 }}
+          pagination={{ pageSize: 10 }}
           onRow={(record) => ({
             onClick: () => showUserDetail(record),
-            style: { cursor: 'pointer' }
+            style: { cursor: 'pointer' },
           })}
         />
 
+        {/* Modal thêm/sửa */}
         <Modal
-          visible={modalVisible}
+          open={modalVisible}
           title={editingUser ? 'Cập nhật người dùng' : 'Thêm người dùng'}
           onCancel={() => setModalVisible(false)}
           onOk={handleModalOk}
           okText="Lưu"
           cancelText="Hủy"
+          width={600}
         >
           <Form form={form} layout="vertical">
-            <Form.Item name="MaNhanVien" label="Mã nhân viên" rules={[{ required: true, message: 'Bắt buộc' }]}>
-              <Input />
+            {!editingUser && (
+              <Form.Item 
+                name="employeeId" 
+                label="Chọn nhân viên" 
+                rules={[{ required: true, message: 'Vui lòng chọn nhân viên' }]}
+              >
+                <Select
+                  placeholder="Chọn nhân viên"
+                  showSearch
+                  optionFilterProp="children"
+                  onChange={handleEmployeeChange}
+                  filterOption={(input, option) =>
+                    (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+                  }
+                >
+                  {employees.map(emp => (
+                    <Option key={emp.MaNhanVien} value={emp.MaNhanVien}>
+                      {emp.TenNhanVien} ({emp.MaNhanVien})
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
+            
+            <Form.Item 
+              name="MaNhanVien" 
+              label="Mã nhân viên" 
+              rules={[{ required: true, message: 'Bắt buộc' }]}
+            >
+              <Input disabled={!editingUser} />
             </Form.Item>
-            <Form.Item name="TenNhanVien" label="Tên nhân viên" rules={[{ required: true, message: 'Bắt buộc' }]}>
-              <Input />
+            
+            <Form.Item 
+              name="TenNhanVien" 
+              label="Tên nhân viên" 
+              rules={[{ required: true, message: 'Bắt buộc' }]}
+            >
+              <Input disabled />
             </Form.Item>
-            <Form.Item name="Quyen" label="Quyền" rules={[{ required: true, message: 'Bắt buộc' }]}>
-              <Select>
+            
+            <Form.Item 
+              name="Quyen" 
+              label="Quyền" 
+              rules={[{ required: true, message: 'Bắt buộc' }]}
+            >
+              <Select placeholder="Chọn quyền">
                 {roles.map((role) => (
-                  <Option key={role} value={role}>{role}</Option>
+                  <Option key={role} value={role}>
+                    {role}
+                  </Option>
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item name="MatKhau" label="Mật khẩu" rules={[{ required: editingUser === null, message: 'Bắt buộc' }]}>
+            
+            <Form.Item
+              name="MatKhau"
+              label="Mật khẩu"
+              rules={[{ required: editingUser === null, message: 'Bắt buộc' }]}
+            >
               <Input.Password
-                placeholder={editingUser ? "Để trống nếu không đổi mật khẩu" : "Nhập mật khẩu"}
+                placeholder={editingUser ? 'Để trống nếu không đổi mật khẩu' : 'Nhập mật khẩu'}
                 iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
               />
             </Form.Item>
           </Form>
         </Modal>
 
+        {/* Modal chi tiết */}
         <Modal
           title="Chi tiết tài khoản"
-          visible={detailVisible}
+          open={detailVisible}
           onCancel={() => setDetailVisible(false)}
           footer={[
             <Button key="close" onClick={() => setDetailVisible(false)}>
               Đóng
             </Button>,
-            <Button 
-              key="edit" 
-              icon={<EditOutlined />} 
+            <Button
+              key="edit"
+              icon={<EditOutlined />}
               onClick={() => {
                 setDetailVisible(false);
                 openEditModal(selectedUser);
@@ -263,7 +384,7 @@ const QL_NguoiDung = () => {
               <Button icon={<DeleteOutlined />} danger>
                 Xóa
               </Button>
-            </Popconfirm>
+            </Popconfirm>,
           ]}
           width={600}
           centered
@@ -281,9 +402,7 @@ const QL_NguoiDung = () => {
                     visible: passwordVisible,
                     onVisibleChange: setPasswordVisible,
                   }}
-                  iconRender={(visible) =>
-                    visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-                  }
+                  iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
                   readOnly
                   style={{ width: '100%' }}
                 />
