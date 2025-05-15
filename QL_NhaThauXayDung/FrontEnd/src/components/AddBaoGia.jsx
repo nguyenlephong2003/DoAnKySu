@@ -39,7 +39,6 @@ const AddBaoGiaForm = ({ visible, onCancel, onSuccess, loaiBaoGiaList = [] }) =>
       }
     } catch (error) {
       console.error('Error fetching loại công trình:', error);
-      message.error('Không thể lấy danh sách loại công trình');
     }
   };
 

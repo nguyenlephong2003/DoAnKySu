@@ -49,6 +49,8 @@ CREATE TABLE `HopDong` (
   `MoTa` nvarchar(255),
   `TongTien` float,
   `FileHopDong` varchar(6),
+  `TrangThai` nvarchar(255),
+  `GhiChu` nvarchar(255),
   `MaNhanVien` varchar(20)
 );
 
