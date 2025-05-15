@@ -248,36 +248,37 @@ class TaiKhoan {
         return $stmt;
     }
 
-//     function sinhMaNhanVien($prefix, $conn) {
-//     // Câu SQL: Lấy mã cuối cùng có prefix tương ứng
-//     $sql = "
-//         SELECT TOP 1 MaNhanVien AS MaCuoi
-//         FROM $this->table
-//         WHERE MaNhanVien LIKE ?
-//         ORDER BY CAST(SUBSTRING(MaNhanVien, LEN(?) + 1, LEN(MaNhanVien)) AS INT) DESC
-//     ";
+    function sinhMaNhanVien($prefix, $conn) {
+    // Câu SQL: Lấy mã cuối cùng có prefix tương ứng
+    $sql = "
+        SELECT TOP 1 MaNhanVien AS MaCuoi
+        FROM $this->table
+        WHERE MaNhanVien LIKE ?
+        ORDER BY CAST(SUBSTRING(MaNhanVien, LEN(?) + 1, LEN(MaNhanVien)) AS INT) DESC
+    ";
 
-//     // Chuẩn bị giá trị để truyền vào câu lệnh (dạng 'AD%')
-//     $likePrefix = $prefix . '%';
+    // Chuẩn bị giá trị để truyền vào câu lệnh (dạng 'AD%')
+    $likePrefix = $prefix . '%';
 
-//     $stmt = $conn->prepare($sql);
-//     $stmt->bind_param("ss", $likePrefix, $prefix);
-//     $stmt->execute();
-//     $result = $stmt->get_result();
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $likePrefix, $prefix);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-//     $nextNumber = 1; // Mặc định nếu chưa có mã nào
+    $nextNumber = 1; // Mặc định nếu chưa có mã nào
 
-//     if ($row = $result->fetch_assoc()) {
-//         // Tách phần số phía sau prefix
-//         $maCuoi = $row['MaCuoi'];
-//         $soCuoi = intval(substr($maCuoi, strlen($prefix)));
-//         $nextNumber = $soCuoi + 1;
-//     }
+    if ($row = $result->fetch_assoc()) {
+        // Tách phần số phía sau prefix
+        $maCuoi = $row['MaCuoi'];
+        $soCuoi = intval(substr($maCuoi, strlen($prefix)));
+        $nextNumber = $soCuoi + 1;
+    }
 
-//     // Format lại mã mới: ví dụ AD001, GD015,...
-//     $maMoi = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-//     return $maMoi;
-// }
+    // Format lại mã mới: ví dụ AD001, GD015,...
+    $maMoi = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+    return $maMoi;
+}
+
 function generateAccountCode($conn, $tableName, $columnName) {
     try {
         // Tìm mã tài khoản lớn nhất hiện tại trong cơ sở dữ liệu

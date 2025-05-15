@@ -8,6 +8,7 @@ class NhanVien {
     public $SoDT;
     public $CCCD;
     public $Email;
+    public $LuongCanBan;
     public $NgayVao;
     public $MaLoaiNhanVien;
     public $TenLoaiNhanVien; // Thêm trường này để lưu tên loại nhân viên
@@ -67,9 +68,11 @@ class NhanVien {
             http_response_code(400);
             return false;
         }
-
-        $query = "INSERT INTO " . $this->table . " (MaNhanVien, TenNhanVien, SoDT, CCCD, Email, NgayVao, MaLoaiNhanVien) 
-                  VALUES (:MaNhanVien, :TenNhanVien, :SoDT, :CCCD, :Email, :NgayVao, :MaLoaiNhanVien)";
+       
+      
+     
+        $query = "INSERT INTO " . $this->table . " (MaNhanVien, TenNhanVien, SoDT, CCCD, Email, LuongCanBan, NgayVao, MaLoaiNhanVien) 
+                  VALUES (:MaNhanVien, :TenNhanVien, :SoDT, :CCCD, :Email, :LuongCanBan, :NgayVao, :MaLoaiNhanVien)";
         $stmt = $this->conn->prepare($query);
 
         // Ràng buộc tham số
@@ -78,6 +81,7 @@ class NhanVien {
         $stmt->bindParam(":SoDT", $this->SoDT);
         $stmt->bindParam(":CCCD", $this->CCCD);
         $stmt->bindParam(":Email", $this->Email);
+        $stmt->bindParam(":LuongCanBan", $this->LuongCanBan);
         $stmt->bindParam(":NgayVao", $this->NgayVao);
         $stmt->bindParam(":MaLoaiNhanVien", $this->MaLoaiNhanVien);
 
@@ -123,7 +127,7 @@ class NhanVien {
         }
 
         $query = "UPDATE " . $this->table . " 
-                  SET TenNhanVien = :TenNhanVien, SoDT = :SoDT, CCCD = :CCCD, Email = :Email, NgayVao = :NgayVao, MaLoaiNhanVien = :MaLoaiNhanVien
+                  SET TenNhanVien = :TenNhanVien, SoDT = :SoDT, CCCD = :CCCD, Email = :Email, LuongCanBan = :LuongCanBan, NgayVao = :NgayVao, MaLoaiNhanVien = :MaLoaiNhanVien
                   WHERE MaNhanVien = :MaNhanVien";
         $stmt = $this->conn->prepare($query);
 
@@ -133,6 +137,7 @@ class NhanVien {
         $stmt->bindParam(":SoDT", $this->SoDT);
         $stmt->bindParam(":CCCD", $this->CCCD);
         $stmt->bindParam(":Email", $this->Email);
+        $stmt->bindParam(":LuongCanBan", $this->LuongCanBan);
         $stmt->bindParam(":NgayVao", $this->NgayVao);
         $stmt->bindParam(":MaLoaiNhanVien", $this->MaLoaiNhanVien);
 
@@ -247,7 +252,7 @@ class NhanVien {
     }
     
     // Hàm sinh mã nhân viên tự động
-    public function generateEmployeeCode($prefix = "NV") {
+    public function generateEmployeeCode($prefix) {
         try {
             // Tìm mã nhân viên lớn nhất hiện tại có cùng prefix
             $sql = "SELECT MaNhanVien FROM " . $this->table . " WHERE MaNhanVien LIKE :prefix ORDER BY MaNhanVien DESC LIMIT 1";
@@ -281,5 +286,74 @@ class NhanVien {
             return false;
         }
     }
+
+    function sinhMaNhanVien($prefix, $conn){
+    // Tính chiều dài của prefix để sử dụng trong SUBSTRING
+    $prefixLength = strlen($prefix) + 1; // +1 vì SUBSTRING trong MySQL bắt đầu từ 1
+
+    // Câu SQL tương thích MySQL
+    $sql = "
+        SELECT MaNhanVien AS MaCuoi
+        FROM taikhoan
+        WHERE MaNhanVien LIKE ?
+        ORDER BY CAST(SUBSTRING(MaNhanVien, ?) AS UNSIGNED) DESC
+        LIMIT 1
+    ";
+
+    $likePrefix = $prefix . '%';
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("si", $likePrefix, $prefixLength);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $nextNumber = 1; // Mặc định nếu chưa có mã nào
+
+    if ($row = $result->fetch_assoc()) {
+        $maCuoi = $row['MaCuoi'];
+        $soCuoi = intval(substr($maCuoi, strlen($prefix)));
+        $nextNumber = $soCuoi + 1;
+    }
+
+    // Format lại mã mới, ví dụ: AD001, GD023,...
+    $maMoi = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+    return $maMoi;
 }
+
+// Hàm lấy prefix từ tên loại nhân viên
+public function getPrefixFromMaLoai() {
+    // Kiểm tra xem thuộc tính MaLoaiNhanVien có tồn tại và hợp lệ không
+    if (empty($this->MaLoaiNhanVien)) {
+        return null;
+    }
+
+    // Kiểm tra xem Mã loại nhân viên có tồn tại trong bảng hay không
+    $sql = "SELECT MaLoaiNhanVien FROM $this->table WHERE MaLoaiNhanVien = :MaLoaiNhanVien";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(':MaLoaiNhanVien', $this->MaLoaiNhanVien);
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$result) {
+        return null; // Không tồn tại mã loại này trong DB
+    }
+
+    // Mapping từ mã loại sang prefix
+    $prefixMap = [
+        1 => "AD",
+        2 => "GD",
+        3 => "KT",
+        4 => "NS",
+        5 => "QL",
+        6 => "TC",
+        7 => "TP",
+        8 => "KH"
+    ];
+
+    // Trả về prefix tương ứng hoặc mặc định là "TV"
+    return $prefixMap[$this->MaLoaiNhanVien] ?? "TV";
+}
+
+}
+
 ?>
