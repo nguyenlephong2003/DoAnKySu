@@ -15,6 +15,7 @@ import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
 import { useEffect, useState } from "react";
 import QL_NhanVien from "./components/QL_NhanVien.jsx";
 import QuanLyCongTrinh from "./components/QuanLyCongTrinh.jsx";
+import QuanLyThietBiVatTu from "./components/QuanLyThietBiVatTu.jsx";
 import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
 import DuyetHopDong from "./components/DuyetHopDong.jsx";
 
@@ -160,7 +161,9 @@ function App() {
             <PageNhanVienKho />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="quanlythietbivattu" element={<QuanLyThietBiVatTu />} />
+      </Route>
       <Route
         path="/nhanvientuvan"
         element={
