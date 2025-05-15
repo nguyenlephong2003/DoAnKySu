@@ -74,7 +74,19 @@ switch ($method) {
                 http_response_code(400);
             }
         } elseif ($action === "generateCode") {
-            $prefix = isset($_GET['prefix']) ? $_GET['prefix'] : "NV";
+             $data = new NhanVien($db);
+            $data->MaLoaiNhanVien = isset($_GET['MaLoaiNhanVien']) ? (int)$_GET['MaLoaiNhanVien'] : null;
+            $prefix = $data->getPrefixFromMaLoai();
+            if ($prefix === null) {
+                echo json_encode(["status" => "error", "message" => "Không tìm thấy mã loại nhân viên"]);
+                http_response_code(404);
+                exit;
+            }
+            if (!$prefix) {
+                echo json_encode(["status" => "error", "message" => "Thiếu prefix"]);
+                http_response_code(400);
+                exit;
+            }
             $newCode = $nhanvien->generateEmployeeCode($prefix);
             
             if ($newCode) {
@@ -94,17 +106,8 @@ switch ($method) {
 
     case 'POST':
         if ($action === "POST") {
-            // Nhận dữ liệu từ client
             $data = json_decode(file_get_contents("php://input"));
-            
-            // Nếu không có MaNhanVien, tự động tạo
-            if (empty($data->MaNhanVien)) {
-                $prefix = isset($data->prefix) ? $data->prefix : "NV";
-                $data->MaNhanVien = $nhanvien->generateEmployeeCode($prefix);
-            }
-            
-            // Kiểm tra dữ liệu đầu vào
-            if (!isset($data->TenNhanVien, $data->SoDT, $data->Email, $data->MaLoaiNhanVien)) {
+            if (!isset($data->MaNhanVien, $data->TenNhanVien, $data->SoDT, $data->Email, $data->LuongCanBan, $data->MaLoaiNhanVien)) {
                 echo json_encode(["status" => "error", "message" => "Dữ liệu không đầy đủ"]);
                 http_response_code(400);
                 exit;
@@ -117,6 +120,7 @@ switch ($method) {
             $nhanvien->CCCD = isset($data->CCCD) ? $data->CCCD : null;
             $nhanvien->Email = $data->Email;
             $nhanvien->NgayVao = isset($data->NgayVao) ? $data->NgayVao : date('Y-m-d H:i:s');
+            $nhanvien->LuongCanBan = $data->LuongCanBan;
             $nhanvien->MaLoaiNhanVien = intval($data->MaLoaiNhanVien);
 
             // Thêm nhân viên
@@ -133,7 +137,7 @@ switch ($method) {
     case 'PUT':
         if ($action === "PUT") {
             $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaNhanVien, $data->TenNhanVien, $data->SoDT, $data->Email, $data->MaLoaiNhanVien)) {
+            if (!isset($data->MaNhanVien, $data->TenNhanVien, $data->SoDT, $data->Email,$data->LuongCanBan, $data->MaLoaiNhanVien)) {
                 echo json_encode(["status" => "error", "message" => "Dữ liệu không đầy đủ"]);
                 http_response_code(400);
                 exit;
@@ -145,6 +149,7 @@ switch ($method) {
             $nhanvien->CCCD = isset($data->CCCD) ? $data->CCCD : null;
             $nhanvien->Email = $data->Email;
             $nhanvien->NgayVao = isset($data->NgayVao) ? $data->NgayVao : null;
+            $nhanvien->LuongCanBan = $data->LuongCanBan;
             $nhanvien->MaLoaiNhanVien = intval($data->MaLoaiNhanVien);
 
             $result = $nhanvien->update();

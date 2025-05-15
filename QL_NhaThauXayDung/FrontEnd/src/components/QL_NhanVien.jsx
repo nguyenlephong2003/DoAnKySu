@@ -56,7 +56,7 @@ const QL_NhanVien = () => {
           ...item,
           NgayVao: item.NgayVao ? item.NgayVao.split(' ')[0] : '',
         }));
-        
+
         setData(formattedData);
         console.log('Data loaded:', formattedData);
       } else {
@@ -91,7 +91,7 @@ const QL_NhanVien = () => {
       const response = await axios.delete(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=DELETE`, {
         data: { MaNhanVien: record.MaNhanVien }
       });
-      
+
       if (response.data.status === 'success') {
         message.success('Xóa thành công');
         fetchData(); // Tải lại dữ liệu sau khi xóa
@@ -108,11 +108,11 @@ const QL_NhanVien = () => {
     try {
       const values = await form.validateFields();
       console.log('Form values:', values);
-      
+
       if (editingNV) {
         // Cập nhật nhân viên
         const response = await axios.put(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=PUT`, values);
-        
+
         if (response.data.status === 'success') {
           message.success('Cập nhật thành công');
           fetchData(); // Tải lại dữ liệu sau khi cập nhật
@@ -122,7 +122,7 @@ const QL_NhanVien = () => {
       } else {
         // Thêm nhân viên mới
         const response = await axios.post(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=POST`, values);
-        
+
         if (response.data.status === 'success') {
           message.success('Thêm mới thành công');
           fetchData(); // Tải lại dữ liệu sau khi thêm
@@ -136,13 +136,57 @@ const QL_NhanVien = () => {
     }
   };
 
+ const handleLoaiNhanVienChange = async (value) => {
+  console.log("Chọn loại NV: ", value);
+  form.setFieldValue("MaLoaiNhanVien", value);
+
+  if (!editingNV) { // Chỉ tạo mã khi đang thêm mới
+    try {
+      const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=generateCode&MaLoaiNhanVien=${value}`);
+      
+      if (response.data.status === 'success') {
+        form.setFieldValue("MaNhanVien", response.data.data.MaNhanVien);
+      } else {
+        message.warning('Không tạo được mã nhân viên tự động');
+      }
+    } catch (error) {
+      console.error('Lỗi tạo mã nhân viên:', error);
+      message.error('Lỗi khi tạo mã nhân viên');
+    }
+  }
+  else {
+    // Kiểm tra nếu loại nhân viên thay đổi
+    if (editingNV.MaLoaiNhanVien === value) {
+      // Nếu loại nhân viên không thay đổi, giữ nguyên mã cũ
+      form.setFieldValue("MaNhanVien", editingNV.MaNhanVien);
+    } else {
+      // Nếu loại nhân viên thay đổi, gọi API để lấy mã mới (tăng 1)
+      try {
+        const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=generateCode&MaLoaiNhanVien=${value}&isIncrement=true`);
+        
+        if (response.data.status === 'success') {
+          form.setFieldValue("MaNhanVien", response.data.data.MaNhanVien);
+        } else {
+          message.warning('Không tạo được mã nhân viên tự động');
+          form.setFieldValue("MaNhanVien", editingNV.MaNhanVien); // Giữ lại mã cũ nếu có lỗi
+        }
+      } catch (error) {
+        console.error('Lỗi tạo mã nhân viên mới:', error);
+        message.error('Lỗi khi tạo mã nhân viên mới');
+        form.setFieldValue("MaNhanVien", editingNV.MaNhanVien); // Giữ lại mã cũ nếu có lỗi
+      }
+    }
+  }
+};
+
+
   // Xử lý tìm kiếm
   const handleSearch = (value) => {
     setSearchText(value);
   };
 
   // Lọc dữ liệu dựa trên từ khóa tìm kiếm
-  const filteredData = data.filter(item => 
+  const filteredData = data.filter(item =>
     item.MaNhanVien.toLowerCase().includes(searchText.toLowerCase()) ||
     item.TenNhanVien.toLowerCase().includes(searchText.toLowerCase()) ||
     item.SoDT.includes(searchText) ||
@@ -183,7 +227,7 @@ const QL_NhanVien = () => {
       key: 'NgayVao',
       render: (text) => text ? text.split(' ')[0] : '',
     },
-       {
+    {
       title: 'Lương Căn bản',
       dataIndex: 'LuongCanBan',
       key: 'LuongCanBan',
@@ -212,17 +256,17 @@ const QL_NhanVien = () => {
   ];
 
   console.log("Render QL Nhân Viên");
-  
+
   // Kiểm tra nếu đang được render trong route trực tiếp
   const isDirectRoute = window.location.pathname.includes("/nhansu/quan-ly-nhan-vien");
-  
+
   return (
     <div style={{ padding: 24, backgroundColor: '#fff', borderRadius: 12, margin: isDirectRoute ? 0 : 24 }}>
       <h2 style={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '20px' }}>Quản lý nhân viên</h2>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <Input.Search 
-          placeholder="Tìm kiếm..." 
-          style={{ maxWidth: 300 }} 
+        <Input.Search
+          placeholder="Tìm kiếm..."
+          style={{ maxWidth: 300 }}
           onSearch={handleSearch}
           onChange={(e) => handleSearch(e.target.value)}
         />
@@ -251,7 +295,7 @@ const QL_NhanVien = () => {
       >
         <Form form={form} layout="vertical">
           <Form.Item name="MaNhanVien" label="Mã nhân viên" rules={[{ required: true, message: 'Bắt buộc' }]}>
-            <Input disabled={!!editingNV} />
+            <Input disabled />
           </Form.Item>
           <Form.Item name="TenNhanVien" label="Tên nhân viên" rules={[{ required: true, message: 'Bắt buộc' }]}>
             <Input />
@@ -271,7 +315,7 @@ const QL_NhanVien = () => {
           <Form.Item name="NgayVao" label="Ngày vào" rules={[{ required: true, message: 'Bắt buộc' }]}>
             <Input type="date" />
           </Form.Item>
-              <Form.Item name="LuongCanBan" label="Lương Căn bản" rules={[{ required: true, message: 'Bắt buộc' }]}>
+          <Form.Item name="LuongCanBan" label="Lương Căn bản" rules={[{ required: true, message: 'Bắt buộc' }]}>
             <Input />
           </Form.Item>
           <Form.Item
@@ -279,7 +323,7 @@ const QL_NhanVien = () => {
             label="Loại nhân viên"
             rules={[{ required: true, message: 'Bắt buộc' }]}
           >
-            <Select placeholder="Chọn loại nhân viên">
+            <Select placeholder="Chọn loại nhân viên" onChange={handleLoaiNhanVienChange}>
               {loaiNhanVienOptions.map((item) => (
                 <Option key={item.MaLoaiNhanVien} value={item.MaLoaiNhanVien}>
                   {item.TenLoaiNhanVien}
