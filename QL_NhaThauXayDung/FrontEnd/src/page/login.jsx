@@ -25,16 +25,19 @@ function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${BASE_URL}NguoiDung_API/DangNhap_API.php`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          MaNhanVien: username,
-          MatKhau: password,
-        }),
-      });
+      const response = await fetch(
+        `${BASE_URL}NguoiDung_API/DangNhap_API.php`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            MaNhanVien: username,
+            MatKhau: password,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const text = await response.text();
@@ -61,14 +64,14 @@ function LoginPage() {
         localStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
         localStorage.setItem("expires", data.expires);
         sessionStorage.setItem("maNhanVien", data.nhanvien[0].MaNhanVien);
-      
+
         setSuccess("Đăng nhập thành công!");
         setError("");
-      
+
         // Lấy 2 ký tự đầu của MaNhanVien
         const maNV = data.nhanvien[0].MaNhanVien;
         const maLoai = maNV.substring(0, 2);
-        
+
         // Chuyển hướng dựa vào mã loại
         setTimeout(() => {
           switch (maLoai) {
@@ -90,9 +93,9 @@ function LoginPage() {
             case "K":
               navigate("/nhanvienkho");
               break;
-              case "TV":
-                navigate("/nhanvientuvan/lapbaogia");
-                break;
+            case "TV":
+              navigate("/nhanvientuvan/lapbaogia");
+              break;
           }
         }, 1000);
       } else {
@@ -102,9 +105,7 @@ function LoginPage() {
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
-      setError(
-        `Vui lòng kiểm trả lại thông tin`
-      );
+      setError(`Vui lòng kiểm trả lại thông tin`);
       setSuccess("");
     } finally {
       setLoading(false);

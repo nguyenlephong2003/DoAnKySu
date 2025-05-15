@@ -11,38 +11,34 @@ import {
   FaUserEdit,
   FaSignOutAlt
 } from "react-icons/fa";
-
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
 
-const PageNhanVienKho= ({ children }) => {
+const PageNhanVienKho = () => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("chitietgv"); // Menu mặc định
-  
+  const [activeMenu, setActiveMenu] = useState("quanlythietbivattu");
+  const [currentComponent, setCurrentComponent] = useState(null);
+
   const sidebarRef = useRef();
   const userMenuRef = useRef();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Định nghĩa cấu trúc menu
   const menuItems = [
-    { id: "quanlyvattuthietbi", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/thietbi/quanlyvattuthietbi" },
-    { id: "timkiem", label: "TÌm kiếm", icon: <FaClipboardList />, path: "/thietbi/timkiem" },
-    { id: "xulythietbihong", label: "Xử lý thiết bị hỏng", icon: <FaLaptopCode />, path: "/thietbi/xulythietbihong" },
-    { id: "doitra", label: "Đổi trả", icon: <FaLaptopCode />, path: "/thietbi/doitra " },
-
+    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" },
+    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" },
+    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" }
   ];
 
   const handleClickOutside = (event) => {
     if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
       setSidebarToggle(false);
     }
-    
     if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
       setUserMenuOpen(false);
     }
@@ -74,28 +70,21 @@ const PageNhanVienKho= ({ children }) => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    // Xác nhận đăng xuất
     setIsLogoutModalOpen(false);
-    
-    // Xóa tất cả thông tin đăng nhập
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
     localStorage.removeItem("expires");
-    
-    // Chuyển hướng về trang đăng nhập
     navigate("/login");
   };
-  
+
   const handleProfileEdit = () => {
-    // Đóng menu người dùng
     setUserMenuOpen(false);
-    
-    // Chuyển hướng đến trang chỉnh sửa hồ sơ
     navigate("/profile");
   };
 
   const handleMenuClick = (menuId, path) => {
     setActiveMenu(menuId);
+    setCurrentComponent(menuId);
     navigate(path);
   };
 
@@ -103,9 +92,9 @@ const PageNhanVienKho= ({ children }) => {
     <div className="flex h-screen overflow-hidden bg-gray-100">
       <div
         ref={sidebarRef}
-        className={`h-screen w-64 bg-[#ffffff] border-r border-gray-300 text-gray-700 lg:static absolute z-20 ${
+        className={`h-screen w-auto min-w-[170px] bg-[#ffffff] border-r border-gray-300 text-gray-700 lg:static absolute z-20 ${
           sidebarToggle ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 transition-all duration-300`}
+        } lg:translate-x-0 transition-all duration-300 overflow-x-hidden`}
       >
         <div className="flex p-4 text-center text-2xl font-bold justify-between items-center">
           <img src={LogoHUIT} alt="Logo" className="h-9" />
@@ -119,20 +108,28 @@ const PageNhanVienKho= ({ children }) => {
         <hr className="border-gray-400" />
 
         <div className="py-6 px-4">
-          <ul className="space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <ul className="space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1">
             {menuItems.map((item) => (
-              <li 
-              key={item.id}
-              onClick={() => handleMenuClick(item.id, item.path)}
-              className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
-                activeMenu === item.id 
-                ? "bg-[#2e7d32] text-white font-medium" 
-                : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
-              }`}
-            >
+              <li
+                key={item.id}
+                onClick={() => handleMenuClick(item.id, item.path)}
+                className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  activeMenu === item.id
+                    ? "bg-[#2e7d32] text-white font-medium shadow-md transform scale-[1.02]"
+                    : "text-gray-700 hover:bg-[#e8f5e9] hover:text-[#2e7d32] hover:shadow-sm"
+                }`}
+              >
                 <div className="flex items-center space-x-3">
-                  {item.icon}
-                  <span className="font-semibold">{item.label}</span>
+                  <span className={`text-lg transition-colors duration-200 whitespace-nowrap ${
+                    activeMenu === item.id ? "text-white" : "text-[#2e7d32]"
+                  }`}>
+                    {item.icon}
+                  </span>
+                  <span className={`font-medium transition-colors duration-200 whitespace-nowrap ${
+                    activeMenu === item.id ? "text-white" : "text-gray-700"
+                  }`}>
+                    {item.label}
+                  </span>
                 </div>
               </li>
             ))}
@@ -141,7 +138,6 @@ const PageNhanVienKho= ({ children }) => {
       </div>
 
       <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        {/* Header với thông tin người dùng một hàng */}
         <div className="sticky top-0 z-10 w-full bg-white shadow px-4 py-4 flex justify-between items-center border-b border-gray-300">
           <div className="flex items-center space-x-4">
             <div
@@ -172,7 +168,6 @@ const PageNhanVienKho= ({ children }) => {
                   <CiUser className="text-xl text-gray-600" />
                 </div>
                 
-                {/* Menu người dùng */}
                 {userMenuOpen && (
                   <div 
                     ref={userMenuRef}
@@ -199,10 +194,11 @@ const PageNhanVienKho= ({ children }) => {
           </div>
         </div>
 
-        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>
+        <div className="flex-1 bg-[#e4e4e4] p-6">
+          <Outlet />
+        </div>
       </div>
 
-      {/* Modal xác nhận đăng xuất */}
       {isLogoutModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-40">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
