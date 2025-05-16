@@ -42,13 +42,14 @@ const QuanLyThietBiVatTu = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}QuanLyThietBiVatTu_API/ThietBiVatTu_API.php?action=GET`);
+      const res = await axios.get(`${BASE_URL}DeXuat_API/ThietBiVatTu_API.php?action=GET`);
       if (res.data.status === 'success') {
         setData(res.data.data);
       } else {
         message.error('Không thể tải dữ liệu thiết bị vật tư');
       }
-    } catch {
+    } catch (error) {
+      console.error('Error fetching data:', error);
       message.error('Lỗi khi kết nối đến server');
     } finally {
       setLoading(false);
@@ -207,7 +208,6 @@ const QuanLyThietBiVatTu = () => {
     { title: 'Mã thiết bị vật tư', dataIndex: 'MaThietBiVatTu', key: 'MaThietBiVatTu', width: 120, align: 'center' },
     { title: 'Tên thiết bị vật tư', dataIndex: 'TenThietBiVatTu', key: 'TenThietBiVatTu', width: 200, align: 'center' },
     { title: 'Loại thiết bị vật tư', dataIndex: 'TenLoaiThietBiVatTu', key: 'TenLoaiThietBiVatTu', width: 180, align: 'center' },
-    { title: 'Đơn vị tính', dataIndex: 'DonViTinh', key: 'DonViTinh', width: 120, align: 'center' },
     { title: 'Số lượng tồn', dataIndex: 'SoLuongTon', key: 'SoLuongTon', width: 120, align: 'center' },
     { title: 'Trạng thái', dataIndex: 'TrangThai', key: 'TrangThai', width: 120, align: 'center' },
     { title: 'Nhà cung cấp', dataIndex: 'TenNhaCungCap', key: 'TenNhaCungCap', width: 200, align: 'center' },
@@ -412,7 +412,9 @@ const QuanLyThietBiVatTu = () => {
         closable={false}
         width={600}
         className="custom-modal"
-        bodyStyle={{ padding: '24px' }}
+        styles={{
+          body: { padding: '24px' }
+        }}
         footer={[
           <div key="footer" className="flex justify-end gap-2 border-t pt-4">
             <Button 

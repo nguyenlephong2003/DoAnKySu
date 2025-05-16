@@ -50,6 +50,26 @@ class ThietBiVatTu {
         return false;
     }
 
+    // Read all ThietBiVatTu entries
+    public function read() {
+        $query = "SELECT tbvt.*, 
+                         lvt.TenLoai as TenLoaiThietBiVatTu, 
+                         lvt.DonViTinh,
+                         ncc.TenNhaCungCap
+                  FROM " . $this->table_name . " tbvt
+                  LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
+                  LEFT JOIN NhaCungCap ncc ON tbvt.MaNhaCungCap = ncc.MaNhaCungCap
+                  ORDER BY tbvt.MaThietBiVatTu";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
+
     // Read Single ThietBiVatTu entry
     public function readSingle() {
         $query = "SELECT tbvt.*, 

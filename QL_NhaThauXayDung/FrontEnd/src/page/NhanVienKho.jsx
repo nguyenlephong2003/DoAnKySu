@@ -31,8 +31,7 @@ const PageNhanVienKho = () => {
 
   const menuItems = [
     { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" },
-    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" },
-    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" }
+    { id: "lapphieukiemtra", label: "Lập phiếu kiểm tra", icon: <FaClipboardList />, path: "/nhanvienkho/lapphieukiemtra" },
   ];
 
   const handleClickOutside = (event) => {

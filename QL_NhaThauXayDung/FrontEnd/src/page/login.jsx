@@ -68,9 +68,19 @@ function LoginPage() {
         setSuccess("Đăng nhập thành công!");
         setError("");
 
-        // Lấy 2 ký tự đầu của MaNhanVien
+        // Lấy mã nhân viên và xác định loại
         const maNV = data.nhanvien[0].MaNhanVien;
-        const maLoai = maNV.substring(0, 2);
+        let maLoai = "";
+        
+        // Xử lý đặc biệt cho nhân viên kho (K)
+        if (maNV.startsWith("K") && !maNV.startsWith("KT")) {
+          maLoai = "K";
+        } else {
+          maLoai = maNV.substring(0, 2);
+        }
+
+        console.log("Mã nhân viên:", maNV);
+        console.log("Mã loại:", maLoai);
 
         // Chuyển hướng dựa vào mã loại
         setTimeout(() => {
@@ -92,6 +102,7 @@ function LoginPage() {
               break;
             case "K":
               navigate("/nhanvienkho");
+              console.log("nhanvienkho");
               break;
             case "TV":
               navigate("/nhanvientuvan/lapbaogia");

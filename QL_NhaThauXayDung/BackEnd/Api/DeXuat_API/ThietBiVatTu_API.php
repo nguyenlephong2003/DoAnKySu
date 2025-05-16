@@ -35,7 +35,22 @@ if (!$action) {
 
 switch ($method) {
     case 'GET':
-        if ($action === "getById") {
+        if ($action === "GET") {
+            try {
+                $stmt = $thietbivattu->read();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage()
+                ]);
+                http_response_code(500);
+            }
+        } elseif ($action === "getById") {
             $thietbivattu->MaThietBiVatTu = isset($_GET['MaThietBiVatTu']) ? $_GET['MaThietBiVatTu'] : null;
             if ($thietbivattu->MaThietBiVatTu) {
                 try {
