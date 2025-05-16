@@ -29,7 +29,15 @@ function ProtectedRoute({ children, allowedRole }) {
       const token = localStorage.getItem("token");
       const expires = localStorage.getItem("expires");
       const currentTime = Math.floor(Date.now() / 1000);
-
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      
+      console.log("Debug ProtectedRoute:");
+      console.log("Token:", token);
+      console.log("Expires:", expires);
+      console.log("Current Time:", currentTime);
+      console.log("User Info:", userInfo);
+      console.log("Allowed Role:", allowedRole);
+      
       // Kiểm tra token tồn tại và chưa hết hạn
       if (!token || !expires) {
         alert("Vui lòng đăng nhập để tiếp tục");
@@ -51,13 +59,21 @@ function ProtectedRoute({ children, allowedRole }) {
       }
 
       // Kiểm tra vai trò người dùng
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      const userRole = userInfo.MaNhanVien
-        ? userInfo.MaNhanVien.substring(0, 2)
-        : "";
+      const maNhanVien = userInfo.MaNhanVien || "";
+      let userRole = "";
+      
+      // Xử lý đặc biệt cho nhân viên kho (K)
+      if (maNhanVien.startsWith("K") && !maNhanVien.startsWith("KT")) {
+        userRole = "K";
+      } else {
+        userRole = maNhanVien.substring(0, 2);
+      }
+      
+      console.log("User Role:", userRole);
 
       // Nếu vai trò không khớp với trang được phép
       if (userRole !== allowedRole) {
+        console.log("Role mismatch - User Role:", userRole, "Allowed Role:", allowedRole);
         navigate("/404");
         return;
       }
@@ -163,6 +179,7 @@ function App() {
         }
       >
         <Route path="quanlythietbivattu" element={<QuanLyThietBiVatTu />} />
+        <Route path="lapphieukiemtra" element={<div>Lập phiếu kiểm tra</div>} />
       </Route>
       <Route
         path="/nhanvientuvan"

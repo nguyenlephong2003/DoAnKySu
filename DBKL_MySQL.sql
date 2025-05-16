@@ -1,27 +1,27 @@
 CREATE TABLE `LoaiNhanVien` (
   `MaLoaiNhanVien` int AUTO_INCREMENT PRIMARY KEY,
-  `TenLoai` nvarchar(255)
+  `TenLoai` varchar(255)
 );
 
 CREATE TABLE `LoaiCongTrinh` (
   `MaLoaiCongTrinh` int AUTO_INCREMENT PRIMARY KEY,
-  `TenLoaiCongTrinh` nvarchar(255)
+  `TenLoaiCongTrinh` varchar(255)
 );
 
 CREATE TABLE `LoaiBaoGia` (
   `MaLoai` int AUTO_INCREMENT PRIMARY KEY,
-  `TenLoai` nvarchar(255)
+  `TenLoai` varchar(255)
 );
 
 CREATE TABLE `LoaiThietBiVatTu` (
   `MaLoaiThietBiVatTu` int AUTO_INCREMENT PRIMARY KEY,
-  `TenLoai` nvarchar(255),
-  `DonViTinh` nvarchar(20)
+  `TenLoai` varchar(255),
+  `DonViTinh` varchar(20)
 );
 
 CREATE TABLE `NhanVien` (
   `MaNhanVien` varchar(20) PRIMARY KEY,
-  `TenNhanVien` nvarchar(255),
+  `TenNhanVien` varchar(255),
   `SoDT` varchar(10),
   `CCCD` varchar(12),
   `Email` varchar(255),
@@ -46,11 +46,11 @@ CREATE TABLE `TaiKhoan` (
 CREATE TABLE `HopDong` (
   `MaHopDong` varchar(20) PRIMARY KEY,
   `NgayKy` Date,
-  `MoTa` nvarchar(255),
+  `MoTa` varchar(255),
   `TongTien` float,
   `FileHopDong` varchar(6),
-  `TrangThai` nvarchar(255),
-  `GhiChu` nvarchar(255),
+  `TrangThai` varchar(255),
+  `GhiChu` varchar(255),
   `MaNhanVien` varchar(20)
 );
 
@@ -64,15 +64,15 @@ CREATE TABLE `KhachHang` (
 
 CREATE TABLE `BangBaoGia` (
   `MaBaoGia` varchar(20) PRIMARY KEY,
-  `TenBaoGia` nvarchar(255),
-  `TrangThai` nvarchar(255),
-  `GhiChu` nvarchar(255),
+  `TenBaoGia` varchar(255),
+  `TrangThai` varchar(255),
+  `GhiChu` varchar(255),
   `MaLoai` int
 );
 
 CREATE TABLE `CongTrinh` (
   `MaCongTrinh` varchar(20) PRIMARY KEY,
-  `TenCongTrinh` nvarchar(255),
+  `TenCongTrinh` varchar(255),
   `Dientich` float,
   `FileThietKe` varchar(255),
   `MaKhachHang` varchar(20),
@@ -93,7 +93,7 @@ CREATE TABLE `BangBaoCaoTienDo` (
   `MaTienDo` varchar(20) PRIMARY KEY,
   `ThoiGianHoanThanhThucTe` DateTime,
   `CongViec` varchar(255),
-  `NoiDungCongViec` nvarchar(255),
+  `NoiDungCongViec` varchar(255),
   `NgayBaoCao` DateTime,
   `TrangThai` int,
   `TiLeHoanThanh` float,
@@ -112,17 +112,18 @@ CREATE TABLE `BangPhanCong` (
 
 CREATE TABLE `NhaCungCap` (
   `MaNhaCungCap` varchar(20) PRIMARY KEY,
-  `TenNhaCungCap` nvarchar(255),
+  `TenNhaCungCap` varchar(255),
   `SoDT` varchar(11),
-  `DiaChi` nvarchar(255),
-  `LoaiHinhCungCap` nvarchar(255)
+  `Email` varchar(255),
+  `DiaChi` varchar(255),
+  `LoaiHinhCungCap` varchar(255)
 );
 
 CREATE TABLE `ThietBiVatTu` (
   `MaThietBiVatTu` varchar(20) PRIMARY KEY,
-  `TenThietBiVatTu` nvarchar(255),
+  `TenThietBiVatTu` varchar(255),
   `SoLuongTon` float,
-  `TrangThai` nvarchar(255),
+  `TrangThai` varchar(255),
   `MaLoaiThietBiVatTu` int,
   `MaNhaCungCap` varchar(20)
 );
@@ -131,7 +132,7 @@ CREATE TABLE `PhieuNhap` (
   `MaPhieuNhap` varchar(20) PRIMARY KEY,
   `NgayNhap` DateTime,
   `TongTien` float,
-  `TrangThai` nvarchar(50),
+  `TrangThai` varchar(50),
   `MaNhaCungCap` varchar(20),
   `MaNhanVien` varchar(20)
 );
@@ -148,7 +149,7 @@ CREATE TABLE `ChiTietThiCong` (
   `MaChiTietThiCong` int AUTO_INCREMENT PRIMARY KEY,
   `MaCongTrinh` varchar(20),
   `MaThietBiVatTu` varchar(20),
-  `TrangThai` nvarchar(50),
+  `TrangThai` varchar(50),
   `NgayRoiKho` Datetime,
   `NgayHoanKho` Datetime
 );

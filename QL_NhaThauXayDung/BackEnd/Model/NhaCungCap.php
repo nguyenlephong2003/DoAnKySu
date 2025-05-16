@@ -7,6 +7,7 @@ class NhaCungCap {
     public $MaNhaCungCap;
     public $TenNhaCungCap;
     public $SoDT;
+    public $Email;
     public $DiaChi;
     public $LoaiHinhCungCap;
 
@@ -15,41 +16,22 @@ class NhaCungCap {
         $this->conn = $db;
     }
 
-    // Create new NhaCungCap entry
-    public function create() {
-        $query = "INSERT INTO " . $this->table_name . " 
-                  (MaNhaCungCap, TenNhaCungCap, SoDT, DiaChi, LoaiHinhCungCap) 
-                  VALUES (:maNhaCungCap, :tenNhaCungCap, :soDT, :diaChi, :loaiHinhCungCap)";
+    // Read all NhaCungCap entries
+    public function read() {
+        $query = "SELECT * FROM " . $this->table_name . " ORDER BY MaNhaCungCap";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
 
-        // Clean and bind data
-        $this->MaNhaCungCap = htmlspecialchars(strip_tags($this->MaNhaCungCap));
-        $this->TenNhaCungCap = htmlspecialchars(strip_tags($this->TenNhaCungCap));
-        $this->SoDT = htmlspecialchars(strip_tags($this->SoDT));
-        $this->DiaChi = htmlspecialchars(strip_tags($this->DiaChi));
-        $this->LoaiHinhCungCap = htmlspecialchars(strip_tags($this->LoaiHinhCungCap));
-
-        $stmt->bindParam(":maNhaCungCap", $this->MaNhaCungCap);
-        $stmt->bindParam(":tenNhaCungCap", $this->TenNhaCungCap);
-        $stmt->bindParam(":soDT", $this->SoDT);
-        $stmt->bindParam(":diaChi", $this->DiaChi);
-        $stmt->bindParam(":loaiHinhCungCap", $this->LoaiHinhCungCap);
-
         // Execute query
-        if($stmt->execute()) {
-            return true;
-        }
+        $stmt->execute();
 
-        return false;
+        return $stmt;
     }
 
     // Read Single NhaCungCap entry
     public function readSingle() {
-        $query = "SELECT * FROM " . $this->table_name . " 
-                  WHERE MaNhaCungCap = ? 
-                  LIMIT 0,1";
+        $query = "SELECT * FROM " . $this->table_name . " WHERE MaNhaCungCap = ? LIMIT 0,1";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -67,8 +49,43 @@ class NhaCungCap {
         $this->MaNhaCungCap = $row['MaNhaCungCap'];
         $this->TenNhaCungCap = $row['TenNhaCungCap'];
         $this->SoDT = $row['SoDT'];
+        $this->Email = $row['Email'];
         $this->DiaChi = $row['DiaChi'];
         $this->LoaiHinhCungCap = $row['LoaiHinhCungCap'];
+
+        return $row;
+    }
+
+    // Create new NhaCungCap entry
+    public function create() {
+        $query = "INSERT INTO " . $this->table_name . " 
+                  (MaNhaCungCap, TenNhaCungCap, SoDT, Email, DiaChi, LoaiHinhCungCap) 
+                  VALUES (:maNhaCungCap, :tenNhaCungCap, :soDT, :email, :diaChi, :loaiHinhCungCap)";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean and bind data
+        $this->MaNhaCungCap = htmlspecialchars(strip_tags($this->MaNhaCungCap));
+        $this->TenNhaCungCap = htmlspecialchars(strip_tags($this->TenNhaCungCap));
+        $this->SoDT = htmlspecialchars(strip_tags($this->SoDT));
+        $this->Email = htmlspecialchars(strip_tags($this->Email));
+        $this->DiaChi = htmlspecialchars(strip_tags($this->DiaChi));
+        $this->LoaiHinhCungCap = htmlspecialchars(strip_tags($this->LoaiHinhCungCap));
+
+        $stmt->bindParam(":maNhaCungCap", $this->MaNhaCungCap);
+        $stmt->bindParam(":tenNhaCungCap", $this->TenNhaCungCap);
+        $stmt->bindParam(":soDT", $this->SoDT);
+        $stmt->bindParam(":email", $this->Email);
+        $stmt->bindParam(":diaChi", $this->DiaChi);
+        $stmt->bindParam(":loaiHinhCungCap", $this->LoaiHinhCungCap);
+
+        // Execute query
+        if($stmt->execute()) {
+            return true;
+        }
+
+        return false;
     }
 
     // Update NhaCungCap entry
@@ -76,6 +93,7 @@ class NhaCungCap {
         $query = "UPDATE " . $this->table_name . " 
                   SET TenNhaCungCap = :tenNhaCungCap, 
                       SoDT = :soDT, 
+                      Email = :email,
                       DiaChi = :diaChi, 
                       LoaiHinhCungCap = :loaiHinhCungCap 
                   WHERE MaNhaCungCap = :maNhaCungCap";
@@ -86,12 +104,14 @@ class NhaCungCap {
         // Clean and bind data
         $this->TenNhaCungCap = htmlspecialchars(strip_tags($this->TenNhaCungCap));
         $this->SoDT = htmlspecialchars(strip_tags($this->SoDT));
+        $this->Email = htmlspecialchars(strip_tags($this->Email));
         $this->DiaChi = htmlspecialchars(strip_tags($this->DiaChi));
         $this->LoaiHinhCungCap = htmlspecialchars(strip_tags($this->LoaiHinhCungCap));
         $this->MaNhaCungCap = htmlspecialchars(strip_tags($this->MaNhaCungCap));
 
         $stmt->bindParam(":tenNhaCungCap", $this->TenNhaCungCap);
         $stmt->bindParam(":soDT", $this->SoDT);
+        $stmt->bindParam(":email", $this->Email);
         $stmt->bindParam(":diaChi", $this->DiaChi);
         $stmt->bindParam(":loaiHinhCungCap", $this->LoaiHinhCungCap);
         $stmt->bindParam(":maNhaCungCap", $this->MaNhaCungCap);
@@ -131,6 +151,7 @@ class NhaCungCap {
         $query = "SELECT * FROM " . $this->table_name . "
                   WHERE TenNhaCungCap LIKE ? 
                      OR SoDT LIKE ? 
+                     OR Email LIKE ?
                      OR DiaChi LIKE ? 
                      OR LoaiHinhCungCap LIKE ?";
 
@@ -146,6 +167,7 @@ class NhaCungCap {
         $stmt->bindParam(2, $keywords);
         $stmt->bindParam(3, $keywords);
         $stmt->bindParam(4, $keywords);
+        $stmt->bindParam(5, $keywords);
 
         // Execute query
         $stmt->execute();
