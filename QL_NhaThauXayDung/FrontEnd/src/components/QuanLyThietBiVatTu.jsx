@@ -130,7 +130,7 @@ const QuanLyThietBiVatTu = () => {
       const values = await addForm.validateFields();
       
       const response = await axios.post(
-        `${BASE_URL}QuanLyThietBiVatTu_API/ThietBiVatTu_API.php?action=POST`,
+        `${BASE_URL}DeXuat_API/ThietBiVatTu_API.php?action=POST`,
         values
       );
 
@@ -185,7 +185,7 @@ const QuanLyThietBiVatTu = () => {
         ...editForm,
       };
 
-      const res = await axios.put(`${BASE_URL}QuanLyThietBiVatTu_API/ThietBiVatTu_API.php?action=PUT`, updatedRecord);
+      const res = await axios.put(`${BASE_URL}DeXuat_API/ThietBiVatTu_API.php?action=PUT`, updatedRecord);
       
       if (res.data.status === 'success') {
         message.success('Cập nhật thiết bị vật tư thành công');

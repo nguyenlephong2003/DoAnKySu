@@ -21,7 +21,7 @@ const PageNhanVienKho = () => {
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("quanlythietbivattu");
+  const [activeMenu, setActiveMenu] = useState("");
   const [currentComponent, setCurrentComponent] = useState(null);
 
   const sidebarRef = useRef();
@@ -107,7 +107,7 @@ const PageNhanVienKho = () => {
         <hr className="border-gray-400" />
 
         <div className="py-6 px-4">
-          <ul className="space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto pr-1">
+          <ul className="space-y-2 h-[500px] overflow-y-auto pr-1">
             {menuItems.map((item) => (
               <li
                 key={item.id}
