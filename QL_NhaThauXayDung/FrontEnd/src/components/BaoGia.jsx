@@ -17,6 +17,9 @@ import {
   EditOutlined,
   DeleteOutlined,
   InfoCircleOutlined,
+  ExclamationCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import BASE_URL from "../Config"; // Đường dẫn đến file config của bạn
@@ -159,58 +162,61 @@ const BaoGia = () => {
 
   // Hàm xử lý xóa
   const handleDelete = (record) => {
-    console.log("Bắt đầu xóa báo giá:", record);
-    setBaoGiaToDelete(record);
-    setDeleteModalVisible(true);
-  };
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Bạn có chắc chắn muốn xóa báo giá này không?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const token = localStorage.getItem("token");
+          const response = await axios({
+            method: "DELETE",
+            url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=DELETE`,
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              MaBaoGia: record.MaBaoGia,
+            },
+          });
 
-  const handleConfirmDelete = async () => {
-    if (!baoGiaToDelete) return;
-
-    console.log("Người dùng xác nhận xóa");
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      console.log("Token:", token);
-      console.log("Gửi request xóa đến API...");
-
-      const response = await axios({
-        method: "DELETE",
-        url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=DELETE`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: {
-          MaBaoGia: baoGiaToDelete.MaBaoGia,
-        },
-      });
-      console.log("Phản hồi từ API:", response.data);
-
-      if (response.data.status === "success") {
-        message.success("Xóa báo giá thành công");
-        fetchData(); // Tải lại dữ liệu
-      } else {
-        message.error(response.data.message || "Xóa báo giá thất bại");
+          if (response.data.status === "success") {
+            message.success({
+              content: 'Xóa báo giá thành công',
+              icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
+              style: {
+                marginTop: '20vh',
+              },
+            });
+            fetchData(); // Tải lại dữ liệu
+          } else {
+            message.error({
+              content: response.data.message || 'Xóa báo giá thất bại',
+              icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+              style: {
+                marginTop: '20vh',
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi khi xóa:", error);
+          message.error({
+            content: 'Lỗi khi xóa báo giá',
+            icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+            style: {
+              marginTop: '20vh',
+            },
+          });
+        } finally {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error("Lỗi khi xóa:", error);
-      console.error("Chi tiết lỗi:", error.response?.data);
-      message.error(
-        "Lỗi khi xóa báo giá: " +
-          (error.response?.data?.message || error.message)
-      );
-    } finally {
-      setLoading(false);
-      setDeleteModalVisible(false);
-      setBaoGiaToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    console.log("Người dùng hủy xóa");
-    setDeleteModalVisible(false);
-    setBaoGiaToDelete(null);
+    });
   };
 
   // Columns của bảng
@@ -251,7 +257,24 @@ const BaoGia = () => {
           >
             Chi tiết
           </Button>
-          {record.TrangThai !== "Đã duyệt" && (
+          {record.TrangThai === "Từ chối" ? (
+            <>
+              <Button
+                icon={<EditOutlined />}
+                type="default"
+                onClick={() => handleEdit(record)}
+              >
+                Chỉnh báo giá
+              </Button>
+              <Button
+                icon={<DeleteOutlined />}
+                danger
+                onClick={() => handleDelete(record)}
+              >
+                Xóa
+              </Button>
+            </>
+          ) : record.TrangThai === "Chờ duyệt" && (
             <>
               <Button
                 icon={<EditOutlined />}
@@ -263,10 +286,7 @@ const BaoGia = () => {
               <Button
                 icon={<DeleteOutlined />}
                 danger
-                onClick={() => {
-                  console.log("Nút xóa được nhấn");
-                  handleDelete(record);
-                }}
+                onClick={() => handleDelete(record)}
               >
                 Xóa
               </Button>
@@ -290,7 +310,7 @@ const BaoGia = () => {
     form.setFieldsValue({
       TenBaoGia: record.TenBaoGia,
       MaLoai: record.MaLoai,
-      TrangThai: record.TrangThai,
+      TrangThai: record.TrangThai === "Từ chối" ? "Chờ duyệt" : record.TrangThai,
     });
     setEditModalVisible(true);
 
@@ -459,6 +479,7 @@ const BaoGia = () => {
             style={{ 
               border: '1px solid #e5e7eb',
               borderRadius: '0.5rem'
+              
             }}
           />
         </div>
@@ -490,24 +511,6 @@ const BaoGia = () => {
         onCancel={() => setDetailModalVisible(false)}
         baoGia={currentBaoGia}
       />
-
-      {/* Modal xác nhận xóa */}
-      <Modal
-        title="Xác nhận xóa"
-        open={deleteModalVisible}
-        onOk={handleConfirmDelete}
-        onCancel={handleCancelDelete}
-        okText="Xóa"
-        cancelText="Hủy"
-        okButtonProps={{ danger: true }}
-      >
-        {baoGiaToDelete && (
-          <p>
-            Bạn có chắc chắn muốn xóa báo giá "{baoGiaToDelete.TenBaoGia}"
-            không?
-          </p>
-        )}
-      </Modal>
 
       {/* Modal sửa báo giá */}
       <Modal

@@ -10,6 +10,8 @@ class HopDong {
     public $TongTien;
     public $FileHopDong;
     public $MaNhanVien;
+    public $TrangThai;
+    public $GhiChu;
 
     // Constructor
     public function __construct($db) {
@@ -19,8 +21,8 @@ class HopDong {
     // Create new HopDong entry
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien) 
-                  VALUES (:maHopDong, :ngayKy, :moTa, :tongTien, :fileHopDong, :maNhanVien)";
+                  (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu) 
+                  VALUES (:maHopDong, :ngayKy, :moTa, :tongTien, :fileHopDong, :maNhanVien, :trangThai, :ghiChu)";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -32,6 +34,8 @@ class HopDong {
         $this->TongTien = filter_var($this->TongTien, FILTER_VALIDATE_FLOAT);
         $this->FileHopDong = htmlspecialchars(strip_tags($this->FileHopDong));
         $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
+        $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
+        $this->GhiChu = htmlspecialchars(strip_tags($this->GhiChu));
 
         $stmt->bindParam(":maHopDong", $this->MaHopDong);
         $stmt->bindParam(":ngayKy", $this->NgayKy);
@@ -39,6 +43,8 @@ class HopDong {
         $stmt->bindParam(":tongTien", $this->TongTien);
         $stmt->bindParam(":fileHopDong", $this->FileHopDong);
         $stmt->bindParam(":maNhanVien", $this->MaNhanVien);
+        $stmt->bindParam(":trangThai", $this->TrangThai);
+        $stmt->bindParam(":ghiChu", $this->GhiChu);
 
         // Execute query
         if($stmt->execute()) {
@@ -50,7 +56,7 @@ class HopDong {
 
     // Read Single HopDong entry
     public function readSingle() {
-        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien
+        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu
                   FROM " . $this->table_name . " 
                   WHERE MaHopDong = ? 
                   LIMIT 0,1";
@@ -74,13 +80,18 @@ class HopDong {
         $this->TongTien = $row['TongTien'];
         $this->FileHopDong = $row['FileHopDong'];
         $this->MaNhanVien = $row['MaNhanVien'];
+        $this->TrangThai = $row['TrangThai'];
+        $this->GhiChu = $row['GhiChu'];
     }
 
     // Read All HopDong entries
     public function readAll() {
-        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien
-                  FROM " . $this->table_name . " 
-                  ORDER BY NgayKy DESC";
+        $query = "SELECT h.MaHopDong, h.NgayKy, h.MoTa, h.TongTien, h.FileHopDong, 
+                        h.MaNhanVien, h.TrangThai, h.GhiChu,
+                        n.TenNhanVien, n.SoDT
+                  FROM " . $this->table_name . " h
+                  LEFT JOIN NhanVien n ON h.MaNhanVien = n.MaNhanVien
+                  ORDER BY h.NgayKy DESC";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -98,7 +109,9 @@ class HopDong {
                       MoTa = :moTa, 
                       TongTien = :tongTien, 
                       FileHopDong = :fileHopDong, 
-                      MaNhanVien = :maNhanVien 
+                      MaNhanVien = :maNhanVien,
+                      TrangThai = :trangThai,
+                      GhiChu = :ghiChu
                   WHERE MaHopDong = :maHopDong";
 
         // Prepare statement
@@ -110,6 +123,8 @@ class HopDong {
         $this->TongTien = filter_var($this->TongTien, FILTER_VALIDATE_FLOAT);
         $this->FileHopDong = htmlspecialchars(strip_tags($this->FileHopDong));
         $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
+        $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
+        $this->GhiChu = htmlspecialchars(strip_tags($this->GhiChu));
         $this->MaHopDong = htmlspecialchars(strip_tags($this->MaHopDong));
 
         $stmt->bindParam(":ngayKy", $this->NgayKy);
@@ -117,6 +132,8 @@ class HopDong {
         $stmt->bindParam(":tongTien", $this->TongTien);
         $stmt->bindParam(":fileHopDong", $this->FileHopDong);
         $stmt->bindParam(":maNhanVien", $this->MaNhanVien);
+        $stmt->bindParam(":trangThai", $this->TrangThai);
+        $stmt->bindParam(":ghiChu", $this->GhiChu);
         $stmt->bindParam(":maHopDong", $this->MaHopDong);
 
         // Execute query
@@ -151,12 +168,14 @@ class HopDong {
 
     // Search HopDong entries
     public function search($keywords) {
-        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien
+        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu
                   FROM " . $this->table_name . " 
                   WHERE MaHopDong LIKE ? 
                      OR MoTa LIKE ? 
                      OR MaNhanVien LIKE ?
-                     OR NgayKy LIKE ?";
+                     OR NgayKy LIKE ?
+                     OR TrangThai LIKE ?
+                     OR GhiChu LIKE ?";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -170,6 +189,8 @@ class HopDong {
         $stmt->bindParam(2, $keywords);
         $stmt->bindParam(3, $keywords);
         $stmt->bindParam(4, $keywords);
+        $stmt->bindParam(5, $keywords);
+        $stmt->bindParam(6, $keywords);
 
         // Execute query
         $stmt->execute();
@@ -195,7 +216,7 @@ class HopDong {
 
     // Get HopDong entries with pagination
     public function readPaging($from_record_num, $records_per_page) {
-        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien
+        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu
                   FROM " . $this->table_name . " 
                   ORDER BY NgayKy DESC
                   LIMIT ?, ?";
@@ -216,7 +237,7 @@ class HopDong {
 
     // Get contracts by date range
     public function getContractsByDateRange($startDate, $endDate) {
-        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien
+        $query = "SELECT MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu
                   FROM " . $this->table_name . " 
                   WHERE NgayKy BETWEEN :startDate AND :endDate
                   ORDER BY NgayKy DESC";
@@ -263,7 +284,7 @@ class HopDong {
 
     // Get unused contracts (contracts not assigned to any construction)
     public function getUnusedContracts() {
-        $query = "SELECT hd.MaHopDong, hd.NgayKy, hd.MoTa, hd.TongTien, hd.FileHopDong, hd.MaNhanVien
+        $query = "SELECT hd.MaHopDong, hd.NgayKy, hd.MoTa, hd.TongTien, hd.FileHopDong, hd.MaNhanVien, hd.TrangThai, hd.GhiChu
                   FROM " . $this->table_name . " hd
                   LEFT JOIN CongTrinh ct ON hd.MaHopDong = ct.MaHopDong
                   WHERE ct.MaHopDong IS NULL

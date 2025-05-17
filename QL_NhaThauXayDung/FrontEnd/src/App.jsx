@@ -10,16 +10,15 @@ import PageNhanVienTuVan from "./page/NhanVienTuVan.jsx";
 import Page404 from "./page/404.jsx";
 import UserManager from "./components/QL_NguoiDung.jsx";
 import QuanLyDanhMuc from "./components/QuanLyDanhMuc.jsx";
-import BaoGia from "./components/Baogia.jsx";
-import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
+import BaoGia from "./components/BaoGia.jsx";
 import { useEffect, useState } from "react";
 import QL_NhanVien from "./components/QL_NhanVien.jsx";
 import QuanLyCongTrinh from "./components/QuanLyCongTrinh.jsx";
 import QuanLyThietBiVatTu from "./components/QuanLyThietBiVatTu.jsx";
 import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
 import DuyetHopDong from "./components/DuyetHopDong.jsx";
-
-// Component bảo vệ route với kiểm tra token hết hạn
+import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
+import HopDong from "./components/HopDong.jsx";// Component bảo vệ route với kiểm tra token hết hạn
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -190,7 +189,7 @@ function App() {
         }
       >
         <Route path="lapbaogia" element={<BaoGia />} />
-        <Route path="laphopdong" element={<DuyetHopDong />} />
+        <Route path="laphopdong" element={<HopDong />} />
       </Route>
       <Route
         path="admin/quantringuoidung"
