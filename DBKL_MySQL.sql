@@ -48,7 +48,7 @@ CREATE TABLE `HopDong` (
   `NgayKy` Date,
   `MoTa` varchar(255),
   `TongTien` float,
-  `FileHopDong` varchar(6),
+  `FileHopDong` varchar(1500),
   `TrangThai` varchar(255),
   `GhiChu` varchar(255),
   `MaNhanVien` varchar(20)
@@ -74,7 +74,7 @@ CREATE TABLE `CongTrinh` (
   `MaCongTrinh` varchar(20) PRIMARY KEY,
   `TenCongTrinh` varchar(255),
   `Dientich` float,
-  `FileThietKe` varchar(255),
+  `FileThietKe` varchar(1500),
   `MaKhachHang` varchar(20),
   `MaHopDong` varchar(20),
   `MaLoaiCongTrinh` int,

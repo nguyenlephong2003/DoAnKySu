@@ -44,7 +44,11 @@ switch ($action) {
                     "MoTa" => $MoTa,
                     "TongTien" => $TongTien,
                     "FileHopDong" => $FileHopDong,
-                    "MaNhanVien" => $MaNhanVien
+                    "MaNhanVien" => $MaNhanVien,
+                    "TrangThai" => $TrangThai,
+                    "GhiChu" => $GhiChu,
+                    "TenNhanVien" => $TenNhanVien,
+                    "SoDT" => $SoDT
                 );
                 array_push($hopDong_arr["data"], $hopDong_item);
             }
@@ -74,7 +78,9 @@ switch ($action) {
                     "MoTa" => $MoTa,
                     "TongTien" => $TongTien,
                     "FileHopDong" => $FileHopDong,
-                    "MaNhanVien" => $MaNhanVien
+                    "MaNhanVien" => $MaNhanVien,
+                    "TrangThai" => $TrangThai,
+                    "GhiChu" => $GhiChu
                 );
                 array_push($hopDong_arr["data"], $hopDong_item);
             }
@@ -101,7 +107,9 @@ switch ($action) {
                 "MoTa" => $hopDong->MoTa,
                 "TongTien" => $hopDong->TongTien,
                 "FileHopDong" => $hopDong->FileHopDong,
-                "MaNhanVien" => $hopDong->MaNhanVien
+                "MaNhanVien" => $hopDong->MaNhanVien,
+                "TrangThai" => $hopDong->TrangThai,
+                "GhiChu" => $hopDong->GhiChu
             );
 
             http_response_code(200);
@@ -122,7 +130,8 @@ switch ($action) {
             !empty($data->NgayKy) &&
             !empty($data->MoTa) &&
             !empty($data->TongTien) &&
-            !empty($data->MaNhanVien)
+            !empty($data->MaNhanVien) &&
+            !empty($data->TrangThai)
         ) {
             // Set hop dong property values
             $hopDong->MaHopDong = $data->MaHopDong;
@@ -131,6 +140,8 @@ switch ($action) {
             $hopDong->TongTien = $data->TongTien;
             $hopDong->FileHopDong = $data->FileHopDong ?? null;
             $hopDong->MaNhanVien = $data->MaNhanVien;
+            $hopDong->TrangThai = $data->TrangThai;
+            $hopDong->GhiChu = $data->GhiChu ?? null;
 
             // Create hop dong
             if ($hopDong->create()) {
@@ -156,7 +167,8 @@ switch ($action) {
             !empty($data->NgayKy) &&
             !empty($data->MoTa) &&
             !empty($data->TongTien) &&
-            !empty($data->MaNhanVien)
+            !empty($data->MaNhanVien) &&
+            !empty($data->TrangThai)
         ) {
             // Set hop dong property values
             $hopDong->MaHopDong = $data->MaHopDong;
@@ -165,6 +177,8 @@ switch ($action) {
             $hopDong->TongTien = $data->TongTien;
             $hopDong->FileHopDong = $data->FileHopDong ?? null;
             $hopDong->MaNhanVien = $data->MaNhanVien;
+            $hopDong->TrangThai = $data->TrangThai;
+            $hopDong->GhiChu = $data->GhiChu ?? null;
 
             // Update hop dong
             if ($hopDong->update()) {

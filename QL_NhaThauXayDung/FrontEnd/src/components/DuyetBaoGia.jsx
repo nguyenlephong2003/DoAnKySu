@@ -137,6 +137,21 @@ const DuyetBaoGia = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+
+      // Lấy chi tiết báo giá trước
+      const chiTietResponse = await axios.get(
+        `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getQuotationDetails&MaBaoGia=${currentBaoGia.MaBaoGia}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      let chiTietBaoGia = [];
+      if (chiTietResponse.data.status === 'success') {
+        chiTietBaoGia = chiTietResponse.data.data.chi_tiet_bao_gia || [];
+      }
       
       const response = await axios({
         method: 'PUT',
@@ -151,21 +166,39 @@ const DuyetBaoGia = () => {
           MaLoai: currentBaoGia.MaLoai,
           TrangThai: currentAction === 'duyet' ? 'Đã duyệt' : 'Từ chối',
           GhiChu: values.GhiChu,
-          ChiTietLoaiBaoGia: currentBaoGia.ChiTietLoaiBaoGia || []
+          ChiTietLoaiBaoGia: chiTietBaoGia
         }
       });
 
       if (response.data.status === 'success') {
-        message.success(currentAction === 'duyet' ? 'Duyệt báo giá thành công' : 'Từ chối báo giá thành công');
+        message.success({
+          content: currentAction === 'duyet' ? 'Duyệt báo giá thành công' : 'Từ chối báo giá thành công',
+          icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
+          style: {
+            marginTop: '20vh',
+          },
+        });
         setNoteModalVisible(false);
         noteForm.resetFields();
         fetchData();
       } else {
-        message.error(response.data.message || (currentAction === 'duyet' ? 'Duyệt báo giá thất bại' : 'Từ chối báo giá thất bại'));
+        message.error({
+          content: response.data.message || (currentAction === 'duyet' ? 'Duyệt báo giá thất bại' : 'Từ chối báo giá thất bại'),
+          icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+          style: {
+            marginTop: '20vh',
+          },
+        });
       }
     } catch (error) {
       console.error('Lỗi:', error);
-      message.error('Lỗi: ' + (error.response?.data?.message || error.message));
+      message.error({
+        content: 'Lỗi: ' + (error.response?.data?.message || error.message),
+        icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+        style: {
+          marginTop: '20vh',
+        },
+      });
     } finally {
       setLoading(false);
     }
