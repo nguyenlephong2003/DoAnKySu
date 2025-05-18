@@ -3,7 +3,7 @@ class BangChamCong {
     private $conn;
     private $table_name = 'BangChamCong';
 
-    // Table columns
+    // Các thuộc tính của BangChamCong
     public $MaChamCong;
     public $SoNgayLam;
     public $KyLuong;
@@ -14,16 +14,16 @@ class BangChamCong {
         $this->conn = $db;
     }
 
-    // Create new BangChamCong entry
+    // Tạo bản ghi mới trong BangChamCong
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
                   (MaChamCong, SoNgayLam, KyLuong, MaNhanVien) 
                   VALUES (:maChamCong, :soNgayLam, :kyLuong, :maNhanVien)";
 
-        // Prepare statement
+        // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
 
-        // Clean and bind data
+        // Làm sạch và ràng buộc dữ liệu
         $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
         $this->SoNgayLam = filter_var($this->SoNgayLam, FILTER_VALIDATE_FLOAT);
         $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
@@ -34,56 +34,113 @@ class BangChamCong {
         $stmt->bindParam(":kyLuong", $this->KyLuong);
         $stmt->bindParam(":maNhanVien", $this->MaNhanVien);
 
-        // Execute query
+        // Thực thi câu lệnh
         if($stmt->execute()) {
-            return true;
+            return [
+                "status" => "success",
+                "message" => "Đã tạo bản ghi chấm công thành công",
+                "data" => [
+                    "MaChamCong" => $this->MaChamCong,
+                    "SoNgayLam" => $this->SoNgayLam,
+                    "KyLuong" => $this->KyLuong,
+                    "MaNhanVien" => $this->MaNhanVien
+                ]
+            ];
         }
 
-        return false;
+        return [
+            "status" => "error",
+            "message" => "Không thể tạo bản ghi chấm công"
+        ];
     }
 
-    // Read Single BangChamCong entry
-    public function readSingle() {
-        $query = "SELECT MaChamCong, SoNgayLam, KyLuong, MaNhanVien
-                  FROM " . $this->table_name . " 
-                  WHERE MaChamCong = ? 
+    // Đọc một bản ghi BangChamCong
+    public function readOne() {
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  WHERE cc.MaChamCong = :maChamCong
                   LIMIT 0,1";
 
-        // Prepare statement
+        // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
 
-        // Bind ID
-        $stmt->bindParam(1, $this->MaChamCong);
+        // Ràng buộc ID
+        $stmt->bindParam(":maChamCong", $this->MaChamCong);
 
-        // Execute query
+        // Thực thi câu lệnh
         $stmt->execute();
 
-        // Get row
+        // Lấy dữ liệu
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Set properties
-        $this->MaChamCong = $row['MaChamCong'];
-        $this->SoNgayLam = $row['SoNgayLam'];
-        $this->KyLuong = $row['KyLuong'];
-        $this->MaNhanVien = $row['MaNhanVien'];
+        if($row) {
+            return [
+                "status" => "success",
+                "data" => [
+                    "MaChamCong" => $row['MaChamCong'],
+                    "MaNhanVien" => $row['MaNhanVien'],
+                    "TenNhanVien" => $row['TenNhanVien'],
+                    "LuongCanBan" => (int)$row['LuongCanBan'],
+                    "SoNgayLam" => $row['SoNgayLam'],
+                    "KyLuong" => $row['KyLuong'],
+                    "LuongThang" => (int)$row['LuongThang']
+                ]
+            ];
+        }
+
+        return [
+            "status" => "error",
+            "message" => "Không tìm thấy bản ghi chấm công"
+        ];
     }
 
-    // Read All BangChamCong entries
+    // Đọc tất cả bản ghi BangChamCong
     public function readAll() {
-        $query = "SELECT MaChamCong, SoNgayLam, KyLuong, MaNhanVien
-                  FROM " . $this->table_name . " 
-                  ORDER BY MaChamCong";
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  ORDER BY cc.KyLuong DESC, cc.MaNhanVien";
 
-        // Prepare statement
+        // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
 
-        // Execute query
+        // Thực thi câu lệnh
         $stmt->execute();
+        
+        $num = $stmt->rowCount();
 
-        return $stmt;
+        if($num > 0) {
+            $data = [];
+
+            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $item = [
+                    "MaChamCong" => $row['MaChamCong'],
+                    "MaNhanVien" => $row['MaNhanVien'],
+                    "TenNhanVien" => $row['TenNhanVien'],
+                    "LuongCanBan" => (int)$row['LuongCanBan'],
+                    "SoNgayLam" => $row['SoNgayLam'],
+                    "KyLuong" => $row['KyLuong'],
+                    "LuongThang" => (int)$row['LuongThang']
+                ];
+                $data[] = $item;
+            }
+
+            return [
+                "status" => "success",
+                "data" => $data
+            ];
+        }
+
+        return [
+            "status" => "error",
+            "message" => "Không tìm thấy bản ghi chấm công"
+        ];
     }
 
-    // Update BangChamCong entry
+    // Cập nhật bản ghi BangChamCong
     public function update() {
         $query = "UPDATE " . $this->table_name . " 
                   SET SoNgayLam = :soNgayLam, 
@@ -91,110 +148,232 @@ class BangChamCong {
                       MaNhanVien = :maNhanVien 
                   WHERE MaChamCong = :maChamCong";
 
-        // Prepare statement
+        // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
 
-        // Clean and bind data
+        // Làm sạch và ràng buộc dữ liệu
+        $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
         $this->SoNgayLam = filter_var($this->SoNgayLam, FILTER_VALIDATE_FLOAT);
         $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
         $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
-        $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
 
+        $stmt->bindParam(":maChamCong", $this->MaChamCong);
         $stmt->bindParam(":soNgayLam", $this->SoNgayLam);
         $stmt->bindParam(":kyLuong", $this->KyLuong);
         $stmt->bindParam(":maNhanVien", $this->MaNhanVien);
+
+        // Thực thi câu lệnh
+        if($stmt->execute()) {
+            // Lấy thông tin sau khi cập nhật
+            $this->MaChamCong = $this->MaChamCong;
+            $result = $this->readOne();
+            
+            if($result["status"] === "success") {
+                return [
+                    "status" => "success",
+                    "message" => "Cập nhật bản ghi chấm công thành công",
+                    "data" => $result["data"]
+                ];
+            }
+            
+            return [
+                "status" => "success",
+                "message" => "Cập nhật bản ghi chấm công thành công, nhưng không lấy được thông tin chi tiết"
+            ];
+        }
+
+        return [
+            "status" => "error",
+            "message" => "Không thể cập nhật bản ghi chấm công"
+        ];
+    }
+
+    // Xóa bản ghi BangChamCong
+    public function delete() {
+        // Lấy thông tin trước khi xóa
+        $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
+        $resultInfo = $this->readOne();
+        
+        if($resultInfo["status"] === "error") {
+            return [
+                "status" => "error",
+                "message" => "Không tìm thấy bản ghi chấm công"
+            ];
+        }
+        
+        $query = "DELETE FROM " . $this->table_name . " WHERE MaChamCong = :maChamCong";
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":maChamCong", $this->MaChamCong);
 
-        // Execute query
         if($stmt->execute()) {
-            return true;
+            return [
+                "status" => "success",
+                "message" => "Đã xóa bản ghi chấm công thành công",
+                "data" => $resultInfo["data"]
+            ];
         }
 
-        return false;
+        return [
+            "status" => "error",
+            "message" => "Không thể xóa bản ghi chấm công"
+        ];
     }
 
-    // Delete BangChamCong entry
-    public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " 
-                  WHERE MaChamCong = ?";
-
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
-
-        // Clean data
-        $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
-
-        // Bind ID
-        $stmt->bindParam(1, $this->MaChamCong);
-
-        // Execute query
-        if($stmt->execute()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Search BangChamCong entries
+    // Tìm kiếm bản ghi BangChamCong
     public function search($keywords) {
-        $query = "SELECT MaChamCong, SoNgayLam, KyLuong, MaNhanVien
-                  FROM " . $this->table_name . " 
-                  WHERE MaChamCong LIKE ? 
-                     OR MaNhanVien LIKE ? 
-                     OR KyLuong LIKE ?";
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  WHERE cc.MaChamCong LIKE :keywords 
+                     OR cc.MaNhanVien LIKE :keywords 
+                     OR nv.TenNhanVien LIKE :keywords 
+                     OR cc.KyLuong LIKE :keywords";
 
-        // Prepare statement
+        // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
 
-        // Clean keywords
+        // Làm sạch từ khóa
         $keywords = htmlspecialchars(strip_tags($keywords));
         $keywords = "%{$keywords}%";
 
-        // Bind keywords
-        $stmt->bindParam(1, $keywords);
-        $stmt->bindParam(2, $keywords);
-        $stmt->bindParam(3, $keywords);
+        // Ràng buộc từ khóa
+        $stmt->bindParam(":keywords", $keywords);
 
-        // Execute query
+        // Thực thi câu lệnh
         $stmt->execute();
+        
+        $num = $stmt->rowCount();
 
-        return $stmt;
+        if($num > 0) {
+            $data = [];
+
+            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $item = [
+                    "MaChamCong" => $row['MaChamCong'],
+                    "MaNhanVien" => $row['MaNhanVien'],
+                    "TenNhanVien" => $row['TenNhanVien'],
+                    "LuongCanBan" => (int)$row['LuongCanBan'],
+                    "SoNgayLam" => $row['SoNgayLam'],
+                    "KyLuong" => $row['KyLuong'],
+                    "LuongThang" => (int)$row['LuongThang']
+                ];
+                $data[] = $item;
+            }
+
+            return [
+                "status" => "success",
+                "data" => $data
+            ];
+        }
+
+        return [
+            "status" => "error",
+            "message" => "Không tìm thấy bản ghi chấm công phù hợp"
+        ];
     }
 
-    // Get total count of BangChamCong entries
+    // Lấy tổng số bản ghi BangChamCong
     public function count() {
         $query = "SELECT COUNT(*) as total FROM " . $this->table_name;
-
-        // Prepare statement
         $stmt = $this->conn->prepare($query);
-
-        // Execute query
         $stmt->execute();
-
-        // Get row
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
         return $row['total'];
     }
 
-    // Get BangChamCong entries with pagination
+    // Phân trang BangChamCong
     public function readPaging($from_record_num, $records_per_page) {
-        $query = "SELECT MaChamCong, SoNgayLam, KyLuong, MaNhanVien
-                  FROM " . $this->table_name . " 
-                  ORDER BY MaChamCong
-                  LIMIT ?, ?";
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  ORDER BY cc.KyLuong DESC, cc.MaNhanVien
+                  LIMIT :from_record_num, :records_per_page";
 
-        // Prepare statement
+        // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
 
-        // Bind variable values
-        $stmt->bindParam(1, $from_record_num, PDO::PARAM_INT);
-        $stmt->bindParam(2, $records_per_page, PDO::PARAM_INT);
+        // Ràng buộc giá trị biến
+        $stmt->bindParam(":from_record_num", $from_record_num, PDO::PARAM_INT);
+        $stmt->bindParam(":records_per_page", $records_per_page, PDO::PARAM_INT);
 
-        // Execute query
+        // Thực thi câu lệnh
         $stmt->execute();
+        
+        $num = $stmt->rowCount();
 
-        // Return statement
+        if($num > 0) {
+            $data = [];
+
+            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $item = [
+                    "MaChamCong" => $row['MaChamCong'],
+                    "MaNhanVien" => $row['MaNhanVien'],
+                    "TenNhanVien" => $row['TenNhanVien'],
+                    "LuongCanBan" => (int)$row['LuongCanBan'],
+                    "SoNgayLam" => $row['SoNgayLam'],
+                    "KyLuong" => $row['KyLuong'],
+                    "LuongThang" => (int)$row['LuongThang']
+                ];
+                $data[] = $item;
+            }
+
+            return [
+                "status" => "success",
+                "data" => $data
+            ];
+        }
+
+        return [
+            "status" => "error",
+            "message" => "Không tìm thấy bản ghi chấm công"
+        ];
+    }
+
+    // Lấy thông tin lương của tất cả nhân viên có chấm công
+    public function getAllSalaryInfo() {
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  ORDER BY cc.KyLuong DESC, cc.MaNhanVien";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        
+        return $stmt;
+    }
+
+    // Lấy thông tin lương theo mã nhân viên
+    public function getSalaryInfoByEmployee($maNhanVien) {
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  WHERE cc.MaNhanVien = :maNhanVien
+                  ORDER BY cc.KyLuong DESC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":maNhanVien", $maNhanVien);
+        $stmt->execute();
+        
+        return $stmt;
+    }
+
+    // Lấy thông tin lương theo kỳ lương
+    public function getSalaryInfoByPeriod($kyLuong) {
+        $query = "SELECT cc.MaChamCong, cc.SoNgayLam, cc.KyLuong, cc.MaNhanVien,
+                  nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
+                  FROM " . $this->table_name . " cc
+                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                  WHERE cc.KyLuong = :kyLuong
+                  ORDER BY cc.MaNhanVien";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":kyLuong", $kyLuong);
+        $stmt->execute();
+        
         return $stmt;
     }
 }

@@ -19,6 +19,7 @@ import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
 import DuyetHopDong from "./components/DuyetHopDong.jsx";
 import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
 import HopDong from "./components/HopDong.jsx";// Component bảo vệ route với kiểm tra token hết hạn
+import QuanLyLuong from "./components/QuanLyLuong.jsx";
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -132,7 +133,7 @@ function App() {
         }
       >
         <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
-        <Route path="quanlyluong" element={<h1>Quản lý lương</h1>} />
+        <Route path="quanlyluong" element={<QuanLyLuong/>} />
         <Route path="thanhtoan" element={<h1>Thanh toán</h1>} />
         <Route path="quanlygiaingan" element={<h1>Quản lý giải ngân</h1>} />
       </Route>
