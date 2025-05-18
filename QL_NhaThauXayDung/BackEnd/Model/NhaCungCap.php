@@ -179,7 +179,8 @@ class NhaCungCap {
     public function getSuppliedEquipment() {
         $query = "SELECT tbvt.MaThietBiVatTu, tbvt.TenThietBiVatTu, 
                          tbvt.SoLuongTon, tbvt.TrangThai, 
-                         lvt.TenLoai as LoaiThietBi
+                         lvt.TenLoai as TenLoaiThietBiVatTu,
+                         lvt.DonViTinh
                   FROM ThietBiVatTu tbvt
                   LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
                   WHERE tbvt.MaNhaCungCap = ?";
@@ -210,6 +211,59 @@ class NhaCungCap {
 
         // Bind supplier ID
         $stmt->bindParam(1, $this->MaNhaCungCap);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Get supplier's equipment types
+    public function getEquipmentTypes() {
+        $query = "SELECT DISTINCT lvt.MaLoaiThietBiVatTu, lvt.TenLoai, lvt.DonViTinh
+                  FROM ThietBiVatTu tbvt
+                  JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
+                  WHERE tbvt.MaNhaCungCap = ?";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Bind supplier ID
+        $stmt->bindParam(1, $this->MaNhaCungCap);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Get all equipment types
+    public function getAllEquipmentTypes() {
+        $query = "SELECT DISTINCT lvt.MaLoaiThietBiVatTu, lvt.TenLoai, lvt.DonViTinh
+                  FROM LoaiThietBiVatTu lvt
+                  JOIN ThietBiVatTu tbvt ON lvt.MaLoaiThietBiVatTu = tbvt.MaLoaiThietBiVatTu";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Get suppliers by equipment type
+    public function getSuppliersByEquipmentType($maLoaiThietBiVatTu) {
+        $query = "SELECT DISTINCT ncc.*
+                  FROM NhaCungCap ncc
+                  JOIN ThietBiVatTu tbvt ON ncc.MaNhaCungCap = tbvt.MaNhaCungCap
+                  WHERE tbvt.MaLoaiThietBiVatTu = ?";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Bind equipment type ID
+        $stmt->bindParam(1, $maLoaiThietBiVatTu);
 
         // Execute query
         $stmt->execute();

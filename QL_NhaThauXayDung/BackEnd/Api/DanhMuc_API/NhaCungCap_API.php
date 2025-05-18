@@ -50,6 +50,74 @@ switch ($method) {
                 ]);
                 http_response_code(500);
             }
+        } else if ($action === "GET_EQUIPMENT_TYPES") {
+            try {
+                $stmt = $nhacungcap->getAllEquipmentTypes();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Lỗi khi lấy danh sách loại thiết bị: ' . $e->getMessage()
+                ]);
+                http_response_code(500);
+            }
+        } else if ($action === "GET_BY_EQUIPMENT_TYPE") {
+            $maLoaiThietBiVatTu = isset($_GET['maLoaiThietBiVatTu']) ? $_GET['maLoaiThietBiVatTu'] : null;
+            
+            if (!$maLoaiThietBiVatTu) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Thiếu mã loại thiết bị vật tư'
+                ]);
+                http_response_code(400);
+                exit;
+            }
+
+            try {
+                $stmt = $nhacungcap->getSuppliersByEquipmentType($maLoaiThietBiVatTu);
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Lỗi khi lấy danh sách nhà cung cấp: ' . $e->getMessage()
+                ]);
+                http_response_code(500);
+            }
+        } else if ($action === "GET_EQUIPMENT_BY_SUPPLIER") {
+            $maNhaCungCap = isset($_GET['maNhaCungCap']) ? $_GET['maNhaCungCap'] : null;
+            
+            if (!$maNhaCungCap) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Thiếu mã nhà cung cấp'
+                ]);
+                http_response_code(400);
+                exit;
+            }
+
+            try {
+                $nhacungcap->MaNhaCungCap = $maNhaCungCap;
+                $stmt = $nhacungcap->getSuppliedEquipment();
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Lỗi khi lấy danh sách thiết bị: ' . $e->getMessage()
+                ]);
+                http_response_code(500);
+            }
         } else {
             echo json_encode([
                 'status' => 'error',

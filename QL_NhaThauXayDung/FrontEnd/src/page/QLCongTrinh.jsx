@@ -9,7 +9,11 @@ import {
   FaClipboardList,
   FaCheckCircle,
   FaUserEdit,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaBuilding,
+  FaChartLine,
+  FaFileSignature,
+  FaListAlt
 } from "react-icons/fa";
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
@@ -29,11 +33,10 @@ const PageQuanLy = ({ children }) => {
   const location = useLocation();
 
   const menuItems = [
-    { id: "quanlycongtrinh", label: "Quản lý công trình", icon: <FaClipboardList />, path: "/qlcongtrinh/quanlycongtrinh" },
-    { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaClipboardList />, path: "/qlcongtrinh/quanlytiendo" },
-    { id: "lapdexuatmua", label: "Lập đề xuất mua", icon: <FaLaptopCode />, path: "/qlcongtrinh/lapdexuatmua" },
-    { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaUserFriends />, path: "/qlcongtrinh/quanlydanhmuc" },
-   
+    { id: "quanlycongtrinh", label: "Quản lý công trình", icon: <FaBuilding />, path: "/qlcongtrinh/quanlycongtrinh" },
+    { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaChartLine />, path: "/qlcongtrinh/quanlytiendo" },
+    { id: "lapdexuat", label: "Lập đề xuất", icon: <FaFileSignature />, path: "/qlcongtrinh/lapdexuat" },
+    { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaListAlt />, path: "/qlcongtrinh/quanlydanhmuc" },
   ];
 
   const handleClickOutside = (event) => {
