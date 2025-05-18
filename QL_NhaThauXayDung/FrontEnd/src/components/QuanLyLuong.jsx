@@ -80,9 +80,9 @@ const QuanLyLuong = () => {
   const handleDelete = async (record) => {
     console.log('Đang xóa bản ghi lương:', record);
     try {
-      const response = await axios.delete(`${BASE_URL}luong`, {
-        data: { MaNhanVien: record.MaNhanVien, KyLuong: record.KyLuong },
-      });
+     await axios.delete(`${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=DELETE&ma_cham_cong=${record.MaChamCong}`);
+      const response = await axios.delete(`${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=DELETE&ma_cham_cong=${record.MaChamCong}`);
+      console.log('Đã xóa bản ghi lương:', response.data);
       if (response.data.status === 'success') {
         message.success('Xóa thành công');
         fetchData();
@@ -93,7 +93,7 @@ const QuanLyLuong = () => {
       console.error('Lỗi khi xóa:', err);
       message.error('Lỗi khi xóa bản ghi lương');
     }
-  };
+};
 
   const handleModalOk = async () => {
     try {
@@ -110,7 +110,7 @@ const QuanLyLuong = () => {
 
       if (editingLuong) {
         // Cập nhật bản ghi lương
-        const response = await axios.put(`${BASE_URL}luong`, values);
+        const response = await axios.put(`${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=PUT`, values);
         if (response.data.status === 'success') {
           message.success('Cập nhật thành công');
           fetchData();
@@ -119,7 +119,7 @@ const QuanLyLuong = () => {
         }
       } else {
         // Thêm bản ghi lương mới
-        const response = await axios.post(`${BASE_URL}luong`, values);
+        const response = await axios.post(`${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=POST`, values);
         if (response.data.status === 'success') {
           message.success('Thêm mới thành công');
           fetchData();
@@ -131,6 +131,15 @@ const QuanLyLuong = () => {
     } catch (err) {
       console.error('Lỗi khi lưu biểu mẫu:', err);
       message.error('Lỗi khi lưu biểu mẫu');
+    }
+  };
+
+  const onValuesChange = (changedValues, allValues) => {
+    if ('SoNgayLam' in changedValues || 'LuongCanBan' in changedValues) {
+      const luongCanBan = allValues.LuongCanBan || 0;
+      const soNgayLam = allValues.SoNgayLam || 0;
+      const luongThang = luongCanBan * soNgayLam;
+      form.setFieldsValue({ LuongThang: luongThang });
     }
   };
 
@@ -149,12 +158,12 @@ const QuanLyLuong = () => {
 
   const columns = [
     {
-      title: 'Mã NV',
+      title: 'Mã Nhân Viên',
       dataIndex: 'MaNhanVien',
       key: 'MaNhanVien',
     },
     {
-      title: 'Tên NV',
+      title: 'Tên Nhân Viên',
       key: 'TenNhanVien',
       render: (_, record) => {
         const nv = nhanVienOptions.find((nv) => nv.MaNhanVien === record.MaNhanVien);
@@ -255,7 +264,7 @@ const QuanLyLuong = () => {
         cancelText="Hủy"
         width={600}
       >
-        <Form form={form} layout="vertical" className="mt-4">
+        <Form form={form} layout="vertical" className="mt-4" onValuesChange={onValuesChange}>
           <Form.Item
             name="MaNhanVien"
             label="Nhân viên"
@@ -280,6 +289,13 @@ const QuanLyLuong = () => {
             name="SoNgayLam"
             label="Số ngày làm"
             rules={[{ required: true, message: 'Bắt buộc nhập số ngày làm' }]}
+          >
+            <Input type="number" min={0} max={31} />
+          </Form.Item>
+               <Form.Item
+            name="LuongCanBan"
+            label="Lương căn bản"
+            rules={[{ required: true, message: 'Bắt buộc nhập lương căn bản' }]}
           >
             <Input type="number" min={0} max={31} />
           </Form.Item>
