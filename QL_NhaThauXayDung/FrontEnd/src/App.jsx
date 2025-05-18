@@ -15,12 +15,15 @@ import { useEffect, useState } from "react";
 import QL_NhanVien from "./components/QL_NhanVien.jsx";
 import QuanLyCongTrinh from "./components/QuanLyCongTrinh.jsx";
 import QuanLyThietBiVatTu from "./components/QuanLyThietBiVatTu.jsx";
-import LapDeXuatMua from "./page/LapDeXuatMua.jsx";
+import LapDeXuatMua from "./components/LapDeXuatMua.jsx";
 import DuyetHopDong from "./components/DuyetHopDong.jsx";
 import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
 import HopDong from "./components/HopDong.jsx";// Component bảo vệ route với kiểm tra token hết hạn
 import QuanLyLuong from "./components/QuanLyLuong.jsx";
 import QuanLyTienDo from "./components/QuanLyTienDo.jsx";
+import QuanLyNhaCungCap from "./components/QuanLyNhaCungCap.jsx";
+import TaoDeXuat from "./components/TaoDeXuat.jsx";
+import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -118,7 +121,7 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="duyetdexuat" element={<h1>Duyệt đề xuất</h1>} />
+        <Route path="duyetdexuat" element={<DuyetDeXuat/>} />
         <Route path="duyetbaogia" element={<DuyetBaoGia />} />
         <Route path="baocaothongke" element={<h1>Báo cáo thống kê</h1>} />
         <Route path="duyethopdong" element={<DuyetHopDong />} />
@@ -166,6 +169,7 @@ function App() {
       >
         <Route path="quanlycongtrinh" element={<QuanLyCongTrinh />} />
         <Route path="quanlytiendo" element={<QuanLyTienDo />} />
+        <Route path="lapdexuat" element={<TaoDeXuat />} />
         <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
         <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
         <Route path="timkiem" element={<div>Tìm kiếm</div>} />
@@ -181,6 +185,9 @@ function App() {
       >
         <Route path="quanlythietbivattu" element={<QuanLyThietBiVatTu />} />
         <Route path="lapphieukiemtra" element={<div>Lập phiếu kiểm tra</div>} />
+        <Route path="danhsachphieukiemtra" element={<div>Danh sách phiếu kiểm tra</div>} />
+        <Route path="danhsachphieunhap" element={<div>Danh sách phiếu nhập</div>} />
+        <Route path="quanlynhacungcap" element={<QuanLyNhaCungCap />} />
       </Route>
       <Route
         path="/nhanvientuvan"

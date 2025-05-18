@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, message, Modal, Input, Select, Form, Switch, Tooltip } from 'antd';
+import { Table, Button, message, Modal, Input, Select, Form, Switch, Tooltip, Popconfirm } from 'antd';
 import axios from 'axios';
 import BASE_URL from '../Config';
-import { SearchOutlined, EditOutlined, PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, PlusOutlined, InfoCircleOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const QuanLyThietBiVatTu = () => {
   const [data, setData] = useState([]);
@@ -19,10 +19,11 @@ const QuanLyThietBiVatTu = () => {
   });
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [addForm] = Form.useForm();
-  const [useAutoMaThietBiVatTu, setUseAutoMaThietBiVatTu] = useState(true);
   const [autoMaThietBiVatTu, setAutoMaThietBiVatTu] = useState('');
   const [loaiThietBiVatTuList, setLoaiThietBiVatTuList] = useState([]);
   const [nhaCungCapList, setNhaCungCapList] = useState([]);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -94,32 +95,15 @@ const QuanLyThietBiVatTu = () => {
     
     const newMaThietBiVatTu = `TB${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
     setAutoMaThietBiVatTu(newMaThietBiVatTu);
-    
-    if (useAutoMaThietBiVatTu) {
-      addForm.setFieldsValue({ MaThietBiVatTu: newMaThietBiVatTu });
-    }
-  };
-
-  const handleAutoMaThietBiVatTuChange = (checked) => {
-    setUseAutoMaThietBiVatTu(checked);
-    if (checked) {
-      addForm.setFieldsValue({ MaThietBiVatTu: autoMaThietBiVatTu });
-    } else {
-      addForm.setFieldsValue({ MaThietBiVatTu: '' });
-    }
-  };
-
-  const refreshAutoMaThietBiVatTu = () => {
-    generateAutoMaThietBiVatTu();
-    message.success('Đã làm mới mã thiết bị vật tư');
+    return newMaThietBiVatTu;
   };
 
   useEffect(() => {
     if (addModalVisible) {
-      generateAutoMaThietBiVatTu();
+      const newCode = generateAutoMaThietBiVatTu();
       addForm.resetFields();
       addForm.setFieldsValue({
-        MaThietBiVatTu: useAutoMaThietBiVatTu ? autoMaThietBiVatTu : '',
+        MaThietBiVatTu: newCode,
       });
     }
   }, [addModalVisible]);
@@ -204,6 +188,25 @@ const QuanLyThietBiVatTu = () => {
     setAddModalVisible(true);
   };
 
+  const handleDelete = async (record) => {
+    try {
+      const response = await axios.delete(
+        `${BASE_URL}DeXuat_API/ThietBiVatTu_API.php?action=DELETE`,
+        { data: { MaThietBiVatTu: record.MaThietBiVatTu } }
+      );
+
+      if (response.data.status === 'success') {
+        message.success('Xóa thiết bị vật tư thành công');
+        fetchData();
+      } else {
+        message.error(response.data.message || 'Xóa thiết bị vật tư thất bại');
+      }
+    } catch (error) {
+      console.error('Error deleting:', error);
+      message.error('Có lỗi xảy ra khi xóa thiết bị vật tư');
+    }
+  };
+
   const columns = [
     { title: 'Mã thiết bị vật tư', dataIndex: 'MaThietBiVatTu', key: 'MaThietBiVatTu', width: 120, align: 'center' },
     { title: 'Tên thiết bị vật tư', dataIndex: 'TenThietBiVatTu', key: 'TenThietBiVatTu', width: 200, align: 'center' },
@@ -214,7 +217,7 @@ const QuanLyThietBiVatTu = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      width: 160,
+      width: 200,
       align: 'center',
       render: (_, record) => (
         <div className="flex gap-2 justify-center">
@@ -224,6 +227,14 @@ const QuanLyThietBiVatTu = () => {
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
             Sửa
           </Button>
+          <Popconfirm
+            title="Bạn có chắc chắn muốn xóa?"
+            onConfirm={() => handleDelete(record)}
+            okText="Xóa"
+            cancelText="Hủy"
+          >
+            <Button danger>Xóa</Button>
+          </Popconfirm>
         </div>
       ),
     },
@@ -444,39 +455,12 @@ const QuanLyThietBiVatTu = () => {
           layout="vertical"
           className="mt-4"
         >
-          <Form.Item label="Mã thiết bị vật tư">
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-              <Switch
-                checked={useAutoMaThietBiVatTu}
-                onChange={handleAutoMaThietBiVatTuChange}
-                style={{ marginRight: '8px' }}
-              />
-              <span>Sử dụng mã tự động</span>
-              {useAutoMaThietBiVatTu && (
-                <Button 
-                  type="link" 
-                  onClick={refreshAutoMaThietBiVatTu} 
-                  style={{ marginLeft: '8px' }}
-                >
-                  Làm mới
-                </Button>
-              )}
-              <Tooltip title="Mã sẽ được tạo theo định dạng TB + năm tháng ngày giờ phút giây">
-                <InfoCircleOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
-              </Tooltip>
-            </div>
-            
-            <Form.Item
-              name="MaThietBiVatTu"
-              noStyle
-              rules={[{ required: true, message: 'Vui lòng nhập mã thiết bị vật tư' }]}
-            >
-              <Input 
-                placeholder="Mã thiết bị vật tư" 
-                disabled={useAutoMaThietBiVatTu}
-                style={{ width: '100%', fontWeight: '500' }}
-              />
-            </Form.Item>
+          <Form.Item
+            name="MaThietBiVatTu"
+            label="Mã thiết bị vật tư"
+            hidden
+          >
+            <Input />
           </Form.Item>
 
           <Form.Item

@@ -48,7 +48,7 @@ CREATE TABLE `HopDong` (
   `NgayKy` Date,
   `MoTa` varchar(255),
   `TongTien` float,
-  `FileHopDong` varchar(1500),
+  `FileHopDong` text,
   `TrangThai` varchar(255),
   `GhiChu` varchar(255),
   `MaNhanVien` varchar(20)
@@ -74,7 +74,7 @@ CREATE TABLE `CongTrinh` (
   `MaCongTrinh` varchar(20) PRIMARY KEY,
   `TenCongTrinh` varchar(255),
   `Dientich` float,
-  `FileThietKe` varchar(1500),
+  `FileThietKe` text,
   `MaKhachHang` varchar(20),
   `MaHopDong` varchar(20),
   `MaLoaiCongTrinh` int,
@@ -95,7 +95,7 @@ CREATE TABLE `BangBaoCaoTienDo` (
   `CongViec` varchar(255),
   `NoiDungCongViec` varchar(255),
   `NgayBaoCao` DateTime,
-  `TrangThai` int,
+  `TrangThai` boolean,
   `TiLeHoanThanh` float,
   `HinhAnhTienDo` text,
   `MaCongTrinh` varchar(20)
@@ -152,6 +152,30 @@ CREATE TABLE `ChiTietThiCong` (
   `TrangThai` varchar(50),
   `NgayRoiKho` Datetime,
   `NgayHoanKho` Datetime
+);
+
+CREATE TABLE `DeXuat` (
+  `MaDeXuat` varchar(20) PRIMARY KEY,
+  `NgayLap` DateTime,  
+  `NgayGiaoDuKien` DateTime,
+  `NgayDuyet` DateTime,
+  `MaNhanVien` varchar(20),
+  `LoaiDeXuat` varchar(50),
+  `TrangThai` nvarchar(50) DEFAULT 'Chờ duyệt',
+  `GhiChu` nvarchar(255),
+  FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`)
+);
+
+CREATE TABLE `ChiTietDeXuat` (
+  `MaChiTietDeXuat` int AUTO_INCREMENT PRIMARY KEY,
+  `MaDeXuat` varchar(20),
+  `MaThietBiVatTu` varchar(20),
+  `SoLuong` float,
+  `DonGia` float,
+  `MaNhaCungCap` varchar(20),
+  FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`),
+  FOREIGN KEY (`MaDeXuat`) REFERENCES `DeXuat` (`MaDeXuat`),
+  FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
 );
 
 ALTER TABLE `NhanVien` 

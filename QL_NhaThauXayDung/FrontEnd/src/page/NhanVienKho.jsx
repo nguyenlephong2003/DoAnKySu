@@ -9,7 +9,12 @@ import {
   FaClipboardList,
   FaCheckCircle,
   FaUserEdit,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaTools,
+  FaClipboardCheck,
+  FaListAlt,
+  FaFileInvoice,
+  FaTruck
 } from "react-icons/fa";
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
@@ -30,8 +35,11 @@ const PageNhanVienKho = () => {
   const location = useLocation();
 
   const menuItems = [
-    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaClipboardList />, path: "/nhanvienkho/quanlythietbivattu" },
-    { id: "lapphieukiemtra", label: "Lập phiếu kiểm tra", icon: <FaClipboardList />, path: "/nhanvienkho/lapphieukiemtra" },
+    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaTools />, path: "/nhanvienkho/quanlythietbivattu" },
+    { id: "lapphieukiemtra", label: "Lập phiếu kiểm tra", icon: <FaClipboardCheck />, path: "/nhanvienkho/lapphieukiemtra" },
+    { id: "danhsachphieukiemtra", label: "Danh sách phiếu kiểm tra", icon: <FaListAlt />, path: "/nhanvienkho/danhsachphieukiemtra" },
+    { id: "danhsachphieunhap", label: "Danh sách phiếu nhập", icon: <FaFileInvoice />, path: "/nhanvienkho/danhsachphieunhap" },
+    { id: "quanlynhacungcap", label: "Quản lý nhà cung cấp", icon: <FaTruck />, path: "/nhanvienkho/quanlynhacungcap" },
   ];
 
   const handleClickOutside = (event) => {
