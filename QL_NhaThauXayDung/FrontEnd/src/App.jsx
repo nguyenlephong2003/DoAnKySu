@@ -20,6 +20,7 @@ import DuyetHopDong from "./components/DuyetHopDong.jsx";
 import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
 import HopDong from "./components/HopDong.jsx";// Component bảo vệ route với kiểm tra token hết hạn
 import QuanLyLuong from "./components/QuanLyLuong.jsx";
+import QuanLyTienDo from "./components/QuanLyTienDo.jsx";
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -164,7 +165,7 @@ function App() {
         }
       >
         <Route path="quanlycongtrinh" element={<QuanLyCongTrinh />} />
-        <Route path="quanlytiendo" element={<div>Quản lý tiến độ</div>} />
+        <Route path="quanlytiendo" element={<QuanLyTienDo />} />
         <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
         <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
         <Route path="timkiem" element={<div>Tìm kiếm</div>} />
