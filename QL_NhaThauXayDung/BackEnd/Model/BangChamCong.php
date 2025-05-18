@@ -18,7 +18,7 @@ class BangChamCong {
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
                   (MaChamCong, SoNgayLam, KyLuong, MaNhanVien) 
-                  VALUES (:maChamCong, :soNgayLam, :kyLuong, :maNhanVien)";
+                  VALUES (:MaChamCong, :SoNgayLam, :KyLuong, :MaNhanVien)";
 
         // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
@@ -29,10 +29,10 @@ class BangChamCong {
         $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
         $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
 
-        $stmt->bindParam(":maChamCong", $this->MaChamCong);
-        $stmt->bindParam(":soNgayLam", $this->SoNgayLam);
-        $stmt->bindParam(":kyLuong", $this->KyLuong);
-        $stmt->bindParam(":maNhanVien", $this->MaNhanVien);
+        $stmt->bindParam(":MaChamCong", $this->MaChamCong);
+        $stmt->bindParam(":SoNgayLam", $this->SoNgayLam);
+        $stmt->bindParam(":KyLuong", $this->KyLuong);
+        $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
 
         // Thực thi câu lệnh
         if($stmt->execute()) {
@@ -47,7 +47,6 @@ class BangChamCong {
                 ]
             ];
         }
-
         return [
             "status" => "error",
             "message" => "Không thể tạo bản ghi chấm công"
@@ -141,83 +140,87 @@ class BangChamCong {
     }
 
     // Cập nhật bản ghi BangChamCong
-    public function update() {
-        $query = "UPDATE " . $this->table_name . " 
-                  SET SoNgayLam = :soNgayLam, 
-                      KyLuong = :kyLuong, 
-                      MaNhanVien = :maNhanVien 
-                  WHERE MaChamCong = :maChamCong";
+   public function update() {
+    $query = "UPDATE " . $this->table_name . " 
+              SET SoNgayLam = :SoNgayLam, 
+                  KyLuong = :KyLuong, 
+                  MaNhanVien = :MaNhanVien 
+              WHERE  MaNhanVien = :MaNhanVien";
 
-        // Chuẩn bị câu lệnh
-        $stmt = $this->conn->prepare($query);
+    // Chuẩn bị câu lệnh
+    $stmt = $this->conn->prepare($query);
 
-        // Làm sạch và ràng buộc dữ liệu
-        $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
-        $this->SoNgayLam = filter_var($this->SoNgayLam, FILTER_VALIDATE_FLOAT);
-        $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
-        $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
+    // Làm sạch và ràng buộc dữ liệu
+    // $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
+    $this->SoNgayLam = filter_var($this->SoNgayLam, FILTER_VALIDATE_FLOAT);
+    $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
+    $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
 
-        $stmt->bindParam(":maChamCong", $this->MaChamCong);
-        $stmt->bindParam(":soNgayLam", $this->SoNgayLam);
-        $stmt->bindParam(":kyLuong", $this->KyLuong);
-        $stmt->bindParam(":maNhanVien", $this->MaNhanVien);
+    // $stmt->bindParam(":MaChamCong", $this->MaChamCong);
+    $stmt->bindParam(":SoNgayLam", $this->SoNgayLam);
+    $stmt->bindParam(":KyLuong", $this->KyLuong);
+    $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
 
-        // Thực thi câu lệnh
-        if($stmt->execute()) {
-            // Lấy thông tin sau khi cập nhật
-            $this->MaChamCong = $this->MaChamCong;
-            $result = $this->readOne();
-            
-            if($result["status"] === "success") {
-                return [
-                    "status" => "success",
-                    "message" => "Cập nhật bản ghi chấm công thành công",
-                    "data" => $result["data"]
-                ];
-            }
-            
+    // Thực thi câu lệnh
+    if($stmt->execute()) {
+        // Lấy thông tin sau khi cập nhật
+        $result = $this->readOne();
+        
+        if($result["status"] === "success") {
             return [
                 "status" => "success",
-                "message" => "Cập nhật bản ghi chấm công thành công, nhưng không lấy được thông tin chi tiết"
+                "message" => "Cập nhật bản ghi chấm công thành công",
+                "data" => $result["data"]
             ];
         }
-
+        
         return [
-            "status" => "error",
-            "message" => "Không thể cập nhật bản ghi chấm công"
+            "status" => "success",
+            "message" => "Cập nhật bản ghi chấm công thành công, nhưng không lấy được thông tin chi tiết"
         ];
     }
+
+    return [
+        "status" => "error",
+        "message" => "Không thể cập nhật bản ghi chấm công"
+    ];
+}
+
 
     // Xóa bản ghi BangChamCong
     public function delete() {
-        // Lấy thông tin trước khi xóa
-        $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
-        $resultInfo = $this->readOne();
-        
-        if($resultInfo["status"] === "error") {
-            return [
-                "status" => "error",
-                "message" => "Không tìm thấy bản ghi chấm công"
-            ];
-        }
-        
-        $query = "DELETE FROM " . $this->table_name . " WHERE MaChamCong = :maChamCong";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":maChamCong", $this->MaChamCong);
-
-        if($stmt->execute()) {
-            return [
-                "status" => "success",
-                "message" => "Đã xóa bản ghi chấm công thành công",
-                "data" => $resultInfo["data"]
-            ];
-        }
-
+    // Lấy thông tin trước khi xóa
+    $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
+    error_log("MaChamCong: " . $this->MaChamCong); // Kiểm tra giá trị
+    $resultInfo = $this->readOne();
+    
+    if($resultInfo["status"] === "error") {
         return [
             "status" => "error",
-            "message" => "Không thể xóa bản ghi chấm công"
+            "message" => "Không tìm thấy bản ghi chấm công1"
         ];
     }
+    
+    $query = "DELETE FROM " . $this->table_name . " WHERE MaChamCong = :maChamCong";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(":maChamCong", $this->MaChamCong);
+
+  if ($stmt->execute()) {
+    return [
+        "status" => "success",
+        "message" => "Đã xóa bản ghi chấm công thành công",
+        "data" => $resultInfo["data"]
+    ];
+} else {
+    $errorInfo = $stmt->errorInfo(); // Lấy thông tin lỗi
+    return [
+        "status" => "error",
+        "message" => "Không thể xóa bản ghi chấm công: " . $errorInfo[2] // Thông báo lỗi chi tiết
+    ];
+}
+
+}
+
 
     // Tìm kiếm bản ghi BangChamCong
     public function search($keywords) {
