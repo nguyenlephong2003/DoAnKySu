@@ -33,15 +33,15 @@ class BangBaoCaoTienDo {
         $stmt = $this->conn->prepare($query);
 
         // Clean and bind data
-        $this->MaTienDo = htmlspecialchars(strip_tags($this->MaTienDo));
-        $this->ThoiGianHoanThanhThucTe = htmlspecialchars(strip_tags($this->ThoiGianHoanThanhThucTe));
-        $this->CongViec = htmlspecialchars(strip_tags($this->CongViec));
-        $this->NoiDungCongViec = htmlspecialchars(strip_tags($this->NoiDungCongViec));
-        $this->NgayBaoCao = htmlspecialchars(strip_tags($this->NgayBaoCao));
-        $this->TrangThai = filter_var($this->TrangThai, FILTER_VALIDATE_INT);
-        $this->TiLeHoanThanh = filter_var($this->TiLeHoanThanh, FILTER_VALIDATE_FLOAT);
-        $this->HinhAnhTienDo = htmlspecialchars(strip_tags($this->HinhAnhTienDo));
-        $this->MaCongTrinh = htmlspecialchars(strip_tags($this->MaCongTrinh));
+        $this->MaTienDo = is_string($this->MaTienDo) ? htmlspecialchars(strip_tags($this->MaTienDo)) : '';
+        $this->ThoiGianHoanThanhThucTe = is_string($this->ThoiGianHoanThanhThucTe) ? htmlspecialchars(strip_tags($this->ThoiGianHoanThanhThucTe)) : null;
+        $this->CongViec = is_string($this->CongViec) ? htmlspecialchars(strip_tags($this->CongViec)) : '';
+        $this->NoiDungCongViec = is_string($this->NoiDungCongViec) ? htmlspecialchars(strip_tags($this->NoiDungCongViec)) : '';
+        $this->NgayBaoCao = is_string($this->NgayBaoCao) ? htmlspecialchars(strip_tags($this->NgayBaoCao)) : '';
+        $this->TrangThai = filter_var($this->TrangThai, FILTER_VALIDATE_INT) !== false ? (int)$this->TrangThai : 0;
+        $this->TiLeHoanThanh = is_numeric($this->TiLeHoanThanh) ? floatval($this->TiLeHoanThanh) : 0;
+        $this->HinhAnhTienDo = is_string($this->HinhAnhTienDo) ? $this->HinhAnhTienDo : null;
+        $this->MaCongTrinh = is_string($this->MaCongTrinh) ? htmlspecialchars(strip_tags($this->MaCongTrinh)) : '';
 
         $stmt->bindParam(":maTienDo", $this->MaTienDo);
         $stmt->bindParam(":thoiGianHoanThanhThucTe", $this->ThoiGianHoanThanhThucTe);
@@ -63,7 +63,9 @@ class BangBaoCaoTienDo {
 
     // Read Single BangBaoCaoTienDo entry
     public function readSingle() {
-        $query = "SELECT btd.*, ct.TenCongTrinh
+        $query = "SELECT btd.*, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, 
+                         ct.MaKhachHang, ct.MaHopDong, ct.MaLoaiCongTrinh, 
+                         ct.NgayDuKienHoanThanh
                   FROM " . $this->table_name . " btd
                   LEFT JOIN CongTrinh ct ON btd.MaCongTrinh = ct.MaCongTrinh
                   WHERE btd.MaTienDo = ? 
@@ -94,7 +96,13 @@ class BangBaoCaoTienDo {
 
         // Return additional information
         return [
-            'TenCongTrinh' => $row['TenCongTrinh']
+            'TenCongTrinh' => $row['TenCongTrinh'],
+            'Dientich' => $row['Dientich'],
+            'FileThietKe' => $row['FileThietKe'],
+            'MaKhachHang' => $row['MaKhachHang'],
+            'MaHopDong' => $row['MaHopDong'],
+            'MaLoaiCongTrinh' => $row['MaLoaiCongTrinh'],
+            'NgayDuKienHoanThanh' => $row['NgayDuKienHoanThanh']
         ];
     }
 
@@ -104,7 +112,7 @@ class BangBaoCaoTienDo {
                   WHERE MaCongTrinh = ?
                   ORDER BY NgayBaoCao DESC";
 
-        // Prepare statement
+        // Prepare statementp
         $stmt = $this->conn->prepare($query);
 
         // Bind project ID
@@ -137,9 +145,9 @@ class BangBaoCaoTienDo {
         $this->CongViec = htmlspecialchars(strip_tags($this->CongViec));
         $this->NoiDungCongViec = htmlspecialchars(strip_tags($this->NoiDungCongViec));
         $this->NgayBaoCao = htmlspecialchars(strip_tags($this->NgayBaoCao));
-        $this->TrangThai = filter_var($this->TrangThai, FILTER_VALIDATE_INT);
+        $this->TrangThai = filter_var($this->TrangThai, FILTER_VALIDATE_INT) !== false ? (int)$this->TrangThai : 0;
         $this->TiLeHoanThanh = filter_var($this->TiLeHoanThanh, FILTER_VALIDATE_FLOAT);
-        $this->HinhAnhTienDo = htmlspecialchars(strip_tags($this->HinhAnhTienDo));
+        $this->HinhAnhTienDo = is_string($this->HinhAnhTienDo) ? $this->HinhAnhTienDo : null;
         $this->MaCongTrinh = htmlspecialchars(strip_tags($this->MaCongTrinh));
         $this->MaTienDo = htmlspecialchars(strip_tags($this->MaTienDo));
 
@@ -217,6 +225,24 @@ class BangBaoCaoTienDo {
         // Bind parameters
         $stmt->bindParam(1, $maCongTrinh);
         $stmt->bindParam(2, $trangThai);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Get all progress reports with construction details
+    public function readAll() {
+        $query = "SELECT btd.*, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, 
+                         ct.MaKhachHang, ct.MaHopDong, ct.MaLoaiCongTrinh, 
+                         ct.NgayDuKienHoanThanh
+                  FROM " . $this->table_name . " btd
+                  LEFT JOIN CongTrinh ct ON btd.MaCongTrinh = ct.MaCongTrinh
+                  ORDER BY btd.NgayBaoCao DESC";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
 
         // Execute query
         $stmt->execute();
