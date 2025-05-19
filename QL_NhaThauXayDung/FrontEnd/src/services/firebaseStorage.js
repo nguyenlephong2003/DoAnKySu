@@ -6,17 +6,17 @@ import { app } from "../firebase/config";
 const storage = getStorage(app);
 
 // Hàm upload một file và trả về URL
-export const uploadFileAndGetURL = async (file) => {
+// Hàm upload một file và trả về URL
+export const uploadFileAndGetURL = async (file, folder = "contracts", fileName = null) => {
   try {
-    // Tạo reference đến file trong storage
-    const storageRef = ref(storage, `contracts/${file.name}`);
-    
+    // Đặt tên file
+    const name = fileName || file.name;
+    // Tạo reference đến file trong storage với folder động
+    const storageRef = ref(storage, `${folder}/${name}`);
     // Upload file
     const snapshot = await uploadBytes(storageRef, file);
-    
     // Lấy URL download
     const downloadURL = await getDownloadURL(snapshot.ref);
-    
     return downloadURL;
   } catch (error) {
     console.error("Error uploading file:", error);
