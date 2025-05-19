@@ -81,7 +81,7 @@ function getChamCongByEmployee($bangChamCong, $maNhanVien) {
                 "MaNhanVien" => $row['MaNhanVien'],
                 "TenNhanVien" => $row['TenNhanVien'],
                 "LuongCanBan" => (int)$row['LuongCanBan'],
-                "SoNgayLam" => (int)$row['SoNgayLam'],
+                "SoNgayLam" => (float)$row['SoNgayLam'],
                 "KyLuong" => (int)$row['KyLuong'],
                 "LuongThang" => $luongThang
             ];
@@ -137,7 +137,7 @@ error_log(print_r($data, true));
     // Gán giá trị cho đối tượng
     // $bangChamCong->MaChamCong = htmlspecialchars(strip_tags($data->MaChamCong));
     $bangChamCong->MaNhanVien = htmlspecialchars(strip_tags($data->MaNhanVien));
-    $bangChamCong->SoNgayLam = (int)$data->SoNgayLam;
+    $bangChamCong->SoNgayLam = (float)$data->SoNgayLam;
     $bangChamCong->KyLuong = (int)$data->KyLuong;
 
     // Thực hiện cập nhật
@@ -148,9 +148,24 @@ error_log(print_r($data, true));
 
 
 function deleteChamCong($bangChamCong, $maChamCong) {
+    echo "Giá trị đầu vào maChamCong: ";
+    var_dump($maChamCong);
+
+    // Làm sạch đầu vào
     $bangChamCong->MaChamCong = htmlspecialchars(strip_tags($maChamCong));
+
+    echo "Sau khi làm sạch: ";
+    var_dump($bangChamCong->MaChamCong);
+
+    // Thực hiện xóa
     $result = $bangChamCong->delete();
+
+    echo "Kết quả hàm delete(): ";
+    var_dump($result);
+
+    // Trả kết quả dưới dạng JSON
     echo json_encode($result);
 }
+
 ?>
 
