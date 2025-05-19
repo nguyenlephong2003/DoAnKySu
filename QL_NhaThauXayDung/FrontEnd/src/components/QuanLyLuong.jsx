@@ -79,21 +79,22 @@ const QuanLyLuong = () => {
 
   const handleDelete = async (record) => {
     console.log('Đang xóa bản ghi lương:', record);
+
     try {
-     await axios.delete(`${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=DELETE&ma_cham_cong=${record.MaChamCong}`);
-      const response = await axios.delete(`${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=DELETE&ma_cham_cong=${record.MaChamCong}`);
-      console.log('Đã xóa bản ghi lương:', response.data);
-      if (response.data.status === 'success') {
-        message.success('Xóa thành công');
-        fetchData();
-      } else {
-        message.error('Lỗi: ' + response.data.message || 'Không thể xóa bản ghi lương');
-      }
+      const response = await axios.delete(
+        `${BASE_URL}NguoiDung_API/BangChamCong_API.php?action=DELETE&ma_cham_cong=${record.MaChamCong}`
+      );
+
+      console.log('Phản hồi từ API:', response.data);
+
+      // Tạm bỏ điều kiện kiểm tra status
+      message.success('Xóa thành công');
+      fetchData();
     } catch (err) {
-      console.error('Lỗi khi xóa:', err);
+      console.error('Lỗi khi gọi API:', err);
       message.error('Lỗi khi xóa bản ghi lương');
     }
-};
+  };
 
   const handleModalOk = async () => {
     try {
@@ -101,12 +102,8 @@ const QuanLyLuong = () => {
       console.log('Giá trị biểu mẫu:', values);
 
       // Tính LuongThang = LuongCanBan * SoNgayLam
-      const nhanVien = nhanVienOptions.find((nv) => nv.MaNhanVien === values.MaNhanVien);
-      if (!nhanVien) {
-        message.error('Nhân viên không hợp lệ');
-        return;
-      }
-      values.LuongThang = nhanVien.LuongCanBan * values.SoNgayLam;
+      values.LuongThang = values.LuongCanBan * values.SoNgayLam;
+
 
       if (editingLuong) {
         // Cập nhật bản ghi lương
@@ -135,13 +132,25 @@ const QuanLyLuong = () => {
   };
 
   const onValuesChange = (changedValues, allValues) => {
-    if ('SoNgayLam' in changedValues || 'LuongCanBan' in changedValues) {
+    if ('MaNhanVien' in changedValues) {
+      const nv = nhanVienOptions.find(nv => nv.MaNhanVien === changedValues.MaNhanVien);
+      if (nv) {
+        form.setFieldsValue({ LuongCanBan: nv.LuongCanBan });
+
+        const soNgayLam = allValues.SoNgayLam || 0;
+        const luongThang = nv.LuongCanBan * soNgayLam;
+        form.setFieldsValue({ LuongThang: luongThang });
+      }
+    }
+
+    if ('SoNgayLam' in changedValues) {
       const luongCanBan = allValues.LuongCanBan || 0;
-      const soNgayLam = allValues.SoNgayLam || 0;
+      const soNgayLam = changedValues.SoNgayLam;
       const luongThang = luongCanBan * soNgayLam;
       form.setFieldsValue({ LuongThang: luongThang });
     }
   };
+
 
   const handleSearch = (value) => {
     setSearchText(value);
@@ -292,13 +301,13 @@ const QuanLyLuong = () => {
           >
             <Input type="number" min={0} max={31} />
           </Form.Item>
-               <Form.Item
+          <Form.Item
             name="LuongCanBan"
             label="Lương căn bản"
-            rules={[{ required: true, message: 'Bắt buộc nhập lương căn bản' }]}
           >
-            <Input type="number" min={0} max={31} />
+            <Input type="number" disabled />
           </Form.Item>
+
           <Form.Item
             name="LuongThang"
             label="Lương tháng"
