@@ -64,15 +64,11 @@ const BaoGia = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-
       // Lấy tất cả báo giá
       const baoGiaResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=GET`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true
         }
       );
 
@@ -90,9 +86,7 @@ const BaoGia = () => {
       const loaiBaoGiaResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getAllLoaiBaoGia`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true
         }
       );
 
@@ -172,12 +166,11 @@ const BaoGia = () => {
       onOk: async () => {
         try {
           setLoading(true);
-          const token = localStorage.getItem("token");
           const response = await axios({
             method: "DELETE",
             url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=DELETE`,
+            withCredentials: true,
             headers: {
-              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
             data: {
@@ -317,13 +310,10 @@ const BaoGia = () => {
     // Lấy chi tiết báo giá
     const fetchChiTietBaoGia = async () => {
       try {
-        const token = localStorage.getItem("token");
         const response = await axios.get(
           `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getQuotationDetails&MaBaoGia=${record.MaBaoGia}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true
           }
         );
 
@@ -346,13 +336,11 @@ const BaoGia = () => {
       console.log("Giá trị form sửa:", values);
 
       setLoading(true);
-      const token = localStorage.getItem("token");
-
       const response = await axios({
         method: "PUT",
         url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=updateBangBaoGia`,
+        withCredentials: true,
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         data: {

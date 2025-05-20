@@ -24,65 +24,79 @@ import QuanLyTienDo from "./components/QuanLyTienDo.jsx";
 import QuanLyNhaCungCap from "./components/QuanLyNhaCungCap.jsx";
 import TaoDeXuat from "./components/TaoDeXuat.jsx";
 import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
+import BASE_URL from "./Config.js";  // Thêm dòng này
+
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
-      const expires = localStorage.getItem("expires");
-      const currentTime = Math.floor(Date.now() / 1000);
-      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-      
-      console.log("Debug ProtectedRoute:");
-      console.log("Token:", token);
-      console.log("Expires:", expires);
-      console.log("Current Time:", currentTime);
-      console.log("User Info:", userInfo);
-      console.log("Allowed Role:", allowedRole);
-      
-      // Kiểm tra token tồn tại và chưa hết hạn
-      if (!token || !expires) {
-        alert("Vui lòng đăng nhập để tiếp tục");
+    const checkAuth = async () => {
+      try {
+        console.log("Checking token..."); // Debug log
+        // Gọi API kiểm tra token
+        const response = await fetch(`${BASE_URL}NguoiDung_API/KiemTraToken_API.php`, {
+          method: 'GET',
+          credentials: 'include', // Quan trọng: cho phép gửi cookies
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log("Response status:", response.status); // Debug log
+        const data = await response.json();
+        console.log("Token check response:", data); // Debug log
+        
+        if (!response.ok) {
+          console.error("Token check failed:", data.message, data.error);
+          alert(data.error || "Vui lòng đăng nhập để tiếp tục");
+          navigate("/login");
+          return;
+        }
+
+        if (data.message !== "success") {
+          console.error("Invalid response:", data);
+          alert(data.error || "Phiên đăng nhập không hợp lệ");
+          navigate("/login");
+          return;
+        }
+
+        // Kiểm tra vai trò người dùng
+        const userInfo = data.nhanvien[0];
+        if (!userInfo) {
+          console.error("No user info in response");
+          alert("Không tìm thấy thông tin người dùng");
+          navigate("/login");
+          return;
+        }
+
+        const maNhanVien = userInfo.MaNhanVien || "";
+        let userRole = "";
+        
+        // Xử lý đặc biệt cho nhân viên kho (K)
+        if (maNhanVien.startsWith("K") && !maNhanVien.startsWith("KT")) {
+          userRole = "K";
+        } else {
+          userRole = maNhanVien.substring(0, 2);
+        }
+        
+        console.log("User Role:", userRole);
+        console.log("User Info:", userInfo);
+
+        // Nếu vai trò không khớp với trang được phép
+        if (userRole !== allowedRole) {
+          console.log("Role mismatch - User Role:", userRole, "Allowed Role:", allowedRole);
+          navigate("/404");
+          return;
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Lỗi kiểm tra xác thực:", error);
+        console.error("Error details:", error.message);
+        alert("Có lỗi xảy ra khi kiểm tra thông tin đăng nhập: " + error.message);
         navigate("/login");
-        return;
       }
-
-      // Kiểm tra token hết hạn
-      if (currentTime > parseInt(expires)) {
-        // Xóa token hết hạn
-        localStorage.removeItem("token");
-        localStorage.removeItem("userInfo");
-        localStorage.removeItem("expires");
-
-        // Thông báo và chuyển hướng
-        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-        navigate("/login");
-        return;
-      }
-
-      // Kiểm tra vai trò người dùng
-      const maNhanVien = userInfo.MaNhanVien || "";
-      let userRole = "";
-      
-      // Xử lý đặc biệt cho nhân viên kho (K)
-      if (maNhanVien.startsWith("K") && !maNhanVien.startsWith("KT")) {
-        userRole = "K";
-      } else {
-        userRole = maNhanVien.substring(0, 2);
-      }
-      
-      console.log("User Role:", userRole);
-
-      // Nếu vai trò không khớp với trang được phép
-      if (userRole !== allowedRole) {
-        console.log("Role mismatch - User Role:", userRole, "Allowed Role:", allowedRole);
-        navigate("/404");
-        return;
-      }
-
-      setIsLoading(false);
     };
 
     checkAuth();

@@ -32,6 +32,7 @@ function LoginPage() {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({
             MaNhanVien: username,
             MatKhau: password,
@@ -60,52 +61,45 @@ function LoginPage() {
       }
 
       if (data.message === "success") {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
-        localStorage.setItem("expires", data.expires);
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
+        sessionStorage.setItem("expires", data.expires);
         sessionStorage.setItem("maNhanVien", data.nhanvien[0].MaNhanVien);
 
         setSuccess("Đăng nhập thành công!");
         setError("");
 
-        // Lấy mã nhân viên và xác định loại
-        const maNV = data.nhanvien[0].MaNhanVien;
-        let maLoai = "";
-        
-        // Xử lý đặc biệt cho nhân viên kho (K)
-        if (maNV.startsWith("K") && !maNV.startsWith("KT")) {
-          maLoai = "K";
-        } else {
-          maLoai = maNV.substring(0, 2);
-        }
+        // Lấy tên loại nhân viên
+        const tenLoai = data.nhanvien[0].TenLoaiNhanVien;
+        console.log("Tên loại nhân viên:", tenLoai);
 
-        console.log("Mã nhân viên:", maNV);
-        console.log("Mã loại:", maLoai);
-
-        // Chuyển hướng dựa vào mã loại
+        // Chuyển hướng dựa vào tên loại
         setTimeout(() => {
-          switch (maLoai) {
-            case "AD":
+          switch (tenLoai) {
+            case "Admin":
               navigate("/admin");
               break;
-            case "GD":
+            case "Giám đốc":
               navigate("/giamdoc");
               break;
-            case "KT":
+            case "Kế toán":
               navigate("/ketoan");
               break;
-            case "NS":
+            case "Nhân sự":
               navigate("/nhansu");
               break;
-            case "QL":
+            case "Quản lý công trình":
               navigate("/qlcongtrinh");
               break;
-            case "K":
+            case "Nhân viên kho":
               navigate("/nhanvienkho");
-              console.log("nhanvienkho");
               break;
-            case "TV":
+            case "Nhân viên tư vấn":
               navigate("/nhanvientuvan/lapbaogia");
+              break;
+            default:
+              console.error("Không tìm thấy loại nhân viên phù hợp:", tenLoai);
+              setError("Loại nhân viên không hợp lệ");
               break;
           }
         }, 1000);
