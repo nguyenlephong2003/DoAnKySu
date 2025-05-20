@@ -41,6 +41,7 @@ class TaiKhoan {
     
     // Thêm tài khoản mới
     public function add() {
+    try {
         // Kiểm tra nếu tài khoản đã tồn tại
         if ($this->isTaiKhoanExist()) {
             echo json_encode(["message" => "Mã tài khoản đã tồn tại"]);
@@ -62,6 +63,9 @@ class TaiKhoan {
             return false;
         }
         
+        // Sinh mã tài khoản
+        $this->MaTaiKhoan = $this->generateAccountCode();
+        
         // Mã hóa mật khẩu bằng MD5
         $md5_password = md5($this->MatKhau);
         
@@ -69,15 +73,24 @@ class TaiKhoan {
         $stmt = $this->conn->prepare($query);
         
         // Ràng buộc tham số
-        $stmt->bindParam(":MaTaiKhoan",$this->generateAccountCode($this->conn, $this->table, "MaTaiKhoan"));
+        $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
         $stmt->bindParam(":MatKhau", $md5_password);
         $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
         
         if ($stmt->execute()) {
-            return true;
+            return $this->MaTaiKhoan; // Trả về MaTaiKhoan thay vì true
         }
+        
+        echo json_encode(["message" => "Lỗi khi thêm tài khoản"]);
+        http_response_code(500);
+        return false;
+    } catch (Exception $e) {
+        // Bắt ngoại lệ từ generateAccountCode
+        echo json_encode(["message" => $e->getMessage()]);
+        http_response_code(500);
         return false;
     }
+}
     
     // Cập nhật thông tin tài khoản
     public function update() {
@@ -122,7 +135,7 @@ class TaiKhoan {
         }
         
         if ($stmt->execute()) {
-            return true;
+            return $this->MaTaiKhoan;
         }
         return false;
     }
@@ -279,37 +292,21 @@ class TaiKhoan {
     return $maMoi;
 }
 
-function generateAccountCode($conn, $tableName, $columnName) {
-    try {
-        // Tìm mã tài khoản lớn nhất hiện tại trong cơ sở dữ liệu
-        $sql = "SELECT $columnName FROM $tableName WHERE $columnName LIKE 'TK%' ORDER BY $columnName DESC LIMIT 1";
-        $stmt = $conn->prepare($sql);
+ private function generateAccountCode() {
+        // Đếm tổng số dòng trong bảng TaiKhoan
+        $query = "SELECT COUNT(*) AS total FROM " . $this->table;
+        $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        
-        // Lấy mã tài khoản lớn nhất
-        $lastCode = $stmt->fetchColumn();
-        
-        if ($lastCode) {
-            // Nếu đã có mã tài khoản trong cơ sở dữ liệu
-            // Trích xuất phần số từ mã (loại bỏ phần "TK")
-            $lastNumber = (int)substr($lastCode, 2);
-            
-            // Tăng số lên 1
-            $newNumber = $lastNumber + 1;
-            
-            // Đảm bảo số mới có 3 chữ số (thêm số 0 phía trước nếu cần)
-            $newCode = 'TK' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
-        } else {
-            // Nếu chưa có mã tài khoản nào trong cơ sở dữ liệu, bắt đầu với TK001
-            $newCode = 'TK001';
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $totalRows = (int)$row['total'];
+        // Tính mã mới là tổng số dòng + 1
+        $newNumber = $totalRows + 1;
+        // Kiểm tra nếu mã mới vượt quá 999
+        if ($newNumber > 999) {
+            throw new Exception("Vượt quá giới hạn sinh mã (999)");
         }
-        
-        return $newCode;
-    } catch (PDOException $e) {
-        // Xử lý lỗi nếu có
-        error_log("Lỗi khi sinh mã tài khoản: " . $e->getMessage());
-        return false;
+        // Tạo mã với định dạng TKxxx
+        return sprintf("TK%03d", $newNumber);
     }
-}
 }
 ?>
