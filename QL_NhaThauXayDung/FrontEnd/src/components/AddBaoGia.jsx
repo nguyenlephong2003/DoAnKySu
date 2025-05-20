@@ -30,9 +30,7 @@ const AddBaoGiaForm = ({ visible, onCancel, onSuccess, loaiBaoGiaList = [] }) =>
   const fetchLoaiCongTrinhList = async () => {
     try {
       const response = await axios.get(`${BASE_URL}LoaiCongTrinh_API/LoaiCongTrinh_API.php?action=GET_ALL`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        withCredentials: true
       });
       if (response.data.status === 'success') {
         setLoaiCongTrinhList(response.data.data);
@@ -128,8 +126,8 @@ const AddBaoGiaForm = ({ visible, onCancel, onSuccess, loaiBaoGiaList = [] }) =>
       const response = await axios({
         method: 'POST',
         url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=POST`,
+        withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         },
         data: requestData

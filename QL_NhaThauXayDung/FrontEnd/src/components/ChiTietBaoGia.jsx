@@ -42,13 +42,10 @@ const DetailBaoGiaModal = ({ visible, onCancel, baoGia, onEdit, onDelete }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getQuotationDetails&MaBaoGia=${baoGia.MaBaoGia}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true
         }
       );
 

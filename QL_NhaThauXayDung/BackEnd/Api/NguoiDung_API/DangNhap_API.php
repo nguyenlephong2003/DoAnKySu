@@ -1,8 +1,9 @@
 <?php
 header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: http://localhost:5173"); // Thay đổi thành domain của frontend
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
 
 require_once __DIR__ . '/../../Config/Database.php';
 require_once __DIR__ . '/../../Model/TaiKhoan.php';
@@ -19,9 +20,10 @@ $manager = new NguoiDungAll($db);
 
 // Chỉ chấp nhận phương thức POST
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Origin: http://localhost:5173");
     header("Access-Control-Allow-Methods: POST, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Credentials: true");
     http_response_code(200);
     exit;
 }
@@ -79,12 +81,12 @@ if ($result) {
     ];
     
     // Tạo JWT
-    $secretKey = "your_secret_key_nhathau_xaydung_2024"; // Thay đổi thành khóa bí mật của bạn
+    $secretKey = "your_secret_key_nhathau_xaydung_2024";
     $issuedAt = time();
-    $expirationTime = $issuedAt + 3600; // JWT tồn tại trong 1 giờ (3600 giây)
+    $expirationTime = $issuedAt + 3600; // JWT tồn tại trong 1 giờ
     $payload = [
-        'iat' => $issuedAt,          // Thời gian tạo token
-        'exp' => $expirationTime,     // Thời gian hết hạn token
+        'iat' => $issuedAt,
+        'exp' => $expirationTime,
         'data' => [
             'MaTaiKhoan' => $result['MaTaiKhoan'],
             'MaNhanVien' => $result['MaNhanVien'],
@@ -95,10 +97,23 @@ if ($result) {
     
     $jwt = JWT::encode($payload, $secretKey, 'HS256');
     
+    // Set cookie đúng chuẩn cho localhost
+    setcookie(
+        'auth_token',
+        $jwt,
+        [
+            'expires' => $expirationTime,
+            'path' => '/',
+            // KHÔNG có 'domain'
+            'secure' => false, // Chỉ true nếu dùng HTTPS
+            'httponly' => true,
+            'samesite' => 'Lax' // Dùng Lax cho local dev
+        ]
+    );
+    
+    // Trả về response không bao gồm token
     echo json_encode([
         "message" => "success",
-        "token" => $jwt,
-        "expires" => $expirationTime,
         "nhanvien" => [$nhanVien]
     ]);
 } else {
