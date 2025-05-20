@@ -1,16 +1,22 @@
 <?php
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once __DIR__ . '/../../Config/Database.php';
 require_once __DIR__ . '/../../Model/TaiKhoan.php';
 
-// Kết nối cơ sở dữ liệu
+
+
 $database = new Database();
 $db = $database->getConn();
 $taikhoan = new TaiKhoan($db);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // Lấy phương thức HTTP và tham số `action`
 $method = $_SERVER['REQUEST_METHOD'];
@@ -70,25 +76,30 @@ switch ($method) {
         }
         break;
 
-    case 'POST':
-        if ($action === "POST") {
-            $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaTaiKhoan, $data->MatKhau, $data->MaNhanVien)) {
-                echo json_encode(["message" => "Dữ liệu không đầy đủ"]);
-                http_response_code(400);
-                exit;
-            }
+   case 'POST':
+    if ($action === "POST") {
+        $data = json_decode(file_get_contents("php://input"));
 
-            $taikhoan->MaTaiKhoan = $data->MaTaiKhoan;
-            $taikhoan->MatKhau = $data->MatKhau;
-            $taikhoan->MaNhanVien = $data->MaNhanVien;
+        if (!isset($data->MatKhau, $data->MaNhanVien)) {
+            echo json_encode(["message" => "Dữ liệu không đầy đủ"]);
+            http_response_code(400);
+            exit;
+        }
 
-            if ($taikhoan->add()) {
-                echo json_encode(["message" => "Tài khoản đã được thêm thành công"]);
-            } else {
-                // Message được trả về trong phương thức add() nếu có lỗi
-                http_response_code(500);
-            }
+        $taikhoan->MatKhau = $data->MatKhau;
+        $taikhoan->MaNhanVien = $data->MaNhanVien;
+
+        $result = $taikhoan->add();
+        if ($result !== false) {
+            echo json_encode([
+                "status" => "success",
+                "message" => "Tài khoản đã được thêm thành công",
+                "MaTaiKhoan" => $result // Sử dụng giá trị trả về từ add
+            ]);
+            http_response_code(201);
+        } else {
+            // Lỗi đã được xử lý trong hàm add, không cần lặp lại
+        }
         } elseif ($action === "login") {
             $data = json_decode(file_get_contents("php://input"));
             if (!isset($data->MaTaiKhoan, $data->MatKhau)) {

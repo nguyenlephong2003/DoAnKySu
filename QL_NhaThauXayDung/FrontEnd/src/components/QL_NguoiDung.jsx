@@ -49,6 +49,8 @@ const QL_NguoiDung = () => {
     QL: 'Quản lý',
     TC: 'Thợ chính',
     TP: 'Thợ phụ',
+    K:'Kho',
+    TV : 'Tư vấn'
   };
 
   const fetchUsers = async () => {
@@ -140,36 +142,40 @@ const QL_NguoiDung = () => {
   };
 
   const handleModalOk = async () => {
-    try {
-      const values = await form.validateFields();
+  try {
+    const values = await form.validateFields();
 
-      const url = editingUser
-        ? `${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=PUT`
-        : `${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=POST`;
+    const isEditing = !!editingUser;
 
-      const payload = {
-        ...values,
-        MaTaiKhoan: editingUser?.MaTaiKhoan,
-      };
+    const url = `${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=${isEditing ? 'PUT' : 'POST'}`;
 
-      // Xóa trường employeeId nếu có (vì đây chỉ là trường trợ giúp, không phải trường thực trong API)
-      if (payload.employeeId) {
-        delete payload.employeeId;
+    const payload = { ...values };
+    if (isEditing) payload.MaTaiKhoan = editingUser.MaTaiKhoan;
+
+    // Loại bỏ field phụ không cần gửi lên
+    delete payload.employeeId;
+
+    const res = await axios({
+      method: isEditing ? 'put' : 'post',
+      url,
+      data: payload,
+      headers: {
+        'Content-Type': 'application/json'
       }
+    });
 
-      const res = await axios.post(url, payload);
-
-      if (res.data.status === 'success') {
-        message.success(editingUser ? 'Cập nhật thành công' : 'Thêm mới thành công');
-        setModalVisible(false);
-        fetchUsers();
-      } else {
-        message.error('Thao tác thất bại: ' + (res.data.message || ''));
-      }
-    } catch (err) {
-      console.error('Validation failed:', err);
+    if (res.data.status === 'success') {
+      message.success(isEditing ? 'Cập nhật thành công' : 'Thêm mới thành công');
+      setModalVisible(false);
+      fetchUsers();
+    } else {
+      message.error('Thao tác thất bại: ' + (res.data.message || ''));
     }
-  };
+  } catch (err) {
+    console.error('Validation failed:', err);
+  }
+};
+
 
   const showUserDetail = (record) => {
     setSelectedUser(record);
