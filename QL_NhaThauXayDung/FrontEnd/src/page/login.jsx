@@ -61,11 +61,7 @@ function LoginPage() {
       }
 
       if (data.message === "success") {
-        sessionStorage.setItem("token", data.token);
-        sessionStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
-        sessionStorage.setItem("expires", data.expires);
-        sessionStorage.setItem("maNhanVien", data.nhanvien[0].MaNhanVien);
-
+        localStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
         setSuccess("Đăng nhập thành công!");
         setError("");
 

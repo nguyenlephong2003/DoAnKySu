@@ -13,35 +13,15 @@ class VerifyToken {
     }
     
     public function validate() {
-        // Lấy header Authorization
-        $headers = getallheaders(); // sử dụng hàm getallheaders() thay vì apache_request_headers()
-        $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
-        
-        // Kiểm tra header Authorization có tồn tại không
-        if (!$authHeader) {
+        // Kiểm tra cookie auth_token
+        if (!isset($_COOKIE['auth_token'])) {
             return [
                 'valid' => false,
                 'message' => 'Token không được cung cấp'
             ];
         }
         
-        // Tách "Bearer" khỏi token
-        $arr = explode(" ", $authHeader);
-        if (count($arr) != 2) {
-            return [
-                'valid' => false,
-                'message' => 'Token không đúng định dạng'
-            ];
-        }
-        
-        $jwt = $arr[1];
-        
-        if (!$jwt) {
-            return [
-                'valid' => false,
-                'message' => 'Token không được cung cấp'
-            ];
-        }
+        $jwt = $_COOKIE['auth_token'];
         
         // Xác thực JWT
         try {

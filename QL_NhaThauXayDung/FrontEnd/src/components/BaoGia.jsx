@@ -68,7 +68,10 @@ const BaoGia = () => {
       const baoGiaResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=GET`,
         {
-          withCredentials: true
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
 
@@ -79,25 +82,37 @@ const BaoGia = () => {
           total: baoGiaResponse.data.data.length,
         }));
       } else {
-        message.error("Không thể lấy dữ liệu báo giá");
+        message.error(baoGiaResponse.data.message || "Không thể lấy dữ liệu báo giá");
       }
 
       // Lấy tất cả loại báo giá
       const loaiBaoGiaResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getAllLoaiBaoGia`,
         {
-          withCredentials: true
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
 
       if (loaiBaoGiaResponse.data.status === "success") {
         setLoaiBaoGiaList(loaiBaoGiaResponse.data.data);
       } else {
-        message.error("Không thể lấy dữ liệu loại báo giá");
+        message.error(loaiBaoGiaResponse.data.message || "Không thể lấy dữ liệu loại báo giá");
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      message.error("Lỗi khi kết nối đến server");
+      if (error.response) {
+        // Server trả về response với status code nằm ngoài range 2xx
+        message.error(error.response.data.message || "Lỗi server: " + error.response.status);
+      } else if (error.request) {
+        // Request được gửi nhưng không nhận được response
+        message.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
+      } else {
+        // Có lỗi khi setting up request
+        message.error("Lỗi: " + error.message);
+      }
     } finally {
       setLoading(false);
     }

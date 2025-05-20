@@ -39,13 +39,12 @@ const DuyetBaoGia = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const baoGiaResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=GET`,
         {
+          withCredentials: true,
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -57,14 +56,15 @@ const DuyetBaoGia = () => {
           total: baoGiaResponse.data.data.length
         }));
       } else {
-        message.error('Không thể lấy dữ liệu báo giá');
+        message.error(baoGiaResponse.data.message || 'Không thể lấy dữ liệu báo giá');
       }
 
       const loaiBaoGiaResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getAllLoaiBaoGia`,
         {
+          withCredentials: true,
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -72,11 +72,20 @@ const DuyetBaoGia = () => {
       if (loaiBaoGiaResponse.data.status === 'success') {
         setLoaiBaoGiaList(loaiBaoGiaResponse.data.data);
       } else {
-        message.error('Không thể lấy dữ liệu loại báo giá');
+        message.error(loaiBaoGiaResponse.data.message || 'Không thể lấy dữ liệu loại báo giá');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      message.error('Lỗi khi kết nối đến server');
+      if (error.response) {
+        // Server trả về response với status code nằm ngoài range 2xx
+        message.error(error.response.data.message || "Lỗi server: " + error.response.status);
+      } else if (error.request) {
+        // Request được gửi nhưng không nhận được response
+        message.error("Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.");
+      } else {
+        // Có lỗi khi setting up request
+        message.error("Lỗi: " + error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -136,14 +145,14 @@ const DuyetBaoGia = () => {
   const handleNoteSubmit = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
 
       // Lấy chi tiết báo giá trước
       const chiTietResponse = await axios.get(
         `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getQuotationDetails&MaBaoGia=${currentBaoGia.MaBaoGia}`,
         {
+          withCredentials: true,
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -156,8 +165,8 @@ const DuyetBaoGia = () => {
       const response = await axios({
         method: 'PUT',
         url: `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=updateBangBaoGia`,
+        withCredentials: true,
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         data: {
@@ -192,13 +201,31 @@ const DuyetBaoGia = () => {
       }
     } catch (error) {
       console.error('Lỗi:', error);
-      message.error({
-        content: 'Lỗi: ' + (error.response?.data?.message || error.message),
-        icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
-        style: {
-          marginTop: '20vh',
-        },
-      });
+      if (error.response) {
+        message.error({
+          content: error.response.data.message || "Lỗi server: " + error.response.status,
+          icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+          style: {
+            marginTop: '20vh',
+          },
+        });
+      } else if (error.request) {
+        message.error({
+          content: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+          icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+          style: {
+            marginTop: '20vh',
+          },
+        });
+      } else {
+        message.error({
+          content: "Lỗi: " + error.message,
+          icon: <CloseCircleOutlined style={{ color: '#ff4d4f' }} />,
+          style: {
+            marginTop: '20vh',
+          },
+        });
+      }
     } finally {
       setLoading(false);
     }
