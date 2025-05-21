@@ -39,127 +39,137 @@ class TaiKhoan {
         return ($stmt->rowCount() > 0);
     }
     
-    // Thêm tài khoản mới
-    public function add() {
+    public function addAccount($maNhanVien, $matKhau, $loaiNhanVien) {
     try {
-        // Kiểm tra nếu tài khoản đã tồn tại
-        if ($this->isTaiKhoanExist()) {
-            echo json_encode(["message" => "Mã tài khoản đã tồn tại"]);
-            http_response_code(400);
-            return false;
+        // Kiểm tra MaNhanVien có tồn tại không
+        $stmt = $this->conn->prepare("SELECT MaNhanVien FROM NhanVien WHERE MaNhanVien = :maNhanVien");
+        $stmt->bindParam(':maNhanVien', $maNhanVien);
+        $stmt->execute();
+        if (!$stmt->fetch()) {
+            throw new Exception("Mã Nhân Viên '$maNhanVien' không tồn tại");
         }
-        
-        // Kiểm tra nếu nhân viên không tồn tại
-        if (!$this->isNhanVienExist()) {
-            echo json_encode(["message" => "Nhân viên không tồn tại"]);
-            http_response_code(400);
-            return false;
+
+        // Kiểm tra LoaiNhanVien có tồn tại không
+        $stmt = $this->conn->prepare("SELECT MaLoaiNhanVien FROM LoaiNhanVien WHERE TenLoai = :loaiNhanVien");
+        $stmt->bindParam(':loaiNhanVien', $loaiNhanVien);
+        $stmt->execute();
+        $role = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$role) {
+            throw new Exception("Loại Nhân Viên '$loaiNhanVien' không tồn tại");
         }
-        
-        // Kiểm tra nếu nhân viên đã có tài khoản
-        if ($this->isNhanVienHasAccount()) {
-            echo json_encode(["message" => "Nhân viên đã có tài khoản"]);
-            http_response_code(400);
-            return false;
+
+        // Kiểm tra MaNhanVien đã có tài khoản chưa
+        $stmt = $this->conn->prepare("SELECT MaNhanVien FROM TaiKhoan WHERE MaNhanVien = :maNhanVien");
+        $stmt->bindParam(':maNhanVien', $maNhanVien);
+        $stmt->execute();
+        if ($stmt->fetch()) {
+            throw new Exception("Mã Nhân Viên '$maNhanVien' đã có tài khoản");
         }
-        
-        // Sinh mã tài khoản
-        $this->MaTaiKhoan = $this->generateAccountCode();
-        
-        // Mã hóa mật khẩu bằng MD5
-        $md5_password = md5($this->MatKhau);
-        
-        $query = "INSERT INTO " . $this->table . " (MaTaiKhoan, MatKhau, MaNhanVien) VALUES (:MaTaiKhoan, :MatKhau, :MaNhanVien)";
-        $stmt = $this->conn->prepare($query);
-        
-        // Ràng buộc tham số
-        $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
-        $stmt->bindParam(":MatKhau", $md5_password);
-        $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
-        
-        if ($stmt->execute()) {
-            return $this->MaTaiKhoan; // Trả về MaTaiKhoan thay vì true
-        }
-        
-        echo json_encode(["message" => "Lỗi khi thêm tài khoản"]);
-        http_response_code(500);
-        return false;
-    } catch (Exception $e) {
-        // Bắt ngoại lệ từ generateAccountCode
-        echo json_encode(["message" => $e->getMessage()]);
-        http_response_code(500);
-        return false;
+
+        // Cập nhật MaLoaiNhanVien trong bảng NhanVien
+        $stmt = $this->conn->prepare("
+            UPDATE NhanVien
+            SET MaLoaiNhanVien = :maLoaiNhanVien
+            WHERE MaNhanVien = :maNhanVien
+        ");
+        $stmt->bindParam(':maLoaiNhanVien', $role['MaLoaiNhanVien']);
+        $stmt->bindParam(':maNhanVien', $maNhanVien);
+        $stmt->execute();
+
+        // Tạo MaTaiKhoan
+        $stmt = $this->conn->query("SELECT MAX(MaTaiKhoan) AS maxId FROM TaiKhoan");
+        $maxId = $stmt->fetch(PDO::FETCH_ASSOC)['maxId'];
+        $newId = $maxId ? 'TK' . str_pad((intval(substr($maxId, 2)) + 1), 3, '0', STR_PAD_LEFT) : 'TK001';
+
+        // Mã hóa mật khẩu
+        $hashedPassword = md5($matKhau);
+
+        // Thêm tài khoản mới
+        $stmt = $this->conn->prepare("
+            INSERT INTO TaiKhoan (MaTaiKhoan, MatKhau, MaNhanVien)
+            VALUES (:maTaiKhoan, :matKhau, :maNhanVien)
+        ");
+        $stmt->bindParam(':maTaiKhoan', $newId);
+        $stmt->bindParam(':matKhau', $hashedPassword);
+        $stmt->bindParam(':maNhanVien', $maNhanVien);
+        $stmt->execute();
+
+        return ["status" => "success", "message" => "Thêm tài khoản thành công"];
+    } catch (PDOException $e) {
+        throw new Exception("Lỗi khi thêm tài khoản: " . $e->getMessage());
     }
 }
+
     
-    // Cập nhật thông tin tài khoản
-    public function update() {
-        // Kiểm tra nếu tài khoản không tồn tại
-        if (!$this->isTaiKhoanExist()) {
-            echo json_encode(["message" => "Tài khoản không tồn tại"]);
-            http_response_code(400);
-            return false;
+   public function updateAccount($maTaiKhoan, $matKhau, $loaiNhanVien) {
+        try {
+            // Check if MaTaiKhoan exists
+            $stmt = $this->conn->prepare("SELECT MaNhanVien FROM TaiKhoan WHERE MaTaiKhoan = :maTaiKhoan");
+            $stmt->bindParam(':maTaiKhoan', $maTaiKhoan);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$account) {
+                throw new Exception("Account not found");
+            }
+
+            $maNhanVien = $account['MaNhanVien'];
+
+            // Get MaLoaiNhanVien
+            $stmt = $this->conn->prepare("SELECT MaLoaiNhanVien FROM LoaiNhanVien WHERE TenLoai = :loaiNhanVien");
+            $stmt->bindParam(':loaiNhanVien', $loaiNhanVien);
+            $stmt->execute();
+            $role = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$role) {
+                throw new Exception("Invalid LoaiNhanVien");
+            }
+
+            // Update NhanVien with new MaLoaiNhanVien
+            $stmt = $this->conn->prepare("
+                UPDATE NhanVien
+                SET MaLoaiNhanVien = :maLoaiNhanVien
+                WHERE MaNhanVien = :maNhanVien
+            ");
+            $stmt->bindParam(':maLoaiNhanVien', $role['MaLoaiNhanVien']);
+            $stmt->bindParam(':maNhanVien', $maNhanVien);
+            $stmt->execute();
+
+            // Update password if provided
+            if (!empty($matKhau)) {
+                $hashedPassword = md5($matKhau);
+                $stmt = $this->conn->prepare("
+                    UPDATE TaiKhoan
+                    SET MatKhau = :matKhau
+                    WHERE MaTaiKhoan = :maTaiKhoan
+                ");
+                $stmt->bindParam(':matKhau', $hashedPassword);
+                $stmt->bindParam(':maTaiKhoan', $maTaiKhoan);
+                $stmt->execute();
+            }
+
+            return ["status" => "success", "message" => "Account updated successfully"];
+        } catch (PDOException $e) {
+            throw new Exception("Error updating account: " . $e->getMessage());
         }
-        
-        // Kiểm tra nếu nhân viên không tồn tại
-        if (!$this->isNhanVienExist()) {
-            echo json_encode(["message" => "Nhân viên không tồn tại"]);
-            http_response_code(400);
-            return false;
-        }
-        
-        // Kiểm tra nếu nhân viên đã có tài khoản khác
-        if ($this->isNhanVienHasAccount()) {
-            echo json_encode(["message" => "Nhân viên đã có tài khoản khác"]);
-            http_response_code(400);
-            return false;
-        }
-        
-        $query = "UPDATE " . $this->table . " SET MaNhanVien = :MaNhanVien";
-        
-        // Nếu mật khẩu được cập nhật
-        if (!empty($this->MatKhau)) {
-            $md5_password = md5($this->MatKhau);
-            $query .= ", MatKhau = :MatKhau";
-        }
-        
-        $query .= " WHERE MaTaiKhoan = :MaTaiKhoan";
-        $stmt = $this->conn->prepare($query);
-        
-        // Ràng buộc tham số
-        $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
-        $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
-        
-        if (!empty($this->MatKhau)) {
-            $stmt->bindParam(":MatKhau", $md5_password);
-        }
-        
-        if ($stmt->execute()) {
-            return $this->MaTaiKhoan;
-        }
-        return false;
     }
+
     
     // Xóa tài khoản
-    public function delete() {
-        // Kiểm tra nếu tài khoản không tồn tại
-        if (!$this->isTaiKhoanExist()) {
-            echo json_encode(["message" => "Tài khoản không tồn tại"]);
-            http_response_code(400);
-            return false;
+   public function deleteAccount($maTaiKhoan) {
+        try {
+            $stmt = $this->conn->prepare("DELETE FROM TaiKhoan WHERE MaTaiKhoan = :maTaiKhoan");
+            $stmt->bindParam(':maTaiKhoan', $maTaiKhoan);
+            $stmt->execute();
+
+            if ($stmt->rowCount() > 0) {
+                return ["status" => "success", "message" => "Account deleted successfully"];
+            } else {
+                throw new Exception("Account not found");
+            }
+        } catch (PDOException $e) {
+            throw new Exception("Error deleting account: " . $e->getMessage());
         }
-        
-        $query = "DELETE FROM " . $this->table . " WHERE MaTaiKhoan = :MaTaiKhoan";
-        $stmt = $this->conn->prepare($query);
-        
-        // Ràng buộc tham số
-        $stmt->bindParam(":MaTaiKhoan", $this->MaTaiKhoan);
-        
-        if ($stmt->execute()) {
-            return true;
-        }
-        return false;
     }
+
     
     // Lấy tất cả tài khoản
     public function getAll() {

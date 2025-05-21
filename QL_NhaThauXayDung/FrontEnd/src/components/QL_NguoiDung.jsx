@@ -18,15 +18,14 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import BASE_URL from '../Config';
 import PageAdmin from '../page/Admin';
 
 const { Option } = Select;
-const roles = ['Admin', 'Giám đốc', 'Kế toán', 'Nhân sự', 'Quản lý', 'Thợ chính', 'Thợ phụ'];
 
 const QL_NguoiDung = () => {
   const [users, setUsers] = useState([]);
-  const [employees, setEmployees] = useState([]); // Danh sách nhân viên cho combobox
+  const [employees, setEmployees] = useState([]);
+  const [roles, setRoles] = useState([]); // Store unique roles from API
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -35,38 +34,26 @@ const QL_NguoiDung = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const BASE_URL = 'http://localhost/DoAnKySu/QL_NhaThauXayDung/BackEnd/Api/';
 
   useEffect(() => {
     fetchUsers();
     fetchEmployees();
   }, []);
 
-  const roleMapping = {
-    AD: 'Admin',
-    GD: 'Giám đốc',
-    KT: 'Kế toán',
-    NS: 'Nhân sự',
-    QL: 'Quản lý',
-    TC: 'Thợ chính',
-    TP: 'Thợ phụ',
-    K:'Kho',
-    TV : 'Tư vấn'
-  };
-
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=GET`);
       if (res.data.status === 'success') {
-        const usersWithRole = res.data.data.map(user => {
-          const prefix = user.MaNhanVien.substring(0, 2);
-          return {
-            ...user,
-            Quyen: roleMapping[prefix] || 'Không xác định',
-            MatKhau: user.MatKhau || '********',
-          };
-        });
-        setUsers(usersWithRole);
+        const usersData = res.data.data.map(user => ({
+          ...user,
+          MatKhau: user.MatKhau || '********',
+        }));
+        setUsers(usersData);
+        // Extract unique roles from the API response
+        const uniqueRoles = [...new Set(res.data.data.map(user => user.LoaiNhanVien))];
+        setRoles(uniqueRoles);
       } else {
         message.error('Không thể tải danh sách người dùng');
       }
@@ -100,40 +87,36 @@ const QL_NguoiDung = () => {
 
   const openEditModal = (record) => {
     setEditingUser(record);
-    
-    // Tìm nhân viên tương ứng để hiển thị trong form
     const employee = employees.find(emp => emp.MaNhanVien === record.MaNhanVien);
-    
     form.setFieldsValue({
       ...record,
       employeeId: employee ? employee.MaNhanVien : undefined,
+      LoaiNhanVien: record.LoaiNhanVien,
     });
-    
     setModalVisible(true);
   };
 
   const handleDelete = async (record) => {
-    try {
-      const res = await axios.post(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=DELETE`, {
-        MaTaiKhoan: record.MaTaiKhoan,
-      });
-      if (res.data.status === 'success') {
-        message.success('Xóa thành công');
-        fetchUsers();
-      } else {
-        message.error('Không thể xóa người dùng');
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      message.error('Lỗi khi xóa');
+  try {
+    const res = await axios.delete(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=DELETE`, {
+      data: { MaTaiKhoan: record.MaTaiKhoan }, // Send MaTaiKhoan in the request body
+    });
+    if (res.data.status === 'success') {
+      message.success('Xóa thành công');
+      fetchUsers();
+    } else {
+      message.error(res.data.message || 'Không thể xóa người dùng');
     }
-  };
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    console.error('Response data:', error.response?.data); // Log server response for debugging
+    message.error(error.response?.data?.message || 'Lỗi khi xóa');
+  }
+};
 
   const handleEmployeeChange = (value) => {
-    // Tìm nhân viên được chọn
     const selectedEmployee = employees.find(emp => emp.MaNhanVien === value);
     if (selectedEmployee) {
-      // Cập nhật form với thông tin nhân viên được chọn
       form.setFieldsValue({
         MaNhanVien: selectedEmployee.MaNhanVien,
         TenNhanVien: selectedEmployee.TenNhanVien,
@@ -144,16 +127,13 @@ const QL_NguoiDung = () => {
   const handleModalOk = async () => {
   try {
     const values = await form.validateFields();
-
     const isEditing = !!editingUser;
-
     const url = `${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=${isEditing ? 'PUT' : 'POST'}`;
-
     const payload = { ...values };
     if (isEditing) payload.MaTaiKhoan = editingUser.MaTaiKhoan;
-
-    // Loại bỏ field phụ không cần gửi lên
     delete payload.employeeId;
+
+    console.log('Dữ liệu gửi đi:', payload); // Gỡ lỗi payload
 
     const res = await axios({
       method: isEditing ? 'put' : 'post',
@@ -172,27 +152,25 @@ const QL_NguoiDung = () => {
       message.error('Thao tác thất bại: ' + (res.data.message || ''));
     }
   } catch (err) {
-    console.error('Validation failed:', err);
+    console.error('Lỗi xác thực form:', err);
+    message.error('Lỗi khi xác thực form');
   }
 };
-
 
   const showUserDetail = (record) => {
     setSelectedUser(record);
     setDetailVisible(true);
   };
 
-  // Xử lý tìm kiếm
   const handleSearch = (value) => {
     setSearchText(value);
   };
 
-  // Lọc dữ liệu dựa trên từ khóa tìm kiếm
   const filteredUsers = users.filter(item => 
     item.MaTaiKhoan?.toLowerCase().includes(searchText.toLowerCase()) ||
     item.MaNhanVien?.toLowerCase().includes(searchText.toLowerCase()) ||
     item.TenNhanVien?.toLowerCase().includes(searchText.toLowerCase()) ||
-    item.Quyen?.toLowerCase().includes(searchText.toLowerCase())
+    item.LoaiNhanVien?.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
@@ -213,8 +191,8 @@ const QL_NguoiDung = () => {
     },
     {
       title: 'Quyền',
-      dataIndex: 'Quyen',
-      key: 'Quyen',
+      dataIndex: 'LoaiNhanVien',
+      key: 'LoaiNhanVien',
     },
     {
       title: 'Hành động',
@@ -281,7 +259,6 @@ const QL_NguoiDung = () => {
           })}
         />
 
-        {/* Modal thêm/sửa */}
         <Modal
           open={modalVisible}
           title={editingUser ? 'Cập nhật người dùng' : 'Thêm người dùng'}
@@ -333,7 +310,7 @@ const QL_NguoiDung = () => {
             </Form.Item>
             
             <Form.Item 
-              name="Quyen" 
+              name="LoaiNhanVien" 
               label="Quyền" 
               rules={[{ required: true, message: 'Bắt buộc' }]}
             >
@@ -359,7 +336,6 @@ const QL_NguoiDung = () => {
           </Form>
         </Modal>
 
-        {/* Modal chi tiết */}
         <Modal
           title="Chi tiết tài khoản"
           open={detailVisible}
@@ -400,7 +376,7 @@ const QL_NguoiDung = () => {
               <Descriptions.Item label="Mã Tài Khoản">{selectedUser.MaTaiKhoan}</Descriptions.Item>
               <Descriptions.Item label="Mã Nhân Viên">{selectedUser.MaNhanVien}</Descriptions.Item>
               <Descriptions.Item label="Tên Nhân Viên">{selectedUser.TenNhanVien}</Descriptions.Item>
-              <Descriptions.Item label="Quyền">{selectedUser.Quyen}</Descriptions.Item>
+              <Descriptions.Item label="Quyền">{selectedUser.LoaiNhanVien}</Descriptions.Item>
               <Descriptions.Item label="Mật Khẩu">
                 <Input.Password
                   value={selectedUser.MatKhau}

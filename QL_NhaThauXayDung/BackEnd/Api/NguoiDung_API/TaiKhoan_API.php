@@ -78,27 +78,21 @@ switch ($method) {
 
    case 'POST':
     if ($action === "POST") {
-        $data = json_decode(file_get_contents("php://input"));
+       $data = json_decode(file_get_contents("php://input"), true);
+        $MaNhanVien = isset($data['MaNhanVien']) ? trim($data['MaNhanVien']) : '';
+        $MatKhau = isset($data['MatKhau']) ? trim($data['MatKhau']) : '';
+        $LoaiNhanVien = isset($data['LoaiNhanVien']) ? trim($data['LoaiNhanVien']) : '';
 
-        if (!isset($data->MatKhau, $data->MaNhanVien)) {
-            echo json_encode(["message" => "Dữ liệu không đầy đủ"]);
-            http_response_code(400);
-            exit;
+        if (empty($MaNhanVien) || empty($MatKhau) || empty($LoaiNhanVien)) {
+            echo json_encode(["status" => "error", "message" => "Missing required fields"]);
+            exit();
         }
 
-        $taikhoan->MatKhau = $data->MatKhau;
-        $taikhoan->MaNhanVien = $data->MaNhanVien;
-
-        $result = $taikhoan->add();
-        if ($result !== false) {
-            echo json_encode([
-                "status" => "success",
-                "message" => "Tài khoản đã được thêm thành công",
-                "MaTaiKhoan" => $result // Sử dụng giá trị trả về từ add
-            ]);
-            http_response_code(201);
-        } else {
-            // Lỗi đã được xử lý trong hàm add, không cần lặp lại
+        try {
+            $result = $taikhoan->addAccount($MaNhanVien, $MatKhau, $LoaiNhanVien);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
         }
         } elseif ($action === "login") {
             $data = json_decode(file_get_contents("php://input"));
@@ -133,23 +127,22 @@ switch ($method) {
 
     case 'PUT':
         if ($action === "PUT") {
-            $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaTaiKhoan, $data->MaNhanVien)) {
-                echo json_encode(["message" => "Dữ liệu không đầy đủ"]);
-                http_response_code(400);
-                exit;
-            }
+           $data = json_decode(file_get_contents("php://input"), true);
+        $maTaiKhoan = isset($data['MaTaiKhoan']) ? trim($data['MaTaiKhoan']) : '';
+        $matKhau = isset($data['MatKhau']) ? trim($data['MatKhau']) : '';
+        $loaiNhanVien = isset($data['LoaiNhanVien']) ? trim($data['LoaiNhanVien']) : '';
 
-            $taikhoan->MaTaiKhoan = $data->MaTaiKhoan;
-            $taikhoan->MaNhanVien = $data->MaNhanVien;
-            $taikhoan->MatKhau = isset($data->MatKhau) ? $data->MatKhau : null;
+        if (empty($maTaiKhoan) || empty($loaiNhanVien)) {
+            echo json_encode(["status" => "error", "message" => "Missing required fields"]);
+            exit();
+        }
 
-            if ($taikhoan->update()) {
-                echo json_encode(["message" => "Tài khoản đã được cập nhật"]);
-            } else {
-                // Message được trả về trong phương thức update() nếu có lỗi
-                http_response_code(500);
-            }
+        try {
+            $result = $taikhoan->updateAccount($maTaiKhoan, $matKhau, $loaiNhanVien);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        }
         } elseif ($action === "changePassword") {
             $data = json_decode(file_get_contents("php://input"));
             if (!isset($data->MaTaiKhoan, $data->MatKhau)) {
@@ -174,25 +167,21 @@ switch ($method) {
         break;
 
     case 'DELETE':
-        if ($action === "DELETE") {
-            $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaTaiKhoan)) {
-                echo json_encode(["message" => "Dữ liệu không đầy đủ"]);
-                http_response_code(400);
-                exit;
-            }
+        if ($action === "DELETE")  
+        {$data = json_decode(file_get_contents("php://input"), true);
+        $maTaiKhoan = isset($data['MaTaiKhoan']) ? trim($data['MaTaiKhoan']) : '';
 
-            $taikhoan->MaTaiKhoan = $data->MaTaiKhoan;
+        if (empty($maTaiKhoan)) {
+            echo json_encode(["status" => "error", "message" => "Missing MaTaiKhoan"]);
+            exit();
+        }
 
-            if ($taikhoan->delete()) {
-                echo json_encode(["message" => "Tài khoản đã được xóa thành công"]);
-            } else {
-                // Message được trả về trong phương thức delete() nếu có lỗi
-                http_response_code(500);
-            }
-        } else {
-            echo json_encode(["message" => "Action không hợp lệ cho phương thức DELETE"]);
-            http_response_code(400);
+        try {
+            $result = $taikhoan->deleteAccount($maTaiKhoan);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        }
         }
         break;
 
