@@ -8,7 +8,7 @@ import QLCongTrinhPage from "./page/QLCongTrinh.jsx";
 import PageNhanVienKho from "./page/NhanVienKho.jsx";
 import PageNhanVienTuVan from "./page/NhanVienTuVan.jsx";
 import Page404 from "./page/404.jsx";
-import UserManager from "./components/QL_NguoiDung.jsx";
+import QL_NguoiDung from "./components/QL_NguoiDung.jsx";
 import QuanLyDanhMuc from "./components/QuanLyDanhMuc.jsx";
 import BaoGia from "./components/BaoGia.jsx";
 import { useEffect, useState } from "react";
@@ -25,6 +25,7 @@ import QuanLyNhaCungCap from "./components/QuanLyNhaCungCap.jsx";
 import TaoDeXuat from "./components/TaoDeXuat.jsx";
 import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
 import BASE_URL from "./Config.js";  // Thêm dòng này
+import Backup_Restore from "./components/Backup_Restore.jsx";
 
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -126,7 +127,10 @@ function App() {
             <AdminPage />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="quantringuoidung" element={<QL_NguoiDung />} />
+        <Route path="saoluuphuchoi" element={<Backup_Restore />} />
+      </Route>
       <Route
         path="/giamdoc"
         element={
@@ -214,14 +218,14 @@ function App() {
         <Route path="lapbaogia" element={<BaoGia />} />
         <Route path="laphopdong" element={<HopDong />} />
       </Route>
-      <Route
+      {/* <Route
         path="admin/quantringuoidung"
         element={
           <ProtectedRoute allowedRole="AD">
             <UserManager />
           </ProtectedRoute>
         }
-      />
+      /> */}
 
       {/* Xử lý tất cả các route không xác định */}
       <Route path="*" element={<Navigate to="/404" replace />} />
