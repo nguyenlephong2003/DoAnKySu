@@ -184,7 +184,7 @@ const QuanLyLuong = () => {
       key: 'LuongCanBan',
       render: (_, record) => {
         const nv = nhanVienOptions.find((nv) => nv.MaNhanVien === record.MaNhanVien);
-        return nv ? nv.LuongCanBan.toLocaleString('vi-VN') : '';
+        return nv && nv.LuongCanBan ? nv.LuongCanBan.toLocaleString('vi-VN') : '0';
       },
     },
     {
@@ -201,7 +201,7 @@ const QuanLyLuong = () => {
       title: 'Lương Tháng',
       dataIndex: 'LuongThang',
       key: 'LuongThang',
-      render: (text) => text.toLocaleString('vi-VN'),
+      render: (text) => text ? text.toLocaleString('vi-VN') : '0',
     },
     {
       title: 'Hành động',
