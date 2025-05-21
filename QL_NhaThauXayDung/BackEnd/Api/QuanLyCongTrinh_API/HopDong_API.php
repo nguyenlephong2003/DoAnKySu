@@ -68,6 +68,7 @@ switch ($action) {
 
         if ($num > 0) {
             $hopDong_arr = array();
+            $hopDong_arr["status"] = "success";
             $hopDong_arr["data"] = array();
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -89,7 +90,10 @@ switch ($action) {
             echo json_encode($hopDong_arr);
         } else {
             http_response_code(200);
-            echo json_encode(array("data" => array()));
+            echo json_encode(array(
+                "status" => "success",
+                "data" => array()
+            ));
         }
         break;
 

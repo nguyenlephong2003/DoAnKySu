@@ -37,7 +37,10 @@ class CongTrinh {
         $this->MaKhachHang = htmlspecialchars(strip_tags($this->MaKhachHang));
         $this->MaHopDong = htmlspecialchars(strip_tags($this->MaHopDong));
         $this->MaLoaiCongTrinh = filter_var($this->MaLoaiCongTrinh, FILTER_VALIDATE_INT);
-        $this->NgayDuKienHoanThanh = htmlspecialchars(strip_tags($this->NgayDuKienHoanThanh));
+        
+        // Format date from ISO 8601 to MySQL datetime format
+        $date = new DateTime($this->NgayDuKienHoanThanh);
+        $this->NgayDuKienHoanThanh = $date->format('Y-m-d H:i:s');
 
         $stmt->bindParam(":maCongTrinh", $this->MaCongTrinh);
         $stmt->bindParam(":tenCongTrinh", $this->TenCongTrinh);
@@ -107,7 +110,11 @@ class CongTrinh {
         $this->MaKhachHang = htmlspecialchars(strip_tags($this->MaKhachHang));
         $this->MaHopDong = htmlspecialchars(strip_tags($this->MaHopDong));
         $this->MaLoaiCongTrinh = filter_var($this->MaLoaiCongTrinh, FILTER_VALIDATE_INT);
-        $this->NgayDuKienHoanThanh = htmlspecialchars(strip_tags($this->NgayDuKienHoanThanh));
+        
+        // Format date from ISO 8601 to MySQL datetime format
+        $date = new DateTime($this->NgayDuKienHoanThanh);
+        $this->NgayDuKienHoanThanh = $date->format('Y-m-d H:i:s');
+        
         $this->MaCongTrinh = htmlspecialchars(strip_tags($this->MaCongTrinh));
 
         $stmt->bindParam(":tenCongTrinh", $this->TenCongTrinh);

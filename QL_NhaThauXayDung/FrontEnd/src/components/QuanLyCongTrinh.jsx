@@ -79,11 +79,17 @@ const QuanLyCongTrinh = () => {
   const fetchHopDongList = async () => {
     setHopDongLoading(true);
     try {
+      console.log('Fetching unused contracts...');
       const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET_UNUSED`);
       console.log('HopDong Response:', response.data);
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
       if (response.data.status === 'success') {
+        console.log('Setting hopDongList with success data:', response.data.data);
         setHopDongList(response.data.data);
       } else if (Array.isArray(response.data)) {
+        console.log('Setting hopDongList with array data:', response.data);
         setHopDongList(response.data);
       } else {
         console.error('Invalid response format for HopDong:', response.data);
@@ -91,6 +97,8 @@ const QuanLyCongTrinh = () => {
       }
     } catch (error) {
       console.error('Error fetching hợp đồng:', error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       message.error('Không thể lấy danh sách hợp đồng');
     } finally {
       setHopDongLoading(false);
