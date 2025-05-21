@@ -22,8 +22,8 @@ class Backup_Restore {
         mkdir($dir, 0755, true);
     }
     
-    // Sử dụng đường dẫn đầy đủ đến mysqldump
-    $mysqldump = 'C:/xampp/mysql/bin/mysqldump';
+    // Sử dụng đường dẫn đầy đủ đến mysqldump trong Ampps
+    $mysqldump = 'D:/PHP/Ampps/mysql/bin/mysqldump';
     $command = '"' . $mysqldump . '" -h ' . escapeshellarg($this->dbInfo['host']) . 
                ' -u ' . escapeshellarg($this->dbInfo['user']) . 
                ' -p' . escapeshellarg($this->dbInfo['pass']) . 
@@ -51,8 +51,8 @@ class Backup_Restore {
         return false;
     }
 
-    // Sử dụng đường dẫn đầy đủ đến mysql
-    $mysql = 'C:/xampp/mysql/bin/mysql';
+    // Sử dụng đường dẫn đầy đủ đến mysql trong Ampps
+    $mysql = 'D:/PHP/Ampps/mysql/bin/mysql';
     $command = '"' . $mysql . '" -h ' . escapeshellarg($this->dbInfo['host']) . 
                ' -u ' . escapeshellarg($this->dbInfo['user']) . 
                ' -p' . escapeshellarg($this->dbInfo['pass']) . 

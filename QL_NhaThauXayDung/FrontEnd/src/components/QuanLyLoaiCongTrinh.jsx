@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, message, Modal, Form } from 'antd';
+import { Table, Button, Input, message, Modal, Form, Popconfirm } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import BASE_URL from '../Config';
@@ -141,6 +141,27 @@ const QuanLyLoaiCongTrinh = () => {
     }
   };
 
+  const handleDelete = async (record) => {
+    try {
+      setLoading(true);
+      const response = await axios.delete(
+        `${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=DELETE`,
+        { data: { MaLoaiCongTrinh: record.MaLoaiCongTrinh } }
+      );
+      if (response.data.status === 'success') {
+        message.success('Xóa thành công');
+        await fetchData();
+        setPagination(prev => ({ ...prev, current: 1 }));
+      } else {
+        message.error(response.data.message || 'Xóa thất bại');
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
     {
       title: 'Mã loại công trình',
@@ -169,7 +190,7 @@ const QuanLyLoaiCongTrinh = () => {
     {
       title: 'Thao tác',
       key: 'action',
-      width: 140,
+      width: 180,
       align: 'center',
       render: (_, record) => (
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
@@ -180,6 +201,14 @@ const QuanLyLoaiCongTrinh = () => {
           >
             Sửa
           </Button>
+          <Popconfirm
+            title="Bạn có chắc chắn muốn xóa?"
+            onConfirm={() => handleDelete(record)}
+            okText="Xóa"
+            cancelText="Hủy"
+          >
+            <Button danger>Xóa</Button>
+          </Popconfirm>
         </div>
       ),
     }
