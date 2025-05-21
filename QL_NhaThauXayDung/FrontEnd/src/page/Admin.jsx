@@ -11,18 +11,17 @@ import {
   FaUserEdit,
   FaSignOutAlt
 } from "react-icons/fa";
-
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom"; // Thêm Outlet
 import LogoHUIT from "../assets/logohuit.png";
 
-const PageAdmin = ({ children }) => {
+const PageAdmin = () => { // Bỏ {children} vì không cần
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("chitietgv"); // Menu mặc định
+  const [activeMenu, setActiveMenu] = useState("quantringuoidung"); // Menu mặc định
   
   const sidebarRef = useRef();
   const userMenuRef = useRef();
@@ -33,13 +32,6 @@ const PageAdmin = ({ children }) => {
   const menuItems = [
     { id: "quantringuoidung", label: "Quản trị người dùng", icon: <FaClipboardList />, path: "/admin/quantringuoidung" },
     { id: "saoluuphuchoi", label: "Sao lưu phục hồi", icon: <FaClipboardList />, path: "/admin/saoluuphuchoi" },
-    // { id: "hoithao", label: "Hội thảo khoa học", icon: <FaLaptopCode />, path: "/admin/hoithao" },
-    // { id: "nhomsinhvien", label: "Chỉnh nhóm sinh viên", icon: <FaUserFriends />, path: "/admin/nhomsinhvien" },
-    // { id: "sanpham", label: "Quản lý sản phẩm sinh viên", icon: <FaBox />, path: "/admin/sanpham" },
-    // { id: "hososvnckh", label: "Duyệt hồ sơ NCKH sinh viên", icon: <FaCheckCircle />, path: "/admin/hososvnckh" },
-    // { id: "hosogvnckh", label: "Duyệt hồ sơ NCKH giảng viên", icon: <FaCheckCircle />, path: "/admin/hosogvnckh" },
-    // { id: "hosohoithao", label: "Duyệt hồ sơ hội thảo", icon: <FaCheckCircle />, path: "/admin/hosohoithao" },
-    // { id: "hosobaibao", label: "Duyệt hồ sơ bài báo", icon: <FaCheckCircle />, path: "/admin/hosobaibao" },
   ];
 
   const handleClickOutside = (event) => {
@@ -78,23 +70,15 @@ const PageAdmin = ({ children }) => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    // Xác nhận đăng xuất
     setIsLogoutModalOpen(false);
-    
-    // Xóa tất cả thông tin đăng nhập
     localStorage.removeItem("token");
     localStorage.removeItem("userInfo");
     localStorage.removeItem("expires");
-    
-    // Chuyển hướng về trang đăng nhập
     navigate("/login");
   };
   
   const handleProfileEdit = () => {
-    // Đóng menu người dùng
     setUserMenuOpen(false);
-    
-    // Chuyển hướng đến trang chỉnh sửa hồ sơ
     navigate("/profile");
   };
 
@@ -126,14 +110,14 @@ const PageAdmin = ({ children }) => {
           <ul className="space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
             {menuItems.map((item) => (
               <li 
-              key={item.id}
-              onClick={() => handleMenuClick(item.id, item.path)}
-              className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
-                activeMenu === item.id 
-                ? "bg-[#2e7d32] text-white font-medium" 
-                : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
-              }`}
-            >
+                key={item.id}
+                onClick={() => handleMenuClick(item.id, item.path)}
+                className={`flex items-center space-x-3 p-2 rounded cursor-pointer ${
+                  activeMenu === item.id 
+                    ? "bg-[#2e7d32] text-white font-medium" 
+                    : "text-black hover:bg-[#b3b3b3] hover:text-[#010e0a]"
+                }`}
+              >
                 <div className="flex items-center space-x-3">
                   {item.icon}
                   <span className="font-semibold">{item.label}</span>
@@ -145,7 +129,6 @@ const PageAdmin = ({ children }) => {
       </div>
 
       <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        {/* Header với thông tin người dùng một hàng */}
         <div className="sticky top-0 z-10 w-full bg-white shadow px-4 py-4 flex justify-between items-center border-b border-gray-300">
           <div className="flex items-center space-x-4">
             <div
@@ -176,7 +159,6 @@ const PageAdmin = ({ children }) => {
                   <CiUser className="text-xl text-gray-600" />
                 </div>
                 
-                {/* Menu người dùng */}
                 {userMenuOpen && (
                   <div 
                     ref={userMenuRef}
@@ -203,33 +185,34 @@ const PageAdmin = ({ children }) => {
           </div>
         </div>
 
-        <div className="flex-1 bg-[#e4e4e4] p-8">{children}</div>
-      </div>
+        <div className="flex-1 bg-[#e4e4e4] p-8">
+          <Outlet /> {/* Thay {children} bằng Outlet */}
+        </div>
 
-      {/* Modal xác nhận đăng xuất */}
-      {isLogoutModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-40">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-lg font-semibold mb-4">
-              Bạn có chắc chắn muốn đăng xuất?
-            </h2>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setIsLogoutModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded-lg"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg"
-              >
-                Đăng xuất
-              </button>
+        {isLogoutModalOpen && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-40">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-lg font-semibold mb-4">
+                Bạn có chắc chắn muốn đăng xuất?
+              </h2>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-lg"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg"
+                >
+                  Đăng xuất
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

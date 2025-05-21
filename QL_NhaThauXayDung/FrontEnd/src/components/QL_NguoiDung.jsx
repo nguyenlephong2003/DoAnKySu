@@ -231,7 +231,7 @@ const QL_NguoiDung = () => {
   ];
 
   return (
-    <PageAdmin>
+    // <PageAdmin>
       <div style={{ padding: 24, backgroundColor: '#fff', borderRadius: 12, margin: 24 }}>
         <h2 style={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '20px' }}>Quản lý người dùng</h2>
 
@@ -393,7 +393,7 @@ const QL_NguoiDung = () => {
           )}
         </Modal>
       </div>
-    </PageAdmin>
+    // </PageAdmin>
   );
 };
 
