@@ -19,6 +19,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import PageAdmin from '../page/Admin';
+// import { BASE_URL } from '../config';
 
 const { Option } = Select;
 
@@ -44,6 +45,7 @@ const QL_NguoiDung = () => {
     setLoading(true);
     try {
       const res = await axios.get(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=GET`);
+      console.log("Lấy api người dùng thành công");
       if (res.data.status === 'success') {
         const usersData = res.data.data.map(user => ({
           ...user,
@@ -65,7 +67,9 @@ const QL_NguoiDung = () => {
 
   const fetchEmployees = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET&filter=noAccount`);
+      const res = await axios.get(`${BASE_URL}NguoiDung_API/TaiKhoan_API.php?action=getNhanVienWithoutAccount`);
+      console.log("Response:", res);  
+      console.log("Lấy api nhân viên thành công");
       if (res.data.status === 'success') {
         if (res.data.data.length === 0) {
           message.warning('Không có nhân viên nào chưa có tài khoản');
@@ -322,7 +326,8 @@ const QL_NguoiDung = () => {
             label="Mật khẩu"
             rules={[{ required: editingUser === null, message: 'Bắt buộc' }]}
           >
-            <Input.Password
+            <Input 
+              type="password"
               placeholder={editingUser ? 'Để trống nếu không đổi mật khẩu' : 'Nhập mật khẩu'}
               iconRender={(visible) => (visible ? <EyeOutlined /> : <EyeInvisibleOutlined />)}
             />

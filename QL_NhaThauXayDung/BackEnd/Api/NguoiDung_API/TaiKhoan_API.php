@@ -65,7 +65,9 @@ switch ($method) {
             }
         } elseif ($action === "getNhanVienWithoutAccount") {
             $stmt = $taikhoan->getNhanVienWithoutAccount();
+
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            http_response_code(200);
             echo json_encode([
                 'status' => 'success',
                 'data' => $result
