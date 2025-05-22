@@ -58,12 +58,9 @@ class TaiKhoan {
             throw new Exception("Loại Nhân Viên '$loaiNhanVien' không tồn tại");
         }
 
-        // Kiểm tra MaNhanVien đã có tài khoản chưa
-        $stmt = $this->conn->prepare("SELECT MaNhanVien FROM TaiKhoan WHERE MaNhanVien = :maNhanVien");
-        $stmt->bindParam(':maNhanVien', $maNhanVien);
-        $stmt->execute();
-        if ($stmt->fetch()) {
-            throw new Exception("Mã Nhân Viên '$maNhanVien' đã có tài khoản");
+        // Kiểm tra xem nhân viên đã có tài khoản chưa
+       if ($this->isNhanVienHasAccount()) {
+            throw new Exception("Nhân viên '$maNhanVien' đã có tài khoản");
         }
 
         // Cập nhật MaLoaiNhanVien trong bảng NhanVien
@@ -263,8 +260,9 @@ class TaiKhoan {
     
     // Lấy danh sách nhân viên chưa có tài khoản
     public function getNhanVienWithoutAccount() {
-        $query = "SELECT MaNhanVien, TenNhanVien, MaLoaiNhanVien 
-                  FROM NhanVien 
+        $query = "SELECT nv.MaNhanVien, nv.TenNhanVien, nv.MaLoaiNhanVien, lnv.TenLoai as LoaiNhanVien 
+                  FROM NhanVien nv 
+                    JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
                   WHERE MaNhanVien NOT IN (SELECT MaNhanVien FROM " . $this->table . ")";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -318,5 +316,7 @@ class TaiKhoan {
         // Tạo mã với định dạng TKxxx
         return sprintf("TK%03d", $newNumber);
     }
+
+    
 }
 ?>
