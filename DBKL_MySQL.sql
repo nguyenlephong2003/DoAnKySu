@@ -16,7 +16,8 @@ CREATE TABLE `LoaiBaoGia` (
 CREATE TABLE `LoaiThietBiVatTu` (
   `MaLoaiThietBiVatTu` int AUTO_INCREMENT PRIMARY KEY,
   `TenLoai` varchar(255),
-  `DonViTinh` varchar(20)
+  `DonViTinh` varchar(20),
+  `LaThietBi` TINYINT(1) DEFAULT 1
 );
 
 CREATE TABLE `NhanVien` (
@@ -33,7 +34,7 @@ CREATE TABLE `NhanVien` (
 CREATE TABLE `BangChamCong` (
   `MaChamCong` varchar(20) PRIMARY KEY,
   `SoNgayLam` float,
-  `KyLuong` int,
+  `KyLuong` datetime,
   `MaNhanVien` varchar(20)
 );
 
@@ -131,6 +132,7 @@ CREATE TABLE `ThietBiVatTu` (
 CREATE TABLE `PhieuNhap` (
   `MaPhieuNhap` varchar(20) PRIMARY KEY,
   `NgayNhap` DateTime,
+  `DiaDiemGiao` varchar(255),
   `TongTien` float,
   `TrangThai` varchar(50),
   `MaNhaCungCap` varchar(20),

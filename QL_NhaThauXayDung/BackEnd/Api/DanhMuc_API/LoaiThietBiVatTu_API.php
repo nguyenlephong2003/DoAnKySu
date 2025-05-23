@@ -141,10 +141,13 @@ switch ($method) {
         if ($action === "POST") {
             $data = json_decode(file_get_contents("php://input"));
             
-            if (!isset($data->TenLoai, $data->DonViTinh) || empty(trim($data->TenLoai)) || empty(trim($data->DonViTinh))) {
+            if (!isset($data->TenLoai, $data->DonViTinh, $data->LaThietBi) || 
+                empty(trim($data->TenLoai)) || 
+                empty(trim($data->DonViTinh)) || 
+                !isset($data->LaThietBi)) {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => "Tên loại và đơn vị tính không được để trống"
+                    'message' => "Tên loại, đơn vị tính và loại (thiết bị/vật tư) không được để trống"
                 ]);
                 http_response_code(400);
                 exit;
@@ -152,6 +155,7 @@ switch ($method) {
 
             $loaithietbivattu->TenLoai = $data->TenLoai;
             $loaithietbivattu->DonViTinh = $data->DonViTinh;
+            $loaithietbivattu->LaThietBi = $data->LaThietBi;
 
             try {
                 if ($loaithietbivattu->create()) {
@@ -191,8 +195,10 @@ switch ($method) {
         if ($action === "PUT") {
             $data = json_decode(file_get_contents("php://input"));
             
-            if (!isset($data->MaLoaiThietBiVatTu, $data->TenLoai, $data->DonViTinh) || 
-                empty(trim($data->TenLoai)) || empty(trim($data->DonViTinh))) {
+            if (!isset($data->MaLoaiThietBiVatTu, $data->TenLoai, $data->DonViTinh, $data->LaThietBi) || 
+                empty(trim($data->TenLoai)) || 
+                empty(trim($data->DonViTinh)) || 
+                !isset($data->LaThietBi)) {
                 echo json_encode([
                     'status' => 'error',
                     'message' => "Dữ liệu không đầy đủ hoặc không hợp lệ"
@@ -204,6 +210,7 @@ switch ($method) {
             $loaithietbivattu->MaLoaiThietBiVatTu = $data->MaLoaiThietBiVatTu;
             $loaithietbivattu->TenLoai = $data->TenLoai;
             $loaithietbivattu->DonViTinh = $data->DonViTinh;
+            $loaithietbivattu->LaThietBi = $data->LaThietBi;
 
             try {
                 if ($loaithietbivattu->update()) {
