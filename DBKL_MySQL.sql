@@ -132,6 +132,7 @@ CREATE TABLE `ThietBiVatTu` (
 CREATE TABLE `PhieuNhap` (
   `MaPhieuNhap` varchar(20) PRIMARY KEY,
   `NgayNhap` DateTime,
+  `DiaDiemGiao` varchar(255),
   `TongTien` float,
   `TrangThai` varchar(50),
   `MaNhaCungCap` varchar(20),
