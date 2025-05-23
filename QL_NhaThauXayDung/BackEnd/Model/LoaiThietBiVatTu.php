@@ -7,6 +7,7 @@ class LoaiThietBiVatTu {
     public $MaLoaiThietBiVatTu;
     public $TenLoai;
     public $DonViTinh;
+    public $LaThietBi;
 
     // Constructor
     public function __construct($db) {
@@ -16,8 +17,8 @@ class LoaiThietBiVatTu {
     // Create new LoaiThietBiVatTu
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (TenLoai, DonViTinh) 
-                  VALUES (:tenLoai, :donViTinh)";
+                  (TenLoai, DonViTinh, LaThietBi) 
+                  VALUES (:tenLoai, :donViTinh, :laThietBi)";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -25,9 +26,11 @@ class LoaiThietBiVatTu {
         // Clean and bind data
         $this->TenLoai = htmlspecialchars(strip_tags($this->TenLoai));
         $this->DonViTinh = htmlspecialchars(strip_tags($this->DonViTinh));
+        $this->LaThietBi = htmlspecialchars(strip_tags($this->LaThietBi));
 
         $stmt->bindParam(":tenLoai", $this->TenLoai);
         $stmt->bindParam(":donViTinh", $this->DonViTinh);
+        $stmt->bindParam(":laThietBi", $this->LaThietBi);
 
         // Execute query
         if($stmt->execute()) {
@@ -41,7 +44,7 @@ class LoaiThietBiVatTu {
 
     // Read Single LoaiThietBiVatTu
     public function readSingle() {
-        $query = "SELECT MaLoaiThietBiVatTu, TenLoai, DonViTinh 
+        $query = "SELECT MaLoaiThietBiVatTu, TenLoai, DonViTinh, LaThietBi 
                   FROM " . $this->table_name . " 
                   WHERE MaLoaiThietBiVatTu = ? 
                   LIMIT 0,1";
@@ -62,11 +65,12 @@ class LoaiThietBiVatTu {
         $this->MaLoaiThietBiVatTu = $row['MaLoaiThietBiVatTu'];
         $this->TenLoai = $row['TenLoai'];
         $this->DonViTinh = $row['DonViTinh'];
+        $this->LaThietBi = $row['LaThietBi'];
     }
 
     // Read All LoaiThietBiVatTu
     public function readAll() {
-        $query = "SELECT MaLoaiThietBiVatTu, TenLoai, DonViTinh 
+        $query = "SELECT MaLoaiThietBiVatTu, TenLoai, DonViTinh, LaThietBi 
                   FROM " . $this->table_name . " 
                   ORDER BY MaLoaiThietBiVatTu";
 
@@ -83,7 +87,8 @@ class LoaiThietBiVatTu {
     public function update() {
         $query = "UPDATE " . $this->table_name . " 
                   SET TenLoai = :tenLoai, 
-                      DonViTinh = :donViTinh 
+                      DonViTinh = :donViTinh,
+                      LaThietBi = :laThietBi
                   WHERE MaLoaiThietBiVatTu = :maLoaiThietBiVatTu";
 
         // Prepare statement
@@ -92,10 +97,12 @@ class LoaiThietBiVatTu {
         // Clean and bind data
         $this->TenLoai = htmlspecialchars(strip_tags($this->TenLoai));
         $this->DonViTinh = htmlspecialchars(strip_tags($this->DonViTinh));
+        $this->LaThietBi = htmlspecialchars(strip_tags($this->LaThietBi));
         $this->MaLoaiThietBiVatTu = htmlspecialchars(strip_tags($this->MaLoaiThietBiVatTu));
 
         $stmt->bindParam(":tenLoai", $this->TenLoai);
         $stmt->bindParam(":donViTinh", $this->DonViTinh);
+        $stmt->bindParam(":laThietBi", $this->LaThietBi);
         $stmt->bindParam(":maLoaiThietBiVatTu", $this->MaLoaiThietBiVatTu);
 
         // Execute query

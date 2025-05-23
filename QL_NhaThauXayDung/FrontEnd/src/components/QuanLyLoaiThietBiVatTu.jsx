@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, message, Modal, Form, Popconfirm } from 'antd';
+import { Table, Button, Input, message, Modal, Form, Popconfirm, Radio } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import BASE_URL from '../Config';
@@ -78,7 +78,8 @@ const QuanLyLoaiThietBiVatTu = () => {
     setCurrentRecord(record);
     form.setFieldsValue({
       TenLoai: record.TenLoai,
-      DonViTinh: record.DonViTinh
+      DonViTinh: record.DonViTinh,
+      LaThietBi: record.LaThietBi
     });
     setEditModalVisible(true);
   };
@@ -200,6 +201,21 @@ const QuanLyLoaiThietBiVatTu = () => {
         if (!b.DonViTinh) return 1;
         return a.DonViTinh.toString().localeCompare(b.DonViTinh.toString());
       },
+    },
+    {
+      title: 'Loại',
+      dataIndex: 'LaThietBi',
+      key: 'LaThietBi',
+      width: 120,
+      align: 'center',
+      render: (laThietBi) => (
+        <span>{laThietBi ? 'Thiết bị' : 'Vật tư'}</span>
+      ),
+      filters: [
+        { text: 'Thiết bị', value: true },
+        { text: 'Vật tư', value: false }
+      ],
+      onFilter: (value, record) => record.LaThietBi === value,
     },
     {
       title: 'Thao tác',
@@ -339,6 +355,22 @@ const QuanLyLoaiThietBiVatTu = () => {
               size="large"
             />
           </Form.Item>
+          <Form.Item
+            name="LaThietBi"
+            label={
+              <span className="text-gray-700 font-medium">
+                Loại
+              </span>
+            }
+            rules={[
+              { required: true, message: 'Vui lòng chọn loại' }
+            ]}
+          >
+            <Radio.Group>
+              <Radio value={true}>Thiết bị</Radio>
+              <Radio value={false}>Vật tư</Radio>
+            </Radio.Group>
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -421,6 +453,22 @@ const QuanLyLoaiThietBiVatTu = () => {
               className="hover:border-blue-400 focus:border-blue-400"
               size="large"
             />
+          </Form.Item>
+          <Form.Item
+            name="LaThietBi"
+            label={
+              <span className="text-gray-700 font-medium">
+                Loại
+              </span>
+            }
+            rules={[
+              { required: true, message: 'Vui lòng chọn loại' }
+            ]}
+          >
+            <Radio.Group>
+              <Radio value={true}>Thiết bị</Radio>
+              <Radio value={false}>Vật tư</Radio>
+            </Radio.Group>
           </Form.Item>
         </Form>
       </Modal>
