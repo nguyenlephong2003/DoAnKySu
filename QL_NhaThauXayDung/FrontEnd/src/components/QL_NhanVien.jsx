@@ -12,7 +12,6 @@ import {
   Popconfirm,
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import PageNhanSu from '../page/NhanSu';
 
 const { Option } = Select;
 
@@ -51,7 +50,6 @@ const QL_NhanVien = () => {
       const res = response.data;
 
       if (res.status === 'success') {
-        // Định dạng lại ngày tháng (loại bỏ phần thời gian)
         const formattedData = res.data.map(item => ({
           ...item,
           NgayVao: item.NgayVao ? item.NgayVao.split(' ')[0] : '',
@@ -70,11 +68,29 @@ const QL_NhanVien = () => {
     }
   };
 
-  const openAddModal = () => {
-    setEditingNV(null);
-    form.resetFields();
-    setModalVisible(true);
-  };
+ const openAddModal = () => {
+  setEditingNV(null);
+  form.resetFields();
+
+  // Sinh mã nhân viên mới
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+  const newMaNhanVien = `NV${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+
+  // Đặt giá trị mặc định
+  form.setFieldsValue({
+    MaNhanVien: newMaNhanVien,
+    MaLoaiNhanVien: loaiNhanVienOptions[0].MaLoaiNhanVien, // Giá trị mặc định
+  });
+
+  setModalVisible(true);
+};
 
   const openEditModal = (record) => {
     setEditingNV(record);
@@ -136,49 +152,27 @@ const QL_NhanVien = () => {
     }
   };
 
- const handleLoaiNhanVienChange = async (value) => {
-  console.log("Chọn loại NV: ", value);
-  form.setFieldValue("MaLoaiNhanVien", value);
+  const handleLoaiNhanVienChange = (value) => {
+  console.log('Chọn loại NV:', value);
+  form.setFieldValue('MaLoaiNhanVien', value);
 
-  if (!editingNV) { // Chỉ tạo mã khi đang thêm mới
-    try {
-      const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=generateCode&MaLoaiNhanVien=${value}`);
-      
-      if (response.data.status === 'success') {
-        form.setFieldValue("MaNhanVien", response.data.data.MaNhanVien);
-      } else {
-        message.warning('Không tạo được mã nhân viên tự động');
-      }
-    } catch (error) {
-      console.error('Lỗi tạo mã nhân viên:', error);
-      message.error('Lỗi khi tạo mã nhân viên');
-    }
-  }
-  else {
-    // Kiểm tra nếu loại nhân viên thay đổi
+  if (!editingNV) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+    const newMaNhanVien = `NV${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+    form.setFieldValue('MaNhanVien', newMaNhanVien);
+  } else {
     if (editingNV.MaLoaiNhanVien === value) {
-      // Nếu loại nhân viên không thay đổi, giữ nguyên mã cũ
-      form.setFieldValue("MaNhanVien", editingNV.MaNhanVien);
-    } else {
-      // Nếu loại nhân viên thay đổi, gọi API để lấy mã mới (tăng 1)
-      try {
-        const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=generateCode&MaLoaiNhanVien=${value}&isIncrement=true`);
-        
-        if (response.data.status === 'success') {
-          form.setFieldValue("MaNhanVien", response.data.data.MaNhanVien);
-        } else {
-          message.warning('Không tạo được mã nhân viên tự động');
-          form.setFieldValue("MaNhanVien", editingNV.MaNhanVien); // Giữ lại mã cũ nếu có lỗi
-        }
-      } catch (error) {
-        console.error('Lỗi tạo mã nhân viên mới:', error);
-        message.error('Lỗi khi tạo mã nhân viên mới');
-        form.setFieldValue("MaNhanVien", editingNV.MaNhanVien); // Giữ lại mã cũ nếu có lỗi
-      }
+      form.setFieldValue('MaNhanVien', editingNV.MaNhanVien);
     }
   }
 };
-
 
   // Xử lý tìm kiếm
   const handleSearch = (value) => {
@@ -195,65 +189,80 @@ const QL_NhanVien = () => {
     item.TenLoaiNhanVien.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const columns = [
-    {
-      title: 'Mã NV',
-      dataIndex: 'MaNhanVien',
-      key: 'MaNhanVien',
-    },
-    {
-      title: 'Tên NV',
-      dataIndex: 'TenNhanVien',
-      key: 'TenNhanVien',
-    },
-    {
-      title: 'SĐT',
-      dataIndex: 'SoDT',
-      key: 'SoDT',
-    },
-    {
-      title: 'CCCD',
-      dataIndex: 'CCCD',
-      key: 'CCCD',
-    },
-    {
-      title: 'Email',
-      dataIndex: 'Email',
-      key: 'Email',
-    },
-    {
-      title: 'Ngày vào',
-      dataIndex: 'NgayVao',
-      key: 'NgayVao',
-      render: (text) => text ? text.split(' ')[0] : '',
-    },
-    {
-      title: 'Lương Căn bản',
-      dataIndex: 'LuongCanBan',
-      key: 'LuongCanBan',
-    },
-    {
-      title: 'Loại NV',
-      dataIndex: 'TenLoaiNhanVien',
-      key: 'TenLoaiNhanVien',
-    },
-    {
-      title: 'Hành động',
-      key: 'actions',
-      render: (_, record) => (
-        <>
-          <Button icon={<EditOutlined />} onClick={() => openEditModal(record)} style={{ marginRight: 8 }}>
-            Sửa
+ const columns = [
+  {
+    title: 'Mã NV',
+    dataIndex: 'MaNhanVien',
+    key: 'MaNhanVien',
+    sorter: (a, b) => a.MaNhanVien.localeCompare(b.MaNhanVien), // Sắp xếp chuỗi
+  },
+  {
+    title: 'Tên NV',
+    dataIndex: 'TenNhanVien',
+    key: 'TenNhanVien',
+    sorter: (a, b) => a.TenNhanVien.localeCompare(b.TenNhanVien), // Sắp xếp chuỗi
+  },
+  {
+    title: 'SĐT',
+    dataIndex: 'SoDT',
+    key: 'SoDT',
+    sorter: (a, b) => a.SoDT.localeCompare(b.SoDT), // Sắp xếp chuỗi
+  },
+  {
+    title: 'CCCD',
+    dataIndex: 'CCCD',
+    key: 'CCCD',
+    sorter: (a, b) => a.CCCD.localeCompare(b.CCCD), // Sắp xếp chuỗi
+  },
+  {
+    title: 'Email',
+    dataIndex: 'Email',
+    key: 'Email',
+    sorter: (a, b) => a.Email.localeCompare(b.Email), // Sắp xếp chuỗi
+  },
+  {
+    title: 'Ngày vào',
+    dataIndex: 'NgayVao',
+    key: 'NgayVao',
+    render: (text) => (text ? text.split(' ')[0] : ''),
+    sorter: (a, b) => new Date(a.NgayVao) - new Date(b.NgayVao), // Sắp xếp ngày
+  },
+  {
+    title: 'Lương Căn bản',
+    dataIndex: 'LuongCanBan',
+    key: 'LuongCanBan',
+    sorter: (a, b) => a.LuongCanBan - b.LuongCanBan, // Sắp xếp số
+  },
+  {
+    title: 'Loại NV',
+    dataIndex: 'TenLoaiNhanVien',
+    key: 'TenLoaiNhanVien',
+    sorter: (a, b) => a.TenLoaiNhanVien.localeCompare(b.TenLoaiNhanVien), // Sắp xếp chuỗi
+  },
+  {
+    title: 'Hành động',
+    key: 'actions',
+    render: (_, record) => (
+      <>
+        <Button
+          icon={<EditOutlined />}
+          onClick={() => openEditModal(record)}
+          style={{ marginRight: 8 }}
+        >
+          Sửa
+        </Button>
+        <Popconfirm
+          title="Bạn có chắc muốn xóa?"
+          onConfirm={() => handleDelete(record)}
+        >
+          <Button icon={<DeleteOutlined />} danger>
+            Xóa
           </Button>
-          <Popconfirm title="Bạn có chắc muốn xóa?" onConfirm={() => handleDelete(record)}>
-            <Button icon={<DeleteOutlined />} danger>
-              Xóa
-            </Button>
-          </Popconfirm>
-        </>
-      ),
-    },
-  ];
+        </Popconfirm>
+      </>
+    ),
+  },
+];
 
   console.log("Render QL Nhân Viên");
 
