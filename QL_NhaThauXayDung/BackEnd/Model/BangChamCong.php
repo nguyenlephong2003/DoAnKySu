@@ -26,7 +26,7 @@ class BangChamCong {
         // Làm sạch và ràng buộc dữ liệu
         $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
         $this->SoNgayLam = filter_var($this->SoNgayLam, FILTER_VALIDATE_FLOAT);
-        $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
+        $this->KyLuong = date('Y-m-d H:i:s', strtotime($this->KyLuong));
         $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
 
         $stmt->bindParam(":MaChamCong", $this->MaChamCong);
@@ -151,12 +151,10 @@ class BangChamCong {
     $stmt = $this->conn->prepare($query);
 
     // Làm sạch và ràng buộc dữ liệu
-    // $this->MaChamCong = htmlspecialchars(strip_tags($this->MaChamCong));
     $this->SoNgayLam = filter_var($this->SoNgayLam, FILTER_VALIDATE_FLOAT);
-    $this->KyLuong = filter_var($this->KyLuong, FILTER_VALIDATE_INT);
+    $this->KyLuong = date('Y-m-d H:i:s', strtotime($this->KyLuong));
     $this->MaNhanVien = htmlspecialchars(strip_tags($this->MaNhanVien));
 
-    // $stmt->bindParam(":MaChamCong", $this->MaChamCong);
     $stmt->bindParam(":SoNgayLam", $this->SoNgayLam);
     $stmt->bindParam(":KyLuong", $this->KyLuong);
     $stmt->bindParam(":MaNhanVien", $this->MaNhanVien);
@@ -231,7 +229,7 @@ class BangChamCong {
                   WHERE cc.MaChamCong LIKE :keywords 
                      OR cc.MaNhanVien LIKE :keywords 
                      OR nv.TenNhanVien LIKE :keywords 
-                     OR cc.KyLuong LIKE :keywords";
+                     OR DATE_FORMAT(cc.KyLuong, '%Y-%m-%d') LIKE :keywords";
 
         // Chuẩn bị câu lệnh
         $stmt = $this->conn->prepare($query);
@@ -370,10 +368,11 @@ class BangChamCong {
                   nv.TenNhanVien, nv.LuongCanBan, (nv.LuongCanBan * cc.SoNgayLam) AS LuongThang
                   FROM " . $this->table_name . " cc
                   JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
-                  WHERE cc.KyLuong = :kyLuong
+                  WHERE DATE(cc.KyLuong) = DATE(:kyLuong)
                   ORDER BY cc.MaNhanVien";
         
         $stmt = $this->conn->prepare($query);
+        $kyLuong = date('Y-m-d H:i:s', strtotime($kyLuong));
         $stmt->bindParam(":kyLuong", $kyLuong);
         $stmt->execute();
         

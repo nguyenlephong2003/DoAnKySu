@@ -37,6 +37,8 @@ const PageQuanLy = ({ children }) => {
     { id: "quanlytiendo", label: "Quản lý tiến độ", icon: <FaChartLine />, path: "/qlcongtrinh/quanlytiendo" },
     { id: "lapdexuat", label: "Lập đề xuất", icon: <FaFileSignature />, path: "/qlcongtrinh/lapdexuat" },
     { id: "quanlydanhmuc", label: "Quản lý danh mục", icon: <FaListAlt />, path: "/qlcongtrinh/quanlydanhmuc" },
+    { id: "chamcongtho", label: "Chấm công thợ", icon: <FaListAlt />, path: "/qlcongtrinh/chamcongtho" },
+
   ];
 
   const handleClickOutside = (event) => {

@@ -11,20 +11,20 @@ INSERT INTO LoaiNhanVien (TenLoai) VALUES
 
 -- Bảng NhanVien (Đã sửa MaLoaiNhanVien để sử dụng số tương ứng)
 INSERT INTO NhanVien (MaNhanVien, TenNhanVien, SoDT, CCCD, Email, NgayVao, LuongCanBan, MaLoaiNhanVien) VALUES
-('AD001', 'Nguyễn Văn Admin', '0901234567', '079123456789', 'admin@congty.com', '2020-01-01', 15000000, 1),
-('GD001', 'Trần Thị Giám Đốc', '0912345678', '079234567890', 'giamdoc@congty.com', '2019-01-01', 20000000, 2),
-('KT001', 'Lê Văn Kế Toán', '0923456789', '079345678901', 'ketoan@congty.com', '2020-03-15', 12000000, 3),
-('NS001', 'Phạm Thị Nhân Sự', '0934567890', '079456789012', 'nhansu@congty.com', '2020-05-10', 10000000, 4),
-('QL001', 'Hoàng Quản Lý', '0945678901', '079567890123', 'quanly1@congty.com', '2020-02-20', 15000000, 5),
-('QL002', 'Lý Thị Quản Lý', '0956789012', '079678901234', 'quanly2@congty.com', '2020-06-15', 15000000, 5),
-('TC001', 'Trịnh Văn Thợ', '0967890123', '079789012345', 'thochinh1@congty.com', '2020-07-10', 8000000, 6),
-('TC002', 'Đặng Thợ Chính', '0978901234', '079890123456', 'thochinh2@congty.com', '2020-08-05', 8000000, 6),
-('TP001', 'Ngô Văn Phụ', '0989012345', '079901234567', 'thophu1@congty.com', '2020-09-01', 6000000, 7),
-('TP002', 'Mai Thị Phụ', '0990123456', '079012345678', 'thophu2@congty.com', '2020-10-10', 6000000, 7),
-('K001', 'Phạm Văn Kho', '0901111222', '079222333444', 'kho1@congty.com', '2021-01-15', 7000000, 8),
-('K002', 'Trần Thị Kho', '0902222333', '079333444555', 'kho2@congty.com', '2021-03-20', 7000000, 8),
-('TV001', 'Lê Văn Tư Vấn', '0903333444', '079444555666', 'tuvan1@congty.com', '2021-02-10', 9000000, 9),
-('TV002', 'Nguyễn Thị Tư Vấn', '0904444555', '079555666777', 'tuvan2@congty.com', '2021-04-25', 9000000, 9);
+('AD001', 'Nguyễn Văn Admin', '0901234567', '079123456789', 'admin@congty.com', '2020-01-01', 5500000, 1),
+('GD001', 'Trần Thị Giám Đốc', '0912345678', '079234567890', 'giamdoc@congty.com', '2019-01-01', 5500000, 2),
+('KT001', 'Lê Văn Kế Toán', '0923456789', '079345678901', 'ketoan@congty.com', '2020-03-15', 5500000, 3),
+('NS001', 'Phạm Thị Nhân Sự', '0934567890', '079456789012', 'nhansu@congty.com', '2020-05-10', 5500000, 4),
+('QL001', 'Hoàng Quản Lý', '0945678901', '079567890123', 'quanly1@congty.com', '2020-02-20', 5500000, 5),
+('QL002', 'Lý Thị Quản Lý', '0956789012', '079678901234', 'quanly2@congty.com', '2020-06-15', 5500000, 5),
+('TC001', 'Trịnh Văn Thợ', '0967890123', '079789012345', 'thochinh1@congty.com', '2020-07-10', 0, 6),
+('TC002', 'Đặng Thợ Chính', '0978901234', '079890123456', 'thochinh2@congty.com', '2020-08-05', 0, 6),
+('TP001', 'Ngô Văn Phụ', '0989012345', '079901234567', 'thophu1@congty.com', '2020-09-01', 0, 7),
+('TP002', 'Mai Thị Phụ', '0990123456', '079012345678', 'thophu2@congty.com', '2020-10-10', 0, 7),
+('K001', 'Phạm Văn Kho', '0901111222', '079222333444', 'kho1@congty.com', '2021-01-15', 5500000, 8),
+('K002', 'Trần Thị Kho', '0902222333', '079333444555', 'kho2@congty.com', '2021-03-20', 5500000, 8),
+('TV001', 'Lê Văn Tư Vấn', '0903333444', '079444555666', 'tuvan1@congty.com', '2021-02-10', 5500000, 9),
+('TV002', 'Nguyễn Thị Tư Vấn', '0904444555', '079555666777', 'tuvan2@congty.com', '2021-04-25', 5500000, 9);
 
 -- Bảng NhaCungCap (Suppliers)
 INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDT, Email, DiaChi, LoaiHinhCungCap) VALUES
@@ -74,10 +74,14 @@ INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh) VALUES
 ('Cát', 'M³');
 
 -- Bảng BangChamCong (Timesheet)
-INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, MaNhanVien) VALUES
-('CC001', 22, 5, 'TC001'),
-('CC002', 20, 5, 'TC002'),
-('CC003', 21, 5, 'TP001');
+DELETE FROM BangChamCong;
+INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, MaNhanVien, TrangThai) VALUES
+-- Tháng 1/2025
+('CC001', 22, '2025-01-31', 'TC001', 'Đã thanh toán'),
+('CC002', 21, '2025-01-31', 'TP001', 'Đã thanh toán'),
+('CC003', 23, '2025-01-31', 'TP002', 'Đã thanh toán'),
+('CC004', 22, '2025-02-28', 'TC001', 'Chưa thanh toán'),
+('CC005', 21, '2025-02-28', 'TP001', 'Chưa thanh toán');
 
 INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu) VALUES
 ('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001', 'GD001', 'Đã Duyệt', 'Khách hàng đã ký hợp đồng.'),
@@ -97,10 +101,10 @@ INSERT INTO BangBaoGia (MaBaoGia, TenBaoGia, TrangThai, MaLoai) VALUES
 ('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 3);
 
 -- Bảng CongTrinh (Construction Projects)
-INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, MaKhachHang, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
-('CT001', 'Nhà phố Quận 7', 120, 'TK001', 'KH001', 'HD001', 1, '2023-07-15'),
-('CT002', 'Biệt thự Thủ Đức', 350, 'TK002', 'KH002', 'HD002', 2, '2023-12-20'),
-('CT003', 'Căn hộ Quận 2', 85, 'TK003', 'KH003', 'HD003', 3, '2023-06-10');
+INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, MaKhachHang, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh, TrangThai) VALUES
+('CT001', 'Nhà phố Quận 7', 120, 'TK001', 'KH001', 'HD001', 1, '2023-07-15', 'Đang thi công'),
+('CT002', 'Biệt thự Thủ Đức', 350, 'TK002', 'KH002', 'HD002', 2, '2023-12-20', 'Đã hoàn thành'),
+('CT003', 'Căn hộ Quận 2', 85, 'TK003', 'KH003', 'HD003', 3, '2023-06-10', 'Đang thi công');
 
 INSERT INTO ChiTietBaoGia (MaChiTietBaoGia, MaBaoGia, MaCongTrinh, GiaBaoGia, NoiDung) VALUES 
 (1, 'BG001', 'CT001', 25000000, 'Lót gạch'),
@@ -114,10 +118,14 @@ INSERT INTO BangBaoCaoTienDo (MaTienDo, ThoiGianHoanThanhThucTe, CongViec, NoiDu
 ('TD003', NULL, 'Móng', 'Đã hoàn thành đổ móng', '2023-03-10', 1, 0.1, 'anh_mong_bt.jpg', 'CT002');
 
 -- Bảng BangPhanCong (Work Assignments)
+DELETE FROM BangPhanCong;
 INSERT INTO BangPhanCong (MaCongTrinh, MaNhanVien, NgayThamGia, NgayKetThuc, SoNgayThamGia) VALUES
-('CT001', 'TC001', '2023-01-20', '2023-07-15', 120),
-('CT001', 'TP001', '2023-01-20', '2023-07-15', 120),
-('CT002', 'TC002', '2023-03-01', '2023-12-20', 200);
+-- Tháng 1/2025
+('CT001', 'TC001', '2025-01-01', NULL, 11),
+('CT002', 'TC001', '2025-01-16', NULL, 11),
+('CT001', 'TP001', '2025-01-01', NULL, 21),
+('CT002', 'TP002', '2025-01-01', NULL, 11),
+('CT001', 'TP002', '2025-01-16', NULL, 12);
 
 -- Bảng ThietBiVatTu (Equipment/Materials)
 INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, SoLuongTon, TrangThai, MaLoaiThietBiVatTu, MaNhaCungCap) VALUES

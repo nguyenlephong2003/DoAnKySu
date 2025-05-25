@@ -35,6 +35,7 @@ CREATE TABLE `BangChamCong` (
   `MaChamCong` varchar(20) PRIMARY KEY,
   `SoNgayLam` float,
   `KyLuong` datetime,
+  `TrangThai` varchar(255),
   `MaNhanVien` varchar(20)
 );
 
@@ -78,6 +79,7 @@ CREATE TABLE `CongTrinh` (
   `FileThietKe` text,
   `MaKhachHang` varchar(20),
   `MaHopDong` varchar(20),
+  `TrangThai` varchar(255),
   `MaLoaiCongTrinh` int,
   `NgayDuKienHoanThanh` datetime
 );

@@ -26,6 +26,7 @@ import TaoDeXuat from "./components/TaoDeXuat.jsx";
 import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
 import BASE_URL from "./Config.js";  // Thêm dòng này
 import Backup_Restore from "./components/Backup_Restore.jsx";
+import QuanLyChamCong from "./components/QuanLyChamCong.jsx";
 
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -191,6 +192,7 @@ function App() {
         <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
         <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
         <Route path="timkiem" element={<div>Tìm kiếm</div>} />
+        <Route path="chamcongtho" element={<QuanLyChamCong />} />
       </Route>
 
       <Route
