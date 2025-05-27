@@ -27,18 +27,25 @@ const QuanLyLoaiBaoGia = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}DanhMuc_API/LoaiBaoGia_API_Duy.php?action=GET`);
-      let arr = [];
-      if (Array.isArray(response.data.data)) {
-        arr = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        arr = response.data;
+      const response = await axios.get(
+        `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=getAllLoaiBaoGia`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (response.data.status === 'success') {
+        setData(response.data.data);
+        setPagination(prev => ({
+          ...prev,
+          total: response.data.data.length
+        }));
+      } else {
+        message.error('Lỗi khi lấy dữ liệu');
       }
-      setData(arr);
-      setPagination(prev => ({
-        ...prev,
-        total: arr.length
-      }));
     } catch (error) {
       console.error('Error fetching data:', error.response?.data || error);
       message.error('Lỗi khi kết nối đến server');
@@ -87,14 +94,21 @@ const QuanLyLoaiBaoGia = () => {
       const values = await form.validateFields();
       
       const response = await axios.put(
-        `${BASE_URL}DanhMuc_API/LoaiBaoGia_API_Duy.php?action=PUT`,
+        `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=updateLoaiBaoGia`,
         {
           MaLoai: currentRecord.MaLoai,
-          ...values
+          TenLoai: values.TenLoai
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
       );
 
-      if (response.data.status === 'success' || response.data.message?.includes('đã được cập nhật')) {
+      if (response.data.status === 'success') {
         message.success('Cập nhật thành công');
         setEditModalVisible(false);
         await fetchData();
@@ -120,11 +134,20 @@ const QuanLyLoaiBaoGia = () => {
       const values = await addForm.validateFields();
       
       const response = await axios.post(
-        `${BASE_URL}DanhMuc_API/LoaiBaoGia_API_Duy.php?action=POST`,
-        values
+        `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=createLoaiBaoGia`,
+        {
+          TenLoai: values.TenLoai
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      if (response.data.status === 'success' || response.data.message?.includes('đã được thêm')) {
+      if (response.data.status === 'success') {
         message.success('Thêm mới thành công');
         setAddModalVisible(false);
         addForm.resetFields();
@@ -145,8 +168,15 @@ const QuanLyLoaiBaoGia = () => {
     try {
       setLoading(true);
       const response = await axios.delete(
-        `${BASE_URL}DanhMuc_API/LoaiBaoGia_API_Duy.php?action=DELETE`,
-        { data: { MaLoai: record.MaLoai } }
+        `${BASE_URL}BaoGiaHopDong_API/BaoGia_LoaiBaoGia_API.php?action=deleteLoaiBaoGia`,
+        { 
+          data: { MaLoai: record.MaLoai },
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
       if (response.data.status === 'success') {
         message.success('Xóa thành công');
@@ -262,8 +292,10 @@ const QuanLyLoaiBaoGia = () => {
         closable={false}
         width={500}
         className="custom-modal"
-        bodyStyle={{ padding: '24px' }}
-        footer={[
+        styles={{
+          body: { padding: '24px' }
+        }}
+        footer={[ 
           <div key="footer" className="flex justify-end gap-2 border-t pt-4">
             <Button 
               key="cancel" 
@@ -324,7 +356,9 @@ const QuanLyLoaiBaoGia = () => {
         closable={false}
         width={500}
         className="custom-modal"
-        bodyStyle={{ padding: '24px' }}
+        styles={{
+          body: { padding: '24px' }
+        }}
         footer={[
           <div key="footer" className="flex justify-end gap-2 border-t pt-4">
             <Button 
@@ -379,6 +413,9 @@ const QuanLyLoaiBaoGia = () => {
         title="Chi tiết loại báo giá"
         open={detailVisible}
         onCancel={() => setDetailVisible(false)}
+        styles={{
+          body: { padding: '24px' }
+        }}
         footer={[
           <Button key="close" onClick={() => setDetailVisible(false)}>
             Đóng

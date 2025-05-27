@@ -27,9 +27,20 @@ const QuanLyLoaiThietBiVatTu = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=GET`);
+      const response = await axios.get(
+        `${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=GET`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       let arr = [];
-      if (Array.isArray(response.data)) {
+      if (response.data.status === 'success') {
+        arr = response.data.data;
+      } else if (Array.isArray(response.data)) {
         arr = response.data;
       } else if (Array.isArray(response.data.data)) {
         arr = response.data.data;
@@ -94,6 +105,13 @@ const QuanLyLoaiThietBiVatTu = () => {
         {
           MaLoaiThietBiVatTu: currentRecord.MaLoaiThietBiVatTu,
           ...values
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
       );
 
@@ -124,7 +142,14 @@ const QuanLyLoaiThietBiVatTu = () => {
       
       const response = await axios.post(
         `${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=POST`,
-        values
+        values,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.status === 'success' || response.data.message?.includes('đã được thêm')) {
@@ -149,7 +174,14 @@ const QuanLyLoaiThietBiVatTu = () => {
       setLoading(true);
       const response = await axios.delete(
         `${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=DELETE`,
-        { data: { MaLoaiThietBiVatTu: record.MaLoaiThietBiVatTu } }
+        { 
+          data: { MaLoaiThietBiVatTu: record.MaLoaiThietBiVatTu },
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
       if (response.data.status === 'success') {
         message.success('Xóa thành công');

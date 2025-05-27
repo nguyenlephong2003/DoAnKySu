@@ -31,6 +31,7 @@ function LoginPage() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Accept": "application/json"
           },
           credentials: "include",
           body: JSON.stringify({
@@ -40,28 +41,25 @@ function LoginPage() {
         }
       );
 
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("Phản hồi lỗi từ máy chủ:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: text,
-        });
-        throw new Error(
-          `Máy chủ phản hồi lỗi ${response.status}: ${response.statusText}`
-        );
-      }
+      // Đọc response text trước
+      const responseText = await response.text();
+      console.log("Raw response:", responseText); // Log raw response để debug
 
       let data;
       try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error("Lỗi khi phân tích JSON:", jsonError);
-        throw new Error("Dữ liệu trả về không hợp lệ từ máy chủ.");
+        // Thử parse JSON
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Lỗi parse JSON:", parseError);
+        console.error("Response không phải JSON:", responseText);
+        throw new Error("Server trả về dữ liệu không hợp lệ");
       }
 
-      if (data.message === "success") {
-        localStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
+      console.log("Parsed data:", data); // Log parsed data để debug
+
+      if (data.message === "success" && data.nhanvien && data.nhanvien.length > 0) {
+        // Lưu thông tin người dùng vào sessionStorage thay vì localStorage
+        sessionStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
         setSuccess("Đăng nhập thành công!");
         setError("");
 
@@ -106,7 +104,11 @@ function LoginPage() {
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
-      setError(`Vui lòng kiểm trả lại thông tin`);
+      if (error.message === "Server trả về dữ liệu không hợp lệ") {
+        setError("Lỗi kết nối server. Vui lòng thử lại sau.");
+      } else {
+        setError("Vui lòng kiểm tra lại thông tin đăng nhập");
+      }
       setSuccess("");
     } finally {
       setLoading(false);
