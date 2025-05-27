@@ -58,6 +58,11 @@ const QuanLyChamCong = () => {
   const [selectedNhanVien, setSelectedNhanVien] = useState("all");
   const [selectedKyLuong, setSelectedKyLuong] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [phanCongModalVisible, setPhanCongModalVisible] = useState(false);
+  const [selectedPhanCong, setSelectedPhanCong] = useState([]);
+  const [selectedTenCongTrinh, setSelectedTenCongTrinh] = useState("");
+  const [selectedNhanVienChamCong, setSelectedNhanVienChamCong] = useState([]);
+  const [loaiNgayChamCong, setLoaiNgayChamCong] = useState({});
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -82,9 +87,18 @@ const QuanLyChamCong = () => {
 
       if (response.data.data) {
         // Chuyển đổi cấu trúc dữ liệu để hiển thị
-        const constructionData = response.data.data.map(item => 
-          item.CongTrinh[0]
-        );
+        const constructionData = response.data.data.map(item => ({
+          ...item.CongTrinh,
+          PhanCong: item.CongTrinh.DanhSachNhanVien.map(nv => ({
+            MaBangPhanCong: parseInt(nv.MaBangPhanCong),
+            MaNhanVien: nv.MaNhanVien,
+            TenNhanVien: nv.TenNhanVien,
+            LoaiNhanVien: nv.LoaiNhanVien,
+            NgayThamGia: nv.NgayThamGia,
+            NgayKetThuc: nv.NgayKetThuc,
+            SoNgayThamGia: parseInt(nv.SoNgayThamGia) || 0
+          }))
+        }));
 
         setChamCongList(constructionData);
         setPagination((prev) => ({
@@ -104,7 +118,7 @@ const QuanLyChamCong = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`,
+        `${BASE_URL}ChamCong_API/ChamCong.php?action=GET_NHAN_VIEN_THEO_LOAI`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -187,9 +201,9 @@ const QuanLyChamCong = () => {
       const chamCongData = {
         MaCongTrinh: values.MaCongTrinh,
         MaNhanVien: values.MaNhanVien,
-        NgayThamGia: values.NgayThamGia.format("YYYY-MM-DD"),
-        NgayKetThuc: values.NgayKetThuc?.format("YYYY-MM-DD"),
-        SoNgayThamGia: values.SoNgayThamGia,
+        NgayThamGia: new Date().toISOString().split('T')[0], // Lấy ngày hiện tại
+        NgayKetThuc: null,
+        SoNgayThamGia: null
       };
 
       const response = await axios.post(
@@ -203,17 +217,17 @@ const QuanLyChamCong = () => {
         }
       );
 
-      if (response.data.message === "Tạo phân công và chấm công thành công.") {
-        message.success("Tạo chấm công thành công");
+      if (response.data.status === "success") {
+        message.success("Thêm nhân viên thành công");
         setModalVisible(false);
         form.resetFields();
         fetchData();
       } else {
-        message.error(response.data.message || "Tạo chấm công thất bại");
+        message.error(response.data.message || "Thêm nhân viên thất bại");
       }
     } catch (error) {
-      console.error("Error creating attendance:", error);
-      message.error("Lỗi khi tạo chấm công");
+      console.error("Error adding employee:", error);
+      message.error("Lỗi khi thêm nhân viên");
     } finally {
       setLoading(false);
     }
@@ -310,6 +324,113 @@ const QuanLyChamCong = () => {
     }
   };
 
+  const handleChamCong = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      
+      // Log thông tin phân công được chọn
+      console.log('Selected PhanCong:', selectedPhanCong);
+      console.log('Selected NhanVienChamCong:', selectedNhanVienChamCong);
+      
+      // Tạo mảng dữ liệu chấm công cho từng nhân viên được chọn
+      const chamCongData = selectedNhanVienChamCong.map((maBangPhanCong) => {
+        const phanCong = selectedPhanCong.find(pc => pc.MaBangPhanCong === maBangPhanCong);
+        console.log('Found PhanCong for', maBangPhanCong, ':', phanCong);
+        
+        if (!phanCong || !phanCong.MaBangPhanCong) {
+          throw new Error(`Không tìm thấy thông tin phân công cho MaBangPhanCong: ${maBangPhanCong}`);
+        }
+
+        // Tăng SoNgayThamGia lên 1
+        const newSoNgayThamGia = (parseInt(phanCong.SoNgayThamGia) || 0) + 1;
+
+        // Đảm bảo định dạng ngày tháng đúng
+        const ngayThamGia = phanCong.NgayThamGia ? new Date(phanCong.NgayThamGia).toISOString().split('T')[0] : null;
+        const ngayKetThuc = phanCong.NgayKetThuc ? new Date(phanCong.NgayKetThuc).toISOString().split('T')[0] : null;
+
+        const data = {
+          MaBangPhanCong: parseInt(phanCong.MaBangPhanCong),
+          NgayThamGia: ngayThamGia,
+          NgayKetThuc: ngayKetThuc,
+          SoNgayThamGia: newSoNgayThamGia
+        };
+
+        console.log('Created ChamCong data:', data);
+        return data;
+      });
+
+      // Thêm validation
+      if (!chamCongData.length) {
+        message.error("Vui lòng chọn ít nhất một nhân viên!");
+        return;
+      }
+
+      // Kiểm tra dữ liệu trước khi gửi
+      console.log('Final ChamCong data to be sent:', chamCongData);
+
+      // Gửi request PUT cho từng nhân viên
+      const promises = chamCongData.map(data => {
+        if (!data.MaBangPhanCong) {
+          throw new Error('MaBangPhanCong không được để trống');
+        }
+        return axios.put(
+          `${BASE_URL}ChamCong_API/ChamCong.php?action=PUT`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      });
+
+      // Đợi tất cả các request hoàn thành
+      const results = await Promise.all(promises);
+      
+      // Log response chi tiết
+      results.forEach((result, index) => {
+        console.log(`Response ${index + 1}:`, {
+          status: result.status,
+          data: result.data,
+          message: result.data.message
+        });
+      });
+
+      // Kiểm tra kết quả chi tiết hơn
+      const success = results.every(result => {
+        return result.status === 200 && 
+               (result.data.status === "success" || 
+                (result.data.message && result.data.message.includes("thành công")));
+      });
+      
+      if (success) {
+        message.success(`Đã chấm công thành công cho ${chamCongData.length} nhân viên!`);
+        setPhanCongModalVisible(false);
+        setSelectedNhanVienChamCong([]);
+        setLoaiNgayChamCong({});
+        fetchData(); // Refresh lại dữ liệu
+      } else {
+        // Log chi tiết lỗi
+        console.error('Chấm công thất bại:', results.map(r => r.data));
+        message.error("Có lỗi xảy ra khi chấm công! Vui lòng kiểm tra lại thông tin.");
+      }
+    } catch (error) {
+      // Log chi tiết lỗi
+      console.error("Error updating attendance:", error.response?.data || error);
+      console.error("Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        selectedPhanCong,
+        selectedNhanVienChamCong
+      });
+      message.error(error.response?.data?.message || error.message || "Lỗi khi chấm công!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
@@ -328,17 +449,6 @@ const QuanLyChamCong = () => {
               style={{ width: 300 }}
               allowClear
             />
-            <Select
-              placeholder="Chọn trạng thái"
-              style={{ width: 200 }}
-              value={selectedStatus}
-              onChange={(value) => setSelectedStatus(value)}
-              allowClear
-            >
-              <Option value="all">Tất cả trạng thái</Option>
-              <Option value="Đang thi công">Đang thi công</Option>
-              <Option value="Đã hoàn thành">Đã hoàn thành</Option>
-            </Select>
           </div>
           <Button
             type="primary"
@@ -354,52 +464,45 @@ const QuanLyChamCong = () => {
           <Table
             dataSource={getPaginatedData()}
             columns={[
-              
               {
                 title: "Mã công trình",
                 dataIndex: "MaCongTrinh",
                 key: "MaCongTrinh",
-                width: "15%",
+                width: 90,
                 ellipsis: true,
               },
               {
                 title: "Tên công trình",
                 dataIndex: "TenCongTrinh",
                 key: "TenCongTrinh",
-                width: "35%",
+                width: 220,
                 ellipsis: true,
-              },
-              {
-                title: "Trạng thái",
-                dataIndex: "TrangThai",
-                key: "TrangThai",
-                width: "14%",
-                align: "center",
-                render: (text) => (
-                  <Tag color={text === "Đã hoàn thành" ? "green" : "blue"}>
-                    {text}
-                  </Tag>
-                ),
               },
               {
                 title: "Số nhân viên",
                 key: "SoNhanVien",
-                width: "14%",
+                width: 90,
                 align: "center",
-                render: (_, record) => record.PhanCong.length,
+                render: (_, record) => record.SoNhanVienPhanCong,
+              },
+              {
+                title: "Tiến độ",
+                key: "TienDo",
+                width: 90,
+                align: "center",
+                render: (_, record) => `${record.TongTienDo}%`,
               },
               {
                 title: "Thao tác",
                 key: "action",
-                width: "22%",
+                width: 130,
                 align: "center",
                 render: (_, record) => (
                   <div
                     style={{
                       display: "flex",
                       flexWrap: "nowrap",
-                      gap: "8px",
-                      justifyContent: "flex-start",
+                      gap: 8,
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -410,7 +513,7 @@ const QuanLyChamCong = () => {
                     >
                       Chi tiết
                     </Button>
-                    {record.TrangThai !== "Đã hoàn thành" && (
+                    {record.TongTienDo < 100 && (
                       <Button
                         icon={<PlusOutlined />}
                         type="primary"
@@ -421,7 +524,9 @@ const QuanLyChamCong = () => {
                           fontWeight: "bold",
                         }}
                         onClick={() => {
-                          setModalVisible(true);
+                          setSelectedPhanCong(record.PhanCong);
+                          setSelectedTenCongTrinh(record.TenCongTrinh);
+                          setPhanCongModalVisible(true);
                         }}
                       >
                         Chấm công
@@ -429,7 +534,6 @@ const QuanLyChamCong = () => {
                     )}
                   </div>
                 ),
-                fixed: "left",
               },
             ]}
             rowKey="MaCongTrinh"
@@ -437,7 +541,6 @@ const QuanLyChamCong = () => {
             loading={loading}
             bordered
             size="middle"
-            scroll={{ x: 900 }}
           />
         </div>
 
@@ -466,20 +569,22 @@ const QuanLyChamCong = () => {
           <Button key="back" onClick={() => setDetailModalVisible(false)}>
             Đóng
           </Button>,
-          <Button
-            key="edit"
-            type="primary"
-            onClick={() => handleEdit(selectedChamCong)}
-          >
-            Chỉnh sửa
-          </Button>,
-          <Button
-            key="delete"
-            danger
-            onClick={() => handleDelete(selectedChamCong.MaCongTrinh)}
-          >
-            Xóa
-          </Button>,
+          selectedChamCong && selectedChamCong.TongTienDo < 100 && (
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setModalVisible(true);
+                form.setFieldsValue({
+                  MaCongTrinh: selectedChamCong.MaCongTrinh
+                });
+                setDetailModalVisible(false);
+              }}
+            >
+              Thêm nhân viên
+            </Button>
+          ),
         ]}
         width={800}
       >
@@ -492,10 +597,20 @@ const QuanLyChamCong = () => {
               <Descriptions.Item label="Tên công trình" span={2}>
                 {selectedChamCong.TenCongTrinh}
               </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái" span={2}>
-                <Tag color={selectedChamCong.TrangThai === "Đã hoàn thành" ? "green" : "blue"}>
-                  {selectedChamCong.TrangThai}
-                </Tag>
+              <Descriptions.Item label="Diện tích">
+                {selectedChamCong.Dientich} m²
+              </Descriptions.Item>
+              <Descriptions.Item label="Loại công trình">
+                {selectedChamCong.TenLoaiCongTrinh}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày dự kiến hoàn thành">
+                {new Date(selectedChamCong.NgayDuKienHoanThanh).toLocaleDateString("vi-VN")}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tiến độ">
+                {selectedChamCong.TongTienDo}%
+              </Descriptions.Item>
+              <Descriptions.Item label="Khách hàng" span={2}>
+                {selectedChamCong.KhachHang.TenKhachHang} - {selectedChamCong.KhachHang.SoDT}
               </Descriptions.Item>
             </Descriptions>
 
@@ -508,22 +623,21 @@ const QuanLyChamCong = () => {
                   title: "Nhân viên",
                   dataIndex: "TenNhanVien",
                   key: "TenNhanVien",
-                  width: "22%",
+                  width: "30%",
                   ellipsis: true,
                 },
                 {
                   title: "Loại nhân viên",
-                  dataIndex: "MaLoaiNhanVien",
-                  key: "MaLoaiNhanVien",
-                  width: "13%",
+                  dataIndex: "LoaiNhanVien",
+                  key: "LoaiNhanVien",
+                  width: "15%",
                   align: "center",
-                  render: (text) => text === 6 ? "Thợ chính" : "Thợ phụ",
                 },
                 {
                   title: "Ngày tham gia",
                   dataIndex: "NgayThamGia",
                   key: "NgayThamGia",
-                  width: "13%",
+                  width: "15%",
                   align: "center",
                   render: (text) => new Date(text).toLocaleDateString("vi-VN"),
                 },
@@ -531,7 +645,7 @@ const QuanLyChamCong = () => {
                   title: "Ngày kết thúc",
                   dataIndex: "NgayKetThuc",
                   key: "NgayKetThuc",
-                  width: "13%",
+                  width: "15%",
                   align: "center",
                   render: (text) => text ? new Date(text).toLocaleDateString("vi-VN") : "-",
                 },
@@ -539,15 +653,52 @@ const QuanLyChamCong = () => {
                   title: "Số ngày tham gia",
                   dataIndex: "SoNgayThamGia",
                   key: "SoNgayThamGia",
-                  width: "13%",
+                  width: "15%",
                   align: "center",
                 },
               ]}
-              rowKey="MaBangPhanCong"
+              rowKey="MaNhanVien"
               pagination={false}
               bordered
               size="small"
-              scroll={{ x: 600 }}
+            />
+
+            <Divider orientation="left">Báo cáo tiến độ</Divider>
+            
+            <Table
+              dataSource={selectedChamCong.DanhSachBaoCaoTienDo}
+              columns={[
+                {
+                  title: "Công việc",
+                  dataIndex: "CongViec",
+                  key: "CongViec",
+                  width: "20%",
+                },
+                {
+                  title: "Nội dung",
+                  dataIndex: "NoiDungCongViec",
+                  key: "NoiDungCongViec",
+                  width: "40%",
+                },
+                {
+                  title: "Ngày báo cáo",
+                  dataIndex: "NgayBaoCao",
+                  key: "NgayBaoCao",
+                  width: "20%",
+                  render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+                },
+                {
+                  title: "Tiến độ",
+                  dataIndex: "TiLeHoanThanh",
+                  key: "TiLeHoanThanh",
+                  width: "20%",
+                  render: (text) => `${text}%`,
+                },
+              ]}
+              rowKey="MaTienDo"
+              pagination={false}
+              bordered
+              size="small"
             />
           </>
         )}
@@ -555,14 +706,14 @@ const QuanLyChamCong = () => {
 
       {/* Create Modal */}
       <Modal
-        title="Tạo chấm công mới"
+        title="Thêm nhân viên vào công trình"
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
         }}
         footer={null}
-        width={600}
+        width={800}
       >
         <Form form={form} layout="vertical" onFinish={handleCreateChamCong}>
           <Form.Item
@@ -570,13 +721,7 @@ const QuanLyChamCong = () => {
             label="Công trình"
             rules={[{ required: true, message: "Vui lòng chọn công trình" }]}
           >
-            <Select placeholder="Chọn công trình" loading={loading}>
-              {Object.values(congTrinhList).map((ct) => (
-                <Option key={ct.MaCongTrinh} value={ct.MaCongTrinh}>
-                  {ct.TenCongTrinh}
-                </Option>
-              ))}
-            </Select>
+            <Input disabled />
           </Form.Item>
 
           <Form.Item
@@ -584,33 +729,30 @@ const QuanLyChamCong = () => {
             label="Nhân viên"
             rules={[{ required: true, message: "Vui lòng chọn nhân viên" }]}
           >
-            <Select placeholder="Chọn nhân viên" loading={loading}>
-              {nhanVienList.map((nv) => (
-                <Option key={nv.MaNhanVien} value={nv.MaNhanVien}>
-                  {nv.TenNhanVien}
-                </Option>
-              ))}
+            <Select 
+              placeholder="Chọn nhân viên" 
+              loading={loading}
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            >
+              {nhanVienList
+                .filter(nv => !selectedChamCong?.PhanCong?.some(pc => pc.MaNhanVien === nv.MaNhanVien))
+                .map((nv) => (
+                  <Option 
+                    key={nv.MaNhanVien} 
+                    value={nv.MaNhanVien}
+                    label={`${nv.TenNhanVien} - ${nv.LoaiNhanVien}`}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{nv.TenNhanVien}</span>
+                      <span style={{ color: '#888' }}>{nv.LoaiNhanVien}</span>
+                    </div>
+                  </Option>
+                ))}
             </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="NgayThamGia"
-            label="Ngày tham gia"
-            rules={[{ required: true, message: "Vui lòng chọn ngày tham gia" }]}
-          >
-            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-          </Form.Item>
-
-          <Form.Item name="NgayKetThuc" label="Ngày kết thúc">
-            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-          </Form.Item>
-
-          <Form.Item
-            name="SoNgayThamGia"
-            label="Số ngày tham gia"
-            rules={[{ required: true, message: "Vui lòng nhập số ngày tham gia" }]}
-          >
-            <InputNumber style={{ width: "100%" }} min={1} />
           </Form.Item>
 
           <Form.Item className="mb-0 text-right">
@@ -624,10 +766,11 @@ const QuanLyChamCong = () => {
               Hủy
             </Button>
             <Button type="primary" htmlType="submit" loading={loading}>
-              Tạo chấm công
+              Thêm nhân viên
             </Button>
           </Form.Item>
         </Form>
+
       </Modal>
 
       {/* Edit Modal */}
@@ -709,6 +852,80 @@ const QuanLyChamCong = () => {
             </Button>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Modal danh sách phân công */}
+      <Modal
+        title={`Chấm công - ${selectedTenCongTrinh}`}
+        open={phanCongModalVisible}
+        onCancel={() => {
+          setPhanCongModalVisible(false);
+          setSelectedNhanVienChamCong([]);
+          setLoaiNgayChamCong({});
+        }}
+        footer={[
+          <Button key="close" onClick={() => setPhanCongModalVisible(false)}>
+            Đóng
+          </Button>,
+          <Button
+            key="chamcong"
+            type="primary"
+            loading={loading}
+            disabled={selectedNhanVienChamCong.length === 0}
+            onClick={handleChamCong}
+          >
+            Chấm công
+          </Button>,
+        ]}
+        width={600}
+      >
+        <Table
+          dataSource={selectedPhanCong}
+          columns={[
+            {
+              title: "Nhân viên",
+              dataIndex: "TenNhanVien",
+              key: "TenNhanVien",
+              width: "35%",
+              ellipsis: true,
+            },
+            {
+              title: "Loại nhân viên",
+              dataIndex: "MaLoaiNhanVien",
+              key: "MaLoaiNhanVien",
+              width: "20%",
+              align: "center",
+              render: (text) => text === 6 ? "Thợ chính" : "Thợ phụ",
+            },
+            {
+              title: "Loại ngày",
+              key: "LoaiNgay",
+              width: "30%",
+              align: "center",
+              render: (_, record) => (
+                <Select
+                  value={loaiNgayChamCong[record.MaBangPhanCong] || "ngay_thuong"}
+                  style={{ width: 120 }}
+                  onChange={(value) => setLoaiNgayChamCong((prev) => ({ ...prev, [record.MaBangPhanCong]: value }))}
+                  disabled={!selectedNhanVienChamCong.includes(record.MaBangPhanCong)}
+                >
+                  <Option value="ngay_thuong">Ngày thường</Option>
+                  <Option value="cuoi_tuan">Cuối tuần</Option>
+                  <Option value="le_tet">Ngày lễ/tết</Option>
+                </Select>
+              ),
+            },
+          ]}
+          rowKey="MaBangPhanCong"
+          pagination={false}
+          bordered
+          size="small"
+          rowSelection={{
+            type: "checkbox",
+            selectedRowKeys: selectedNhanVienChamCong,
+            onChange: (selectedRowKeys) => setSelectedNhanVienChamCong(selectedRowKeys),
+          }}
+        />
       </Modal>
     </div>
   );

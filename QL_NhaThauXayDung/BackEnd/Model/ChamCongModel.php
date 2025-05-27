@@ -7,6 +7,7 @@ class ChamCongModel {
     public $MaChamCong;
     public $SoNgayLam;
     public $KyLuong;
+    public $TrangThai;
     public $MaNhanVien;
 
     // Các thuộc tính từ BangPhanCong
@@ -18,278 +19,240 @@ class ChamCongModel {
 
     // Các thuộc tính từ NhanVien
     public $TenNhanVien;
+    public $SoDT;
+    public $CCCD;
+    public $Email;
+    public $NgayVao;
     public $LuongCanBan;
     public $MaLoaiNhanVien;
 
+    // Các thuộc tính từ LoaiNhanVien
+    public $TenLoai;
+
     // Các thuộc tính từ CongTrinh
     public $TenCongTrinh;
+    public $Dientich;
+    public $FileThietKe;
+    public $MaKhachHang;
+    public $MaHopDong;
+    public $MaLoaiCongTrinh;
+    public $NgayDuKienHoanThanh;
 
-    // Các thuộc tính từ ChamCong
-    public $TrangThai;
+    // Các thuộc tính từ BangBaoCaoTienDo
+    public $MaTienDo;
+    public $ThoiGianHoanThanhThucTe;
+    public $CongViec;
+    public $NoiDungCongViec;
+    public $NgayBaoCao;
+    public $TiLeHoanThanh;
+    public $HinhAnhTienDo;
 
     // Constructor
     public function __construct($db) {
         $this->conn = $db;
     }
 
-    // Lấy tất cả bản ghi chấm công với thông tin chi tiết
-    public function getAll() {
-        $query = "SELECT 
-                    ct.MaCongTrinh,
-                    ct.TenCongTrinh,
-                    ct.TrangThai
-                FROM CongTrinh ct
-                WHERE EXISTS (
-                    SELECT 1 
-                    FROM BangPhanCong pc
-                    JOIN NhanVien nv ON pc.MaNhanVien = nv.MaNhanVien
-                    JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
-                    WHERE pc.MaCongTrinh = ct.MaCongTrinh
-                    AND lnv.TenLoai IN ('Thợ chính', 'Thợ phụ')
-                )
-                ORDER BY ct.TenCongTrinh";
-
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-
-        return $stmt;
-    }
-
-    // Lấy thông tin chi tiết của một bản ghi chấm công
-    public function getOne() {
-        $query = "SELECT cc.*, nv.TenNhanVien, nv.LuongCanBan, nv.MaLoaiNhanVien,
-                         pc.MaBangPhanCong, pc.MaCongTrinh, pc.NgayThamGia, pc.NgayKetThuc, pc.SoNgayThamGia,
-                         ct.TenCongTrinh, cc.TrangThai
-                  FROM " . $this->table_name . " cc
-                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
-                  LEFT JOIN BangPhanCong pc ON cc.MaNhanVien = pc.MaNhanVien 
-                      AND DATE_FORMAT(cc.KyLuong, '%Y-%m') = DATE_FORMAT(pc.NgayThamGia, '%Y-%m')
-                  LEFT JOIN CongTrinh ct ON pc.MaCongTrinh = ct.MaCongTrinh
-                  WHERE cc.MaChamCong = :maChamCong
-                  LIMIT 0,1";
-
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":maChamCong", $this->MaChamCong);
-        $stmt->execute();
-
-        return $stmt;
-    }
-
-    // Tạo mới bản ghi chấm công và phân công
-    public function create() {
-        try {
-            $this->conn->beginTransaction();
-
-            // 1. Tạo bản ghi phân công
-            $queryPhanCong = "INSERT INTO BangPhanCong 
-                             (MaCongTrinh, MaNhanVien, NgayThamGia, NgayKetThuc, SoNgayThamGia) 
-                             VALUES (:maCongTrinh, :maNhanVien, :ngayThamGia, :ngayKetThuc, :soNgayThamGia)";
-
-            $stmtPhanCong = $this->conn->prepare($queryPhanCong);
-
-            $stmtPhanCong->bindParam(":maCongTrinh", $this->MaCongTrinh);
-            $stmtPhanCong->bindParam(":maNhanVien", $this->MaNhanVien);
-            $stmtPhanCong->bindParam(":ngayThamGia", $this->NgayThamGia);
-            $stmtPhanCong->bindParam(":ngayKetThuc", $this->NgayKetThuc);
-            $stmtPhanCong->bindParam(":soNgayThamGia", $this->SoNgayThamGia);
-
-            if (!$stmtPhanCong->execute()) {
-                throw new Exception("Không thể tạo bản ghi phân công");
-            }
-
-            $this->MaBangPhanCong = $this->conn->lastInsertId();
-
-            // 2. Tạo bản ghi chấm công
-            $queryChamCong = "INSERT INTO " . $this->table_name . " 
-                             (MaNhanVien, SoNgayLam, KyLuong, TrangThai) 
-                             VALUES (:maNhanVien, :soNgayLam, :kyLuong, :trangThai)";
-
-            $stmtChamCong = $this->conn->prepare($queryChamCong);
-
-            $stmtChamCong->bindParam(":maNhanVien", $this->MaNhanVien);
-            $stmtChamCong->bindParam(":soNgayLam", $this->SoNgayLam);
-            $stmtChamCong->bindParam(":kyLuong", $this->KyLuong);
-            $stmtChamCong->bindParam(":trangThai", $this->TrangThai);
-
-            if (!$stmtChamCong->execute()) {
-                throw new Exception("Không thể tạo bản ghi chấm công");
-            }
-
-            $this->MaChamCong = $this->conn->lastInsertId();
-            $this->conn->commit();
-
-            return [
-                "status" => "success",
-                "message" => "Tạo phân công và chấm công thành công",
-                "data" => [
-                    "MaChamCong" => $this->MaChamCong,
-                    "MaBangPhanCong" => $this->MaBangPhanCong,
-                    "MaNhanVien" => $this->MaNhanVien,
-                    "MaCongTrinh" => $this->MaCongTrinh,
-                    "SoNgayLam" => $this->SoNgayLam,
-                    "KyLuong" => $this->KyLuong,
-                    "NgayThamGia" => $this->NgayThamGia,
-                    "NgayKetThuc" => $this->NgayKetThuc,
-                    "SoNgayThamGia" => $this->SoNgayThamGia,
-                    "TrangThai" => $this->TrangThai
-                ]
-            ];
-
-        } catch (Exception $e) {
-            $this->conn->rollBack();
-            return [
-                "status" => "error",
-                "message" => $e->getMessage()
-            ];
-        }
-    }
-
-    // Cập nhật bản ghi chấm công và phân công
-    public function update() {
-        try {
-            $this->conn->beginTransaction();
-
-            // 1. Cập nhật bản ghi phân công
-            $queryPhanCong = "UPDATE BangPhanCong 
-                             SET MaCongTrinh = :maCongTrinh,
-                                 NgayThamGia = :ngayThamGia,
-                                 NgayKetThuc = :ngayKetThuc,
-                                 SoNgayThamGia = :soNgayThamGia
-                             WHERE MaBangPhanCong = :maBangPhanCong";
-
-            $stmtPhanCong = $this->conn->prepare($queryPhanCong);
-
-            $stmtPhanCong->bindParam(":maCongTrinh", $this->MaCongTrinh);
-            $stmtPhanCong->bindParam(":ngayThamGia", $this->NgayThamGia);
-            $stmtPhanCong->bindParam(":ngayKetThuc", $this->NgayKetThuc);
-            $stmtPhanCong->bindParam(":soNgayThamGia", $this->SoNgayThamGia);
-            $stmtPhanCong->bindParam(":maBangPhanCong", $this->MaBangPhanCong);
-
-            if (!$stmtPhanCong->execute()) {
-                throw new Exception("Không thể cập nhật bản ghi phân công");
-            }
-
-            // 2. Cập nhật bản ghi chấm công
-            $queryChamCong = "UPDATE " . $this->table_name . " 
-                             SET SoNgayLam = :soNgayLam,
-                                 KyLuong = :kyLuong,
-                                 TrangThai = :trangThai
-                             WHERE MaChamCong = :maChamCong";
-
-            $stmtChamCong = $this->conn->prepare($queryChamCong);
-
-            $stmtChamCong->bindParam(":soNgayLam", $this->SoNgayLam);
-            $stmtChamCong->bindParam(":kyLuong", $this->KyLuong);
-            $stmtChamCong->bindParam(":trangThai", $this->TrangThai);
-            $stmtChamCong->bindParam(":maChamCong", $this->MaChamCong);
-
-            if (!$stmtChamCong->execute()) {
-                throw new Exception("Không thể cập nhật bản ghi chấm công");
-            }
-
-            $this->conn->commit();
-
-            return [
-                "status" => "success",
-                "message" => "Cập nhật phân công và chấm công thành công",
-                "data" => [
-                    "MaChamCong" => $this->MaChamCong,
-                    "MaBangPhanCong" => $this->MaBangPhanCong,
-                    "MaNhanVien" => $this->MaNhanVien,
-                    "MaCongTrinh" => $this->MaCongTrinh,
-                    "SoNgayLam" => $this->SoNgayLam,
-                    "KyLuong" => $this->KyLuong,
-                    "NgayThamGia" => $this->NgayThamGia,
-                    "NgayKetThuc" => $this->NgayKetThuc,
-                    "SoNgayThamGia" => $this->SoNgayThamGia,
-                    "TrangThai" => $this->TrangThai
-                ]
-            ];
-
-        } catch (Exception $e) {
-            $this->conn->rollBack();
-            return [
-                "status" => "error",
-                "message" => $e->getMessage()
-            ];
-        }
-    }
-
-    // Xóa bản ghi chấm công và phân công
-    public function delete() {
+    // Lấy tất cả thông tin trong một lần truy vấn
+    public function getAllInformation() {
+        // Tăng giới hạn GROUP_CONCAT
+        $this->conn->exec("SET SESSION group_concat_max_len = 1000000");
+        // Đặt encoding
+        $this->conn->exec("SET NAMES utf8mb4");
         
-        try {
-            $this->conn->beginTransaction();
+        $query = "SELECT 
+                    -- Thông tin công trình
+                    c.MaCongTrinh,
+                    c.TenCongTrinh,
+                    c.Dientich,
+                    c.NgayDuKienHoanThanh,
+                    lct.TenLoaiCongTrinh,
+                    kh.TenKhachHang,
+                    kh.SoDT as SoDTKhachHang,
+                    kh.Email as EmailKhachHang,
+                    
+                    -- Thông tin tiến độ
+                    COALESCE((SELECT SUM(TiLeHoanThanh) FROM BangBaoCaoTienDo WHERE MaCongTrinh = c.MaCongTrinh), 0) as TongTienDo,
+                    COALESCE((SELECT COUNT(*) FROM BangBaoCaoTienDo WHERE MaCongTrinh = c.MaCongTrinh), 0) as SoBaoCaoTienDo,
+                    
+                    -- Thông tin phân công
+                    COALESCE((SELECT COUNT(*) FROM BangPhanCong WHERE MaCongTrinh = c.MaCongTrinh), 0) as SoNhanVienPhanCong,
+                    
+                    -- Thông tin nhân viên được phân công
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT_WS('|',
+                            IFNULL(pc.MaBangPhanCong, ''),
+                            IFNULL(nv.MaNhanVien, ''),
+                            IFNULL(nv.TenNhanVien, ''),
+                            IFNULL(lnv.TenLoai, ''),
+                            IFNULL(DATE_FORMAT(pc.NgayThamGia, '%Y-%m-%d'), ''),
+                            IFNULL(DATE_FORMAT(pc.NgayKetThuc, '%Y-%m-%d'), ''),
+                            IFNULL(pc.SoNgayThamGia, '')
+                        )
+                        ORDER BY nv.TenNhanVien
+                        SEPARATOR ','
+                    ) as DanhSachNhanVien,
+                    
+                    -- Thông tin báo cáo tiến độ
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT_WS('|',
+                            IFNULL(bctd.MaTienDo, ''),
+                            IFNULL(bctd.CongViec, ''),
+                            IFNULL(bctd.NoiDungCongViec, ''),
+                            IFNULL(DATE_FORMAT(bctd.NgayBaoCao, '%Y-%m-%d %H:%i:%s'), ''),
+                            IFNULL(bctd.TiLeHoanThanh, '')
+                        )
+                        ORDER BY bctd.NgayBaoCao DESC
+                        SEPARATOR ','
+                    ) as DanhSachBaoCaoTienDo
+                    
+                 FROM CongTrinh c
+                 LEFT JOIN LoaiCongTrinh lct ON c.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
+                 LEFT JOIN KhachHang kh ON c.MaKhachHang = kh.MaKhachHang
+                 LEFT JOIN BangPhanCong pc ON c.MaCongTrinh = pc.MaCongTrinh
+                 LEFT JOIN NhanVien nv ON pc.MaNhanVien = nv.MaNhanVien
+                 LEFT JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 LEFT JOIN BangBaoCaoTienDo bctd ON c.MaCongTrinh = bctd.MaCongTrinh
+                 
+                 GROUP BY c.MaCongTrinh, c.TenCongTrinh, c.Dientich, c.NgayDuKienHoanThanh,
+                          lct.TenLoaiCongTrinh, kh.TenKhachHang, kh.SoDT, kh.Email
+                 ORDER BY c.NgayDuKienHoanThanh DESC";
 
-            // 1. Lấy thông tin phân công trước khi xóa
-            $queryGetPhanCong = "SELECT MaBangPhanCong FROM BangPhanCong 
-                                WHERE MaNhanVien = :maNhanVien 
-                                AND DATE_FORMAT(NgayThamGia, '%Y-%m') = DATE_FORMAT(:kyLuong, '%Y-%m')";
-            
-            $stmtGetPhanCong = $this->conn->prepare($queryGetPhanCong);
-            $stmtGetPhanCong->bindParam(":maNhanVien", $this->MaNhanVien);
-            $stmtGetPhanCong->bindParam(":kyLuong", $this->KyLuong);
-            $stmtGetPhanCong->execute();
-            
-            $phanCong = $stmtGetPhanCong->fetch(PDO::FETCH_ASSOC);
-            if ($phanCong) {
-                $this->MaBangPhanCong = $phanCong['MaBangPhanCong'];
-            }
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
 
-            // 2. Xóa bản ghi phân công
-            $queryPhanCong = "DELETE FROM BangPhanCong 
-                             WHERE MaBangPhanCong = :maBangPhanCong";
-
-            $stmtPhanCong = $this->conn->prepare($queryPhanCong);
-            $stmtPhanCong->bindParam(":maBangPhanCong", $this->MaBangPhanCong);
-
-            if (!$stmtPhanCong->execute()) {
-                throw new Exception("Không thể xóa bản ghi phân công");
-            }
-
-            // 3. Xóa bản ghi chấm công
-            $queryChamCong = "DELETE FROM " . $this->table_name . " 
-                             WHERE MaChamCong = :maChamCong";
-
-            $stmtChamCong = $this->conn->prepare($queryChamCong);
-            $stmtChamCong->bindParam(":maChamCong", $this->MaChamCong);
-
-            if (!$stmtChamCong->execute()) {
-                throw new Exception("Không thể xóa bản ghi chấm công");
-            }
-
-            $this->conn->commit();
-
-            return [
-                "status" => "success",
-                "message" => "Xóa phân công và chấm công thành công",
-                "data" => [
-                    "MaChamCong" => $this->MaChamCong,
-                    "MaBangPhanCong" => $this->MaBangPhanCong
-                ]
-            ];
-
-        } catch (Exception $e) {
-            $this->conn->rollBack();
-            return [
-                "status" => "error",
-                "message" => $e->getMessage()
-            ];
-        }
+        return $stmt;
     }
 
-    // Lấy thông tin chấm công theo nhân viên
-    public function getByEmployee($maNhanVien) {
-        $query = "SELECT cc.*, nv.TenNhanVien, nv.LuongCanBan, nv.MaLoaiNhanVien,
-                         pc.MaBangPhanCong, pc.MaCongTrinh, pc.NgayThamGia, pc.NgayKetThuc, pc.SoNgayThamGia,
-                         ct.TenCongTrinh, cc.TrangThai
-                  FROM " . $this->table_name . " cc
-                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
-                  LEFT JOIN BangPhanCong pc ON cc.MaNhanVien = pc.MaNhanVien 
-                      AND DATE_FORMAT(cc.KyLuong, '%Y-%m') = DATE_FORMAT(pc.NgayThamGia, '%Y-%m')
-                  LEFT JOIN CongTrinh ct ON pc.MaCongTrinh = ct.MaCongTrinh
-                  WHERE cc.MaNhanVien = :maNhanVien
-                  ORDER BY cc.KyLuong DESC";
+    // Lấy tất cả công trình
+    public function getAllCongTrinh() {
+        $query = "SELECT 
+                    c.*,
+                    lct.TenLoaiCongTrinh,
+                    kh.TenKhachHang,
+                    (SELECT COUNT(*) FROM BangPhanCong WHERE MaCongTrinh = c.MaCongTrinh) as SoNhanVienPhanCong,
+                    (SELECT SUM(TiLeHoanThanh) FROM BangBaoCaoTienDo WHERE MaCongTrinh = c.MaCongTrinh) as TongTienDo
+                 FROM CongTrinh c
+                 LEFT JOIN LoaiCongTrinh lct ON c.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
+                 LEFT JOIN KhachHang kh ON c.MaKhachHang = kh.MaKhachHang
+                 ORDER BY c.NgayDuKienHoanThanh DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy danh sách công trình theo điều kiện tiến độ
+    public function getCongTrinhByTienDo() {
+        $query = "SELECT DISTINCT c.MaCongTrinh, c.TenCongTrinh
+                 FROM CongTrinh c
+                 LEFT JOIN BangBaoCaoTienDo b ON c.MaCongTrinh = b.MaCongTrinh
+                 WHERE NOT EXISTS (
+                     SELECT 1 
+                     FROM BangBaoCaoTienDo b2 
+                     WHERE b2.MaCongTrinh = c.MaCongTrinh
+                     GROUP BY b2.MaCongTrinh
+                     HAVING SUM(b2.TiLeHoanThanh) >= 100
+                 )
+                 OR NOT EXISTS (
+                     SELECT 1 
+                     FROM BangBaoCaoTienDo b3 
+                     WHERE b3.MaCongTrinh = c.MaCongTrinh
+                 )";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy chi tiết tiến độ của một công trình
+    public function getChiTietTienDo($maCongTrinh) {
+        $query = "SELECT b.*, c.TenCongTrinh
+                 FROM BangBaoCaoTienDo b
+                 JOIN CongTrinh c ON b.MaCongTrinh = c.MaCongTrinh
+                 WHERE b.MaCongTrinh = :maCongTrinh
+                 ORDER BY b.NgayBaoCao DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":maCongTrinh", $maCongTrinh);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy tổng tiến độ của một công trình
+    public function getTongTienDo($maCongTrinh) {
+        $query = "SELECT SUM(TiLeHoanThanh) as TongTienDo
+                 FROM BangBaoCaoTienDo
+                 WHERE MaCongTrinh = :maCongTrinh";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":maCongTrinh", $maCongTrinh);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy thông tin chi tiết phân công nhân viên của công trình
+    public function getChiTietPhanCong($maCongTrinh) {
+        $query = "SELECT 
+                    pc.MaBangPhanCong,
+                    pc.NgayThamGia,
+                    pc.NgayKetThuc,
+                    pc.SoNgayThamGia,
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    nv.SoDT,
+                    nv.Email,
+                    lnv.MaLoaiNhanVien,
+                    lnv.TenLoai
+                 FROM BangPhanCong pc
+                 JOIN NhanVien nv ON pc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE pc.MaCongTrinh = :maCongTrinh
+                 ORDER BY pc.NgayThamGia DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":maCongTrinh", $maCongTrinh);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy thông tin tổng hợp công trình và phân công
+    public function getCongTrinhChiTiet($maCongTrinh) {
+        $query = "SELECT 
+                    c.MaCongTrinh,
+                    c.TenCongTrinh,
+                    c.Dientich,
+                    c.NgayDuKienHoanThanh,
+                    (SELECT SUM(TiLeHoanThanh) FROM BangBaoCaoTienDo WHERE MaCongTrinh = c.MaCongTrinh) as TongTienDo,
+                    (SELECT COUNT(*) FROM BangPhanCong WHERE MaCongTrinh = c.MaCongTrinh) as SoNhanVienPhanCong
+                 FROM CongTrinh c
+                 WHERE c.MaCongTrinh = :maCongTrinh";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":maCongTrinh", $maCongTrinh);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy danh sách bảng chấm công của nhân viên
+    public function getBangChamCongNhanVien($maNhanVien) {
+        $query = "SELECT 
+                    cc.MaChamCong,
+                    cc.SoNgayLam,
+                    cc.KyLuong,
+                    cc.TrangThai,
+                    nv.TenNhanVien,
+                    lnv.TenLoai as LoaiNhanVien
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE cc.MaNhanVien = :maNhanVien
+                 ORDER BY cc.KyLuong DESC";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":maNhanVien", $maNhanVien);
@@ -298,47 +261,118 @@ class ChamCongModel {
         return $stmt;
     }
 
-    // Lấy thông tin chấm công theo kỳ lương
-    public function getByPeriod($kyLuong) {
-        $query = "SELECT cc.*, nv.TenNhanVien, nv.LuongCanBan, nv.MaLoaiNhanVien,
-                         pc.MaBangPhanCong, pc.MaCongTrinh, pc.NgayThamGia, pc.NgayKetThuc, pc.SoNgayThamGia,
-                         ct.TenCongTrinh, cc.TrangThai
-                  FROM " . $this->table_name . " cc
-                  JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
-                  LEFT JOIN BangPhanCong pc ON cc.MaNhanVien = pc.MaNhanVien 
-                      AND DATE_FORMAT(cc.KyLuong, '%Y-%m') = DATE_FORMAT(pc.NgayThamGia, '%Y-%m')
-                  LEFT JOIN CongTrinh ct ON pc.MaCongTrinh = ct.MaCongTrinh
-                  WHERE DATE_FORMAT(cc.KyLuong, '%Y-%m') = DATE_FORMAT(:kyLuong, '%Y-%m')
-                  ORDER BY nv.TenNhanVien";
+    // Lấy thông tin chi tiết một bảng chấm công
+    public function getChiTietBangChamCong($maChamCong) {
+        $query = "SELECT 
+                    cc.*,
+                    nv.TenNhanVien,
+                    nv.LuongCanBan,
+                    lnv.TenLoai as LoaiNhanVien,
+                    (SELECT COUNT(*) FROM BangPhanCong WHERE MaNhanVien = cc.MaNhanVien) as SoCongTrinhDangLam
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE cc.MaChamCong = :maChamCong";
 
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":kyLuong", $kyLuong);
+        $stmt->bindParam(":maChamCong", $maChamCong);
         $stmt->execute();
 
         return $stmt;
     }
 
-    public function getPhanCongByCongTrinh($maCongTrinh) {
+    // Lấy danh sách nhân viên theo loại
+    public function getNhanVienTheoLoai() {
         $query = "SELECT 
-                    pc.MaBangPhanCong,
-                    pc.MaNhanVien,
+                    nv.MaNhanVien,
                     nv.TenNhanVien,
-                    nv.LuongCanBan,
-                    nv.MaLoaiNhanVien,
-                    pc.NgayThamGia,
-                    pc.NgayKetThuc,
-                    pc.SoNgayThamGia
-                FROM BangPhanCong pc
-                JOIN NhanVien nv ON pc.MaNhanVien = nv.MaNhanVien
-                WHERE pc.MaCongTrinh = :maCongTrinh
-                AND nv.MaLoaiNhanVien IN (6, 7) -- 6: Thợ chính, 7: Thợ phụ
-                ORDER BY nv.TenNhanVien";
+                    nv.SoDT,
+                    nv.Email,
+                    lnv.TenLoai as LoaiNhanVien
+                 FROM NhanVien nv
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE lnv.TenLoai IN ('Thợ chính', 'Thợ phụ')
+                 ORDER BY lnv.TenLoai, nv.TenNhanVien";
 
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":maCongTrinh", $maCongTrinh);
         $stmt->execute();
 
         return $stmt;
+    }
+
+    // Tạo bảng phân công mới
+    public function createBangPhanCong($maCongTrinh, $maNhanVien, $ngayThamGia, $ngayKetThuc = null, $soNgayThamGia = null) {
+        try {
+            $query = "INSERT INTO BangPhanCong 
+                     (MaCongTrinh, MaNhanVien, NgayThamGia, NgayKetThuc, SoNgayThamGia) 
+                     VALUES 
+                     (:maCongTrinh, :maNhanVien, :ngayThamGia, :ngayKetThuc, :soNgayThamGia)";
+
+            $stmt = $this->conn->prepare($query);
+
+            // Bind các tham số
+            $stmt->bindParam(":maCongTrinh", $maCongTrinh);
+            $stmt->bindParam(":maNhanVien", $maNhanVien);
+            $stmt->bindParam(":ngayThamGia", $ngayThamGia);
+            $stmt->bindParam(":ngayKetThuc", $ngayKetThuc);
+            $stmt->bindParam(":soNgayThamGia", $soNgayThamGia);
+
+            // Thực thi câu lệnh
+            if ($stmt->execute()) {
+                return [
+                    "status" => "success",
+                    "message" => "Tạo phân công thành công",
+                    "id" => $this->conn->lastInsertId()
+                ];
+            } else {
+                return [
+                    "status" => "error",
+                    "message" => "Không thể tạo phân công"
+                ];
+            }
+        } catch (PDOException $e) {
+            return [
+                "status" => "error",
+                "message" => "Lỗi khi tạo phân công: " . $e->getMessage()
+            ];
+        }
+    }
+
+    // Cập nhật bảng phân công
+    public function updateBangPhanCong($maBangPhanCong, $ngayThamGia, $ngayKetThuc = null, $soNgayThamGia = null) {
+        try {
+            $query = "UPDATE BangPhanCong 
+                     SET NgayThamGia = :ngayThamGia,
+                         NgayKetThuc = :ngayKetThuc,
+                         SoNgayThamGia = :soNgayThamGia
+                     WHERE MaBangPhanCong = :maBangPhanCong";
+
+            $stmt = $this->conn->prepare($query);
+
+            // Bind các tham số
+            $stmt->bindParam(":maBangPhanCong", $maBangPhanCong);
+            $stmt->bindParam(":ngayThamGia", $ngayThamGia);
+            $stmt->bindParam(":ngayKetThuc", $ngayKetThuc);
+            $stmt->bindParam(":soNgayThamGia", $soNgayThamGia);
+
+            // Thực thi câu lệnh
+            if ($stmt->execute()) {
+                return [
+                    "status" => "success",
+                    "message" => "Cập nhật phân công thành công"
+                ];
+            } else {
+                return [
+                    "status" => "error",
+                    "message" => "Không thể cập nhật phân công"
+                ];
+            }
+        } catch (PDOException $e) {
+            return [
+                "status" => "error",
+                "message" => "Lỗi khi cập nhật phân công: " . $e->getMessage()
+            ];
+        }
     }
 }
 ?> 
