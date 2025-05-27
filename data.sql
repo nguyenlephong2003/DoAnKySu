@@ -101,10 +101,10 @@ INSERT INTO BangBaoGia (MaBaoGia, TenBaoGia, TrangThai, MaLoai) VALUES
 ('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 3);
 
 -- Bảng CongTrinh (Construction Projects)
-INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, MaKhachHang, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh, TrangThai) VALUES
-('CT001', 'Nhà phố Quận 7', 120, 'TK001', 'KH001', 'HD001', 1, '2023-07-15', 'Đang thi công'),
-('CT002', 'Biệt thự Thủ Đức', 350, 'TK002', 'KH002', 'HD002', 2, '2023-12-20', 'Đã hoàn thành'),
-('CT003', 'Căn hộ Quận 2', 85, 'TK003', 'KH003', 'HD003', 3, '2023-06-10', 'Đang thi công');
+INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, MaKhachHang, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
+('CT001', 'Nhà phố Quận 7', 120, 'TK001', 'KH001', 'HD001', 1, '2023-07-15'),
+('CT002', 'Biệt thự Thủ Đức', 350, 'TK002', 'KH002', 'HD002', 2, '2023-12-20'),
+('CT003', 'Căn hộ Quận 2', 85, 'TK003', 'KH003', 'HD003', 3, '2023-06-10');
 
 INSERT INTO ChiTietBaoGia (MaChiTietBaoGia, MaBaoGia, MaCongTrinh, GiaBaoGia, NoiDung) VALUES 
 (1, 'BG001', 'CT001', 25000000, 'Lót gạch'),

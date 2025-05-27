@@ -29,37 +29,78 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 switch ($action) {
     case 'GET':
         try {
-            // Lấy thông tin cơ bản của công trình
-            $stmt = $chamCongModel->getAll();
+            // Lấy tất cả thông tin công trình và phân công
+            $stmt = $chamCongModel->getAllInformation();
             $num = $stmt->rowCount();
 
             if ($num > 0) {
                 $result = [];
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                    // Lấy thông tin phân công cho công trình này
-                    $stmtPhanCong = $chamCongModel->getPhanCongByCongTrinh($row['MaCongTrinh']);
-                    $phanCongList = [];
-                    while ($phanCong = $stmtPhanCong->fetch(PDO::FETCH_ASSOC)) {
-                        $phanCongList[] = [
-                            "MaBangPhanCong" => $phanCong['MaBangPhanCong'],
-                            "MaNhanVien" => $phanCong['MaNhanVien'],
-                            "TenNhanVien" => $phanCong['TenNhanVien'],
-                            "LuongCanBan" => (int)$phanCong['LuongCanBan'],
-                            "MaLoaiNhanVien" => $phanCong['MaLoaiNhanVien'],
-                            "NgayThamGia" => $phanCong['NgayThamGia'],
-                            "NgayKetThuc" => $phanCong['NgayKetThuc'],
-                            "SoNgayThamGia" => $phanCong['SoNgayThamGia']
-                        ];
+                    // Debug: In ra dữ liệu thô từ database
+                    error_log("Raw DanhSachNhanVien: " . $row['DanhSachNhanVien']);
+                    
+                    // Xử lý danh sách nhân viên
+                    $danhSachNhanVien = [];
+                    if (!empty($row['DanhSachNhanVien']) && $row['DanhSachNhanVien'] !== '|||||') {
+                        $nhanVienArray = explode(',', trim($row['DanhSachNhanVien']));
+                        foreach ($nhanVienArray as $nhanVien) {
+                            if (!empty($nhanVien) && $nhanVien !== '|||||') {
+                                $info = explode('|', trim($nhanVien));
+                                if (count($info) >= 7 && !empty($info[0])) {
+                                    $danhSachNhanVien[] = [
+                                        "MaBangPhanCong" => trim($info[0]),
+                                        "MaNhanVien" => trim($info[1]),
+                                        "TenNhanVien" => trim($info[2]),
+                                        "LoaiNhanVien" => trim($info[3]),
+                                        "NgayThamGia" => trim($info[4]),
+                                        "NgayKetThuc" => trim($info[5]),
+                                        "SoNgayThamGia" => trim($info[6])
+                                    ];
+                                }
+                            }
+                        }
+                    }
+
+                    // Debug: In ra danh sách nhân viên sau khi xử lý
+                    error_log("Processed DanhSachNhanVien: " . json_encode($danhSachNhanVien));
+
+                    // Xử lý danh sách báo cáo tiến độ
+                    $danhSachBaoCao = [];
+                    if (!empty($row['DanhSachBaoCaoTienDo']) && $row['DanhSachBaoCaoTienDo'] !== '||||') {
+                        $baoCaoArray = explode(',', trim($row['DanhSachBaoCaoTienDo']));
+                        foreach ($baoCaoArray as $baoCao) {
+                            if (!empty($baoCao) && $baoCao !== '||||') {
+                                $info = explode('|', trim($baoCao));
+                                if (count($info) >= 5 && !empty($info[0])) {
+                                    $danhSachBaoCao[] = [
+                                        "MaTienDo" => trim($info[0]),
+                                        "CongViec" => trim($info[1]),
+                                        "NoiDungCongViec" => trim($info[2]),
+                                        "NgayBaoCao" => trim($info[3]),
+                                        "TiLeHoanThanh" => trim($info[4])
+                                    ];
+                                }
+                            }
+                        }
                     }
 
                     $item = [
                         "CongTrinh" => [
-                            [
-                                "MaCongTrinh" => $row['MaCongTrinh'],
-                                "TenCongTrinh" => $row['TenCongTrinh'],
-                                "TrangThai" => $row['TrangThai'],
-                                "PhanCong" => $phanCongList
-                            ]
+                            "MaCongTrinh" => $row['MaCongTrinh'],
+                            "TenCongTrinh" => $row['TenCongTrinh'],
+                            "Dientich" => $row['Dientich'],
+                            "NgayDuKienHoanThanh" => $row['NgayDuKienHoanThanh'],
+                            "TenLoaiCongTrinh" => $row['TenLoaiCongTrinh'],
+                            "KhachHang" => [
+                                "TenKhachHang" => $row['TenKhachHang'],
+                                "SoDT" => $row['SoDTKhachHang'],
+                                "Email" => $row['EmailKhachHang']
+                            ],
+                            "TongTienDo" => $row['TongTienDo'],
+                            "SoBaoCaoTienDo" => $row['SoBaoCaoTienDo'],
+                            "SoNhanVienPhanCong" => $row['SoNhanVienPhanCong'],
+                            "DanhSachNhanVien" => $danhSachNhanVien,
+                            "DanhSachBaoCaoTienDo" => $danhSachBaoCao
                         ]
                     ];
                     $result[] = $item;
@@ -83,43 +124,72 @@ switch ($action) {
         }
         break;
 
-    case 'GET_SINGLE':
+    case 'GET_CONG_TRINH':
         try {
-            // Get cham cong ID
-            $chamCongModel->MaChamCong = isset($_GET['id']) ? $_GET['id'] : die();
+            $stmt = $chamCongModel->getAllCongTrinh();
+            $num = $stmt->rowCount();
 
-            // Read single cham cong
-            $stmt = $chamCongModel->getOne();
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($row) {
-                $result = [
-                    "MaChamCong" => $row['MaChamCong'],
-                    "MaNhanVien" => $row['MaNhanVien'],
-                    "TenNhanVien" => $row['TenNhanVien'],
-                    "LuongCanBan" => (int)$row['LuongCanBan'],
-                    "SoNgayLam" => $row['SoNgayLam'],
-                    "KyLuong" => $row['KyLuong'],
-                    "LuongThang" => (int)($row['LuongCanBan'] * $row['SoNgayLam']),
-                    "MaCongTrinh" => $row['MaCongTrinh'],
-                    "TenCongTrinh" => $row['TenCongTrinh'],
-                    "NgayThamGia" => $row['NgayThamGia'],
-                    "NgayKetThuc" => $row['NgayKetThuc']
-                ];
+            if ($num > 0) {
+                $result = [];
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $item = [
+                        "MaCongTrinh" => $row['MaCongTrinh'],
+                        "TenCongTrinh" => $row['TenCongTrinh'],
+                        "Dientich" => $row['Dientich'],
+                        "NgayDuKienHoanThanh" => $row['NgayDuKienHoanThanh'],
+                        "TenLoaiCongTrinh" => $row['TenLoaiCongTrinh'],
+                        "TenKhachHang" => $row['TenKhachHang'],
+                        "SoNhanVienPhanCong" => $row['SoNhanVienPhanCong'],
+                        "TongTienDo" => $row['TongTienDo']
+                    ];
+                    $result[] = $item;
+                }
                 echo json_encode([
                     "status" => "success",
                     "data" => $result
                 ]);
             } else {
                 echo json_encode([
-                    "status" => "error",
-                    "message" => "Không tìm thấy bản ghi chấm công"
+                    "status" => "success",
+                    "data" => []
                 ]);
             }
         } catch (Exception $e) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Lỗi khi lấy thông tin chấm công: " . $e->getMessage()
+                "message" => "Lỗi khi lấy danh sách công trình: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'GET_CONG_TRINH_CHUA_HOAN_THANH':
+        try {
+            $stmt = $chamCongModel->getCongTrinhByTienDo();
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $item = [
+                        "MaCongTrinh" => $row['MaCongTrinh'],
+                        "TenCongTrinh" => $row['TenCongTrinh']
+                    ];
+                    $result[] = $item;
+                }
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $result
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => []
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy danh sách công trình chưa hoàn thành: " . $e->getMessage()
             ]);
         }
         break;
@@ -130,7 +200,7 @@ switch ($action) {
             $maNhanVien = isset($_GET['maNhanVien']) ? $_GET['maNhanVien'] : die();
 
             // Get cham cong records for employee
-            $stmt = $chamCongModel->getByEmployee($maNhanVien);
+            $stmt = $chamCongModel->getBangChamCongNhanVien($maNhanVien);
             $num = $stmt->rowCount();
 
             if ($num > 0) {
@@ -138,16 +208,11 @@ switch ($action) {
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $item = [
                         "MaChamCong" => $row['MaChamCong'],
-                        "MaNhanVien" => $row['MaNhanVien'],
-                        "TenNhanVien" => $row['TenNhanVien'],
-                        "LuongCanBan" => (int)$row['LuongCanBan'],
                         "SoNgayLam" => $row['SoNgayLam'],
                         "KyLuong" => $row['KyLuong'],
-                        "LuongThang" => (int)($row['LuongCanBan'] * $row['SoNgayLam']),
-                        "MaCongTrinh" => $row['MaCongTrinh'],
-                        "TenCongTrinh" => $row['TenCongTrinh'],
-                        "NgayThamGia" => $row['NgayThamGia'],
-                        "NgayKetThuc" => $row['NgayKetThuc']
+                        "TrangThai" => $row['TrangThai'],
+                        "TenNhanVien" => $row['TenNhanVien'],
+                        "LoaiNhanVien" => $row['LoaiNhanVien']
                     ];
                     $result[] = $item;
                 }
@@ -169,39 +234,58 @@ switch ($action) {
         }
         break;
 
-    case 'GET_BY_PERIOD':
+    case 'GET_CHI_TIET_CHAM_CONG':
         try {
-            // Get period
-            $kyLuong = isset($_GET['kyLuong']) ? $_GET['kyLuong'] : die();
+            // Get cham cong ID
+            $maChamCong = isset($_GET['maChamCong']) ? $_GET['maChamCong'] : die();
 
-            // Validate date format
-            if (!preg_match('/^\d{4}-\d{2}$/', $kyLuong)) {
+            // Get chi tiet cham cong
+            $stmt = $chamCongModel->getChiTietBangChamCong($maChamCong);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row) {
+                $result = [
+                    "MaChamCong" => $row['MaChamCong'],
+                    "SoNgayLam" => $row['SoNgayLam'],
+                    "KyLuong" => $row['KyLuong'],
+                    "TrangThai" => $row['TrangThai'],
+                    "TenNhanVien" => $row['TenNhanVien'],
+                    "LuongCanBan" => $row['LuongCanBan'],
+                    "LoaiNhanVien" => $row['LoaiNhanVien'],
+                    "SoCongTrinhDangLam" => $row['SoCongTrinhDangLam']
+                ];
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $result
+                ]);
+            } else {
                 echo json_encode([
                     "status" => "error",
-                    "message" => "Định dạng kỳ lương không hợp lệ. Sử dụng định dạng YYYY-MM"
+                    "message" => "Không tìm thấy bản ghi chấm công"
                 ]);
-                break;
             }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy thông tin chi tiết chấm công: " . $e->getMessage()
+            ]);
+        }
+        break;
 
-            // Get cham cong records for period
-            $stmt = $chamCongModel->getByPeriod($kyLuong);
+    case 'GET_NHAN_VIEN_THEO_LOAI':
+        try {
+            $stmt = $chamCongModel->getNhanVienTheoLoai();
             $num = $stmt->rowCount();
 
             if ($num > 0) {
                 $result = [];
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $item = [
-                        "MaChamCong" => $row['MaChamCong'],
                         "MaNhanVien" => $row['MaNhanVien'],
                         "TenNhanVien" => $row['TenNhanVien'],
-                        "LuongCanBan" => (int)$row['LuongCanBan'],
-                        "SoNgayLam" => $row['SoNgayLam'],
-                        "KyLuong" => $row['KyLuong'],
-                        "LuongThang" => (int)($row['LuongCanBan'] * $row['SoNgayLam']),
-                        "MaCongTrinh" => $row['MaCongTrinh'],
-                        "TenCongTrinh" => $row['TenCongTrinh'],
-                        "NgayThamGia" => $row['NgayThamGia'],
-                        "NgayKetThuc" => $row['NgayKetThuc']
+                        "SoDT" => $row['SoDT'],
+                        "Email" => $row['Email'],
+                        "LoaiNhanVien" => $row['LoaiNhanVien']
                     ];
                     $result[] = $item;
                 }
@@ -218,109 +302,70 @@ switch ($action) {
         } catch (Exception $e) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Lỗi khi lấy thông tin chấm công theo kỳ lương: " . $e->getMessage()
+                "message" => "Lỗi khi lấy danh sách nhân viên: " . $e->getMessage()
             ]);
         }
         break;
 
     case 'POST':
         try {
-            // Get posted data
-            $data = json_decode(file_get_contents("php://input"));
-            
-            // Validate required fields
-            if (!isset($data->MaNhanVien) || !isset($data->MaCongTrinh) || !isset($data->NgayThamGia)) {
+            // Lấy dữ liệu từ request body
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            // Kiểm tra các trường bắt buộc
+            if (!isset($data['MaCongTrinh']) || !isset($data['MaNhanVien']) || !isset($data['NgayThamGia'])) {
                 echo json_encode([
                     "status" => "error",
-                    "message" => "Thiếu thông tin bắt buộc: MaNhanVien, MaCongTrinh, NgayThamGia"
+                    "message" => "Thiếu thông tin bắt buộc"
                 ]);
-                break;
+                exit();
             }
 
-            // Validate date format
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data->NgayThamGia)) {
-                echo json_encode([
-                    "status" => "error",
-                    "message" => "Định dạng ngày tham gia không hợp lệ. Sử dụng định dạng YYYY-MM-DD"
-                ]);
-                break;
-            }
+            // Tạo phân công mới
+            $result = $chamCongModel->createBangPhanCong(
+                $data['MaCongTrinh'],
+                $data['MaNhanVien'],
+                $data['NgayThamGia'],
+                $data['NgayKetThuc'] ?? null,
+                $data['SoNgayThamGia'] ?? null
+            );
 
-            // Set property values
-            $chamCongModel->MaNhanVien = $data->MaNhanVien;
-            $chamCongModel->MaCongTrinh = $data->MaCongTrinh;
-            $chamCongModel->NgayThamGia = $data->NgayThamGia;
-            $chamCongModel->NgayKetThuc = $data->NgayKetThuc ?? null;
-            $chamCongModel->SoNgayThamGia = $data->SoNgayThamGia ?? 1;
-            $chamCongModel->SoNgayLam = $data->SoNgayThamGia ?? 1;
-            $chamCongModel->KyLuong = date('Y-m-01', strtotime($data->NgayThamGia));
-
-            // Create cham cong
-            $result = $chamCongModel->create();
             echo json_encode($result);
         } catch (Exception $e) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Lỗi khi tạo bản ghi chấm công: " . $e->getMessage()
+                "message" => "Lỗi khi tạo phân công: " . $e->getMessage()
             ]);
         }
         break;
 
     case 'PUT':
         try {
-            // Get posted data
-            $data = json_decode(file_get_contents("php://input"));
+            // Lấy dữ liệu từ request body
+            $data = json_decode(file_get_contents("php://input"), true);
 
-            // Validate required fields
-            if (!isset($data->MaChamCong) || !isset($data->MaNhanVien) || !isset($data->MaCongTrinh)) {
+            // Kiểm tra các trường bắt buộc
+            if (!isset($data['MaBangPhanCong']) || !isset($data['NgayThamGia'])) {
                 echo json_encode([
                     "status" => "error",
-                    "message" => "Thiếu thông tin bắt buộc: MaChamCong, MaNhanVien, MaCongTrinh"
+                    "message" => "Thiếu thông tin bắt buộc"
                 ]);
-                break;
+                exit();
             }
 
-            // Set property values
-            $chamCongModel->MaChamCong = $data->MaChamCong;
-            $chamCongModel->MaNhanVien = $data->MaNhanVien;
-            $chamCongModel->MaCongTrinh = $data->MaCongTrinh;
-            $chamCongModel->NgayThamGia = $data->NgayThamGia;
-            $chamCongModel->NgayKetThuc = $data->NgayKetThuc ?? null;
-            $chamCongModel->SoNgayThamGia = $data->SoNgayThamGia ?? 1;
-            $chamCongModel->SoNgayLam = $data->SoNgayLam;
-            $chamCongModel->KyLuong = $data->KyLuong;
+            // Cập nhật phân công
+            $result = $chamCongModel->updateBangPhanCong(
+                $data['MaBangPhanCong'],
+                $data['NgayThamGia'],
+                $data['NgayKetThuc'] ?? null,
+                $data['SoNgayThamGia'] ?? null
+            );
 
-            // Update cham cong
-            $result = $chamCongModel->update();
             echo json_encode($result);
         } catch (Exception $e) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Lỗi khi cập nhật bản ghi chấm công: " . $e->getMessage()
-            ]);
-        }
-        break;
-
-    case 'DELETE':
-        try {
-            // Get cham cong ID
-            $chamCongModel->MaChamCong = isset($_GET['id']) ? $_GET['id'] : die();
-
-            // Get ky luong for delete
-            $stmt = $chamCongModel->getOne();
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($row) {
-                $chamCongModel->MaNhanVien = $row['MaNhanVien'];
-                $chamCongModel->KyLuong = $row['KyLuong'];
-            }
-
-            // Delete cham cong
-            $result = $chamCongModel->delete();
-            echo json_encode($result);
-        } catch (Exception $e) {
-            echo json_encode([
-                "status" => "error",
-                "message" => "Lỗi khi xóa bản ghi chấm công: " . $e->getMessage()
+                "message" => "Lỗi khi cập nhật phân công: " . $e->getMessage()
             ]);
         }
         break;

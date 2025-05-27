@@ -79,7 +79,6 @@ CREATE TABLE `CongTrinh` (
   `FileThietKe` text,
   `MaKhachHang` varchar(20),
   `MaHopDong` varchar(20),
-  `TrangThai` varchar(255),
   `MaLoaiCongTrinh` int,
   `NgayDuKienHoanThanh` datetime
 );
@@ -101,6 +100,7 @@ CREATE TABLE `BangBaoCaoTienDo` (
   `TrangThai` boolean,
   `TiLeHoanThanh` float,
   `HinhAnhTienDo` text,
+  
   `MaCongTrinh` varchar(20)
 );
 
