@@ -27,9 +27,20 @@ const QuanLyLoaiCongTrinh = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=GET`);
+      const response = await axios.get(
+        `${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=GET`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       let arr = [];
-      if (Array.isArray(response.data)) {
+      if (response.data.status === 'success') {
+        arr = response.data.data;
+      } else if (Array.isArray(response.data)) {
         arr = response.data;
       } else if (Array.isArray(response.data.data)) {
         arr = response.data.data;
@@ -91,6 +102,13 @@ const QuanLyLoaiCongTrinh = () => {
         {
           MaLoaiCongTrinh: currentRecord.MaLoaiCongTrinh,
           ...values
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
         }
       );
 
@@ -121,7 +139,14 @@ const QuanLyLoaiCongTrinh = () => {
       
       const response = await axios.post(
         `${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=POST`,
-        values
+        values,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.status === 'success' || response.data.message?.includes('đã được thêm')) {
@@ -146,7 +171,14 @@ const QuanLyLoaiCongTrinh = () => {
       setLoading(true);
       const response = await axios.delete(
         `${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=DELETE`,
-        { data: { MaLoaiCongTrinh: record.MaLoaiCongTrinh } }
+        { 
+          data: { MaLoaiCongTrinh: record.MaLoaiCongTrinh },
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
       if (response.data.status === 'success') {
         message.success('Xóa thành công');
