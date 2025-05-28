@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import huitImage from "../assets/nen2.png";
 import { useNavigate } from "react-router-dom";
 import BASE_URL from "../Config.js";
+import { useAuth } from "../Config/AuthContext";
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -10,6 +11,7 @@ function LoginPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,13 +43,11 @@ function LoginPage() {
         }
       );
 
-      // Đọc response text trước
       const responseText = await response.text();
-      console.log("Raw response:", responseText); // Log raw response để debug
+      console.log("Raw response:", responseText);
 
       let data;
       try {
-        // Thử parse JSON
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error("Lỗi parse JSON:", parseError);
@@ -55,19 +55,16 @@ function LoginPage() {
         throw new Error("Server trả về dữ liệu không hợp lệ");
       }
 
-      console.log("Parsed data:", data); // Log parsed data để debug
+      console.log("Parsed data:", data);
 
       if (data.message === "success" && data.nhanvien && data.nhanvien.length > 0) {
-        // Lưu thông tin người dùng vào sessionStorage thay vì localStorage
-        sessionStorage.setItem("userInfo", JSON.stringify(data.nhanvien[0]));
+        login(data.nhanvien[0]);
         setSuccess("Đăng nhập thành công!");
         setError("");
 
-        // Lấy tên loại nhân viên
         const tenLoai = data.nhanvien[0].TenLoaiNhanVien;
         console.log("Tên loại nhân viên:", tenLoai);
 
-        // Chuyển hướng dựa vào tên loại
         setTimeout(() => {
           switch (tenLoai) {
             case "Admin":

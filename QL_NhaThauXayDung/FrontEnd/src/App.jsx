@@ -27,6 +27,7 @@ import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
 import BASE_URL from "./Config.js";  // Thêm dòng này
 import Backup_Restore from "./components/Backup_Restore.jsx";
 import QuanLyChamCong from "./components/QuanLyChamCong.jsx";
+import { AuthProvider } from './Config/AuthContext';
 
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -112,126 +113,128 @@ function ProtectedRoute({ children, allowedRole }) {
 
 function App() {
   return (
-    <Routes>
-      {/* Trang mặc định và trang đăng nhập */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<Navigate to="/login" replace />} />
+    <AuthProvider>
+      <Routes>
+        {/* Trang mặc định và trang đăng nhập */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* Trang 404 */}
-      <Route path="/404" element={<Page404 />} />
+        {/* Trang 404 */}
+        <Route path="/404" element={<Page404 />} />
 
-      {/* Các trang được bảo vệ với kiểm tra vai trò */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRole="AD">
-            <AdminPage />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="quantringuoidung" element={<QL_NguoiDung />} />
-        <Route path="saoluuphuchoi" element={<Backup_Restore />} />
-      </Route>
-      <Route
-        path="/giamdoc"
-        element={
-          <ProtectedRoute allowedRole="GD">
-            <GiamDocPage />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="duyetdexuat" element={<DuyetDeXuat/>} />
-        <Route path="duyetbaogia" element={<DuyetBaoGia />} />
-        <Route path="baocaothongke" element={<h1>Báo cáo thống kê</h1>} />
-        <Route path="duyethopdong" element={<DuyetHopDong />} />
-        <Route path="quanlynhanvien" element={<h1>Quản lý nhân viên</h1>} />
-        <Route path="quanlyluong" element={<h1>Quản lý lương</h1>} />
-      </Route>
-      <Route
-        path="/ketoan"
-        element={
-          <ProtectedRoute allowedRole="KT">
-            <KeToanPage />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
-        <Route path="quanlyluong" element={<QuanLyLuong/>} />
-        <Route path="thanhtoan" element={<h1>Thanh toán</h1>} />
-        <Route path="quanlygiaingan" element={<h1>Quản lý giải ngân</h1>} />
-      </Route>
+        {/* Các trang được bảo vệ với kiểm tra vai trò */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRole="AD">
+              <AdminPage />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="quantringuoidung" element={<QL_NguoiDung />} />
+          <Route path="saoluuphuchoi" element={<Backup_Restore />} />
+        </Route>
+        <Route
+          path="/giamdoc"
+          element={
+            <ProtectedRoute allowedRole="GD">
+              <GiamDocPage />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="duyetdexuat" element={<DuyetDeXuat/>} />
+          <Route path="duyetbaogia" element={<DuyetBaoGia />} />
+          <Route path="baocaothongke" element={<h1>Báo cáo thống kê</h1>} />
+          <Route path="duyethopdong" element={<DuyetHopDong />} />
+          <Route path="quanlynhanvien" element={<h1>Quản lý nhân viên</h1>} />
+          <Route path="quanlyluong" element={<h1>Quản lý lương</h1>} />
+        </Route>
+        <Route
+          path="/ketoan"
+          element={
+            <ProtectedRoute allowedRole="KT">
+              <KeToanPage />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
+          <Route path="quanlyluong" element={<QuanLyLuong/>} />
+          <Route path="thanhtoan" element={<h1>Thanh toán</h1>} />
+          <Route path="quanlygiaingan" element={<h1>Quản lý giải ngân</h1>} />
+        </Route>
 
-      <Route
-        path="/nhansu"
-        element={
-          <ProtectedRoute allowedRole="NS">
-            <NhanSuPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/nhansu/quan-ly-nhan-vien"
-        element={
-          <ProtectedRoute allowedRole="NS">
-            <NhanSuPage children={<QL_NhanVien />} />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/nhansu"
+          element={
+            <ProtectedRoute allowedRole="NS">
+              <NhanSuPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/nhansu/quan-ly-nhan-vien"
+          element={
+            <ProtectedRoute allowedRole="NS">
+              <NhanSuPage children={<QL_NhanVien />} />
+            </ProtectedRoute>
+          }
+        />
 
-      <Route
-        path="/qlcongtrinh"
-        element={
-          <ProtectedRoute allowedRole="QL">
-            <QLCongTrinhPage />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="quanlycongtrinh" element={<QuanLyCongTrinh />} />
-        <Route path="quanlytiendo" element={<QuanLyTienDo />} />
-        <Route path="lapdexuat" element={<TaoDeXuat />} />
-        <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
-        <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
-        <Route path="timkiem" element={<div>Tìm kiếm</div>} />
-        <Route path="chamcongtho" element={<QuanLyChamCong />} />
-      </Route>
+        <Route
+          path="/qlcongtrinh"
+          element={
+            <ProtectedRoute allowedRole="QL">
+              <QLCongTrinhPage />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="quanlycongtrinh" element={<QuanLyCongTrinh />} />
+          <Route path="quanlytiendo" element={<QuanLyTienDo />} />
+          <Route path="lapdexuat" element={<TaoDeXuat />} />
+          <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
+          <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
+          <Route path="timkiem" element={<div>Tìm kiếm</div>} />
+          <Route path="chamcongtho" element={<QuanLyChamCong />} />
+        </Route>
 
-      <Route
-        path="/nhanvienkho"
-        element={
-          <ProtectedRoute allowedRole="K">
-            <PageNhanVienKho />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="quanlythietbivattu" element={<QuanLyThietBiVatTu />} />
-        <Route path="lapphieukiemtra" element={<div>Lập phiếu kiểm tra</div>} />
-        <Route path="danhsachphieukiemtra" element={<div>Danh sách phiếu kiểm tra</div>} />
-        <Route path="danhsachphieunhap" element={<div>Danh sách phiếu nhập</div>} />
-        <Route path="quanlynhacungcap" element={<QuanLyNhaCungCap />} />
-      </Route>
-      <Route
-        path="/nhanvientuvan"
-        element={
-          <ProtectedRoute allowedRole="TV">
-            <PageNhanVienTuVan />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="lapbaogia" element={<BaoGia />} />
-        <Route path="laphopdong" element={<HopDong />} />
-      </Route>
-      {/* <Route
-        path="admin/quantringuoidung"
-        element={
-          <ProtectedRoute allowedRole="AD">
-            <UserManager />
-          </ProtectedRoute>
-        }
-      /> */}
+        <Route
+          path="/nhanvienkho"
+          element={
+            <ProtectedRoute allowedRole="K">
+              <PageNhanVienKho />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="quanlythietbivattu" element={<QuanLyThietBiVatTu />} />
+          <Route path="lapphieukiemtra" element={<div>Lập phiếu kiểm tra</div>} />
+          <Route path="danhsachphieukiemtra" element={<div>Danh sách phiếu kiểm tra</div>} />
+          <Route path="danhsachphieunhap" element={<div>Danh sách phiếu nhập</div>} />
+          <Route path="quanlynhacungcap" element={<QuanLyNhaCungCap />} />
+        </Route>
+        <Route
+          path="/nhanvientuvan"
+          element={
+            <ProtectedRoute allowedRole="TV">
+              <PageNhanVienTuVan />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="lapbaogia" element={<BaoGia />} />
+          <Route path="laphopdong" element={<HopDong />} />
+        </Route>
+        {/* <Route
+          path="admin/quantringuoidung"
+          element={
+            <ProtectedRoute allowedRole="AD">
+              <UserManager />
+            </ProtectedRoute>
+          }
+        /> */}
 
-      {/* Xử lý tất cả các route không xác định */}
-      <Route path="*" element={<Navigate to="/404" replace />} />
-    </Routes>
+        {/* Xử lý tất cả các route không xác định */}
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 
