@@ -3,6 +3,7 @@ import { Table, Button, Input, message, Modal, Form, Popconfirm, Radio } from 'a
 import { SearchOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import BASE_URL from '../Config';
+import { useAuth } from '../Config/AuthContext';
 
 const QuanLyLoaiThietBiVatTu = () => {
   const [data, setData] = useState([]);
@@ -19,6 +20,17 @@ const QuanLyLoaiThietBiVatTu = () => {
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [addForm] = Form.useForm();
+  const { user } = useAuth();
+
+  // Kiểm tra quyền
+  const canAdd = user?.TenLoaiNhanVien === 'Admin' || 
+                user?.TenLoaiNhanVien === 'Giám đốc' ||
+                user?.TenLoaiNhanVien === 'Kế toán';
+  
+  const canEdit = user?.TenLoaiNhanVien === 'Admin' || 
+                 user?.TenLoaiNhanVien === 'Giám đốc';
+  
+  const canDelete = user?.TenLoaiNhanVien === 'Admin';
 
   useEffect(() => {
     fetchData();
@@ -256,21 +268,31 @@ const QuanLyLoaiThietBiVatTu = () => {
       align: 'center',
       render: (_, record) => (
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-          <Button 
-            icon={<EditOutlined />} 
-            type="default"
-            onClick={() => handleEdit(record)}
-          >
-            Sửa
-          </Button>
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa?"
-            onConfirm={() => handleDelete(record)}
-            okText="Xóa"
-            cancelText="Hủy"
-          >
-            <Button danger>Xóa</Button>
-          </Popconfirm>
+          {canEdit || canDelete ? (
+            <>
+              {canEdit && (
+                <Button 
+                  icon={<EditOutlined />} 
+                  type="default"
+                  onClick={() => handleEdit(record)}
+                >
+                  Sửa
+                </Button>
+              )}
+              {canDelete && (
+                <Popconfirm
+                  title="Bạn có chắc chắn muốn xóa?"
+                  onConfirm={() => handleDelete(record)}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                >
+                  <Button danger>Xóa</Button>
+                </Popconfirm>
+              )}
+            </>
+          ) : (
+            <span style={{ color: '#999' }}>Bạn không đủ quyền hạn để thao tác</span>
+          )}
         </div>
       ),
     }
@@ -286,13 +308,15 @@ const QuanLyLoaiThietBiVatTu = () => {
           onChange={(e) => setSearchText(e.target.value)}
           style={{ width: 300 }}
         />
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-        >
-          Thêm mới
-        </Button>
+        {canAdd && (
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            Thêm mới
+          </Button>
+        )}
       </div>
 
       <Table
@@ -311,199 +335,203 @@ const QuanLyLoaiThietBiVatTu = () => {
       />
 
       {/* Edit Modal */}
-      <Modal
-        title={
-          <div className="text-xl font-semibold text-gray-800 border-b pb-4">
-            Sửa loại thiết bị vật tư
-          </div>
-        }
-        open={editModalVisible}
-        onCancel={() => setEditModalVisible(false)}
-        maskClosable={false}
-        keyboard={false}
-        closable={false}
-        width={500}
-        className="custom-modal"
-        bodyStyle={{ padding: '24px' }}
-        footer={[
-          <div key="footer" className="flex justify-end gap-2 border-t pt-4">
-            <Button 
-              key="cancel" 
-              onClick={() => setEditModalVisible(false)}
-              className="px-6"
-            >
-              Đóng
-            </Button>
-            <Button 
-              key="submit" 
-              type="primary" 
-              onClick={handleUpdate}
-              loading={loading}
-              className="px-6 bg-blue-600 hover:bg-blue-700"
-            >
-              Lưu
-            </Button>
-          </div>
-        ]}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          className="mt-4"
+      {canEdit && (
+        <Modal
+          title={
+            <div className="text-xl font-semibold text-gray-800 border-b pb-4">
+              Sửa loại thiết bị vật tư
+            </div>
+          }
+          open={editModalVisible}
+          onCancel={() => setEditModalVisible(false)}
+          maskClosable={false}
+          keyboard={false}
+          closable={false}
+          width={500}
+          className="custom-modal"
+          bodyStyle={{ padding: '24px' }}
+          footer={[
+            <div key="footer" className="flex justify-end gap-2 border-t pt-4">
+              <Button 
+                key="cancel" 
+                onClick={() => setEditModalVisible(false)}
+                className="px-6"
+              >
+                Đóng
+              </Button>
+              <Button 
+                key="submit" 
+                type="primary" 
+                onClick={handleUpdate}
+                loading={loading}
+                className="px-6 bg-blue-600 hover:bg-blue-700"
+              >
+                Lưu
+              </Button>
+            </div>
+          ]}
         >
-          <Form.Item
-            name="TenLoai"
-            label={
-              <span className="text-gray-700 font-medium">
-                Tên loại
-              </span>
-            }
-            rules={[
-              { required: true, message: 'Vui lòng nhập tên loại' },
-              { min: 2, message: 'Tên loại phải có ít nhất 2 ký tự' }
-            ]}
+          <Form
+            form={form}
+            layout="vertical"
+            className="mt-4"
           >
-            <Input 
-              placeholder="Nhập tên loại"
-              className="hover:border-blue-400 focus:border-blue-400"
-              size="large"
-            />
-          </Form.Item>
-          <Form.Item
-            name="DonViTinh"
-            label={
-              <span className="text-gray-700 font-medium">
-                Đơn vị tính
-              </span>
-            }
-            rules={[
-              { required: true, message: 'Vui lòng nhập đơn vị tính' },
-              { min: 1, message: 'Đơn vị tính phải có ít nhất 1 ký tự' }
-            ]}
-          >
-            <Input 
-              placeholder="Nhập đơn vị tính"
-              className="hover:border-blue-400 focus:border-blue-400"
-              size="large"
-            />
-          </Form.Item>
-          <Form.Item
-            name="LaThietBi"
-            label={
-              <span className="text-gray-700 font-medium">
-                Loại
-              </span>
-            }
-            rules={[
-              { required: true, message: 'Vui lòng chọn loại' }
-            ]}
-          >
-            <Radio.Group>
-              <Radio value={true}>Thiết bị</Radio>
-              <Radio value={false}>Vật tư</Radio>
-            </Radio.Group>
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Form.Item
+              name="TenLoai"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Tên loại
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập tên loại' },
+                { min: 2, message: 'Tên loại phải có ít nhất 2 ký tự' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập tên loại"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="DonViTinh"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Đơn vị tính
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập đơn vị tính' },
+                { min: 1, message: 'Đơn vị tính phải có ít nhất 1 ký tự' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập đơn vị tính"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="LaThietBi"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Loại
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng chọn loại' }
+              ]}
+            >
+              <Radio.Group>
+                <Radio value={true}>Thiết bị</Radio>
+                <Radio value={false}>Vật tư</Radio>
+              </Radio.Group>
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
 
       {/* Add Modal */}
-      <Modal
-        title={
-          <div className="text-xl font-semibold text-gray-800 border-b pb-4">
-            Thêm loại thiết bị vật tư mới
-          </div>
-        }
-        open={addModalVisible}
-        onCancel={() => setAddModalVisible(false)}
-        maskClosable={false}
-        keyboard={false}
-        closable={false}
-        width={500}
-        className="custom-modal"
-        bodyStyle={{ padding: '24px' }}
-        footer={[
-          <div key="footer" className="flex justify-end gap-2 border-t pt-4">
-            <Button 
-              key="cancel" 
-              onClick={() => {
-                setAddModalVisible(false);
-                addForm.resetFields();
-              }}
-              className="px-6"
-            >
-              Đóng
-            </Button>
-            <Button 
-              key="submit" 
-              type="primary" 
-              onClick={handleAddSubmit}
-              loading={loading}
-              className="px-6 bg-blue-600 hover:bg-blue-700"
-            >
-              Thêm
-            </Button>
-          </div>
-        ]}
-      >
-        <Form
-          form={addForm}
-          layout="vertical"
-          className="mt-4"
+      {canAdd && (
+        <Modal
+          title={
+            <div className="text-xl font-semibold text-gray-800 border-b pb-4">
+              Thêm loại thiết bị vật tư mới
+            </div>
+          }
+          open={addModalVisible}
+          onCancel={() => setAddModalVisible(false)}
+          maskClosable={false}
+          keyboard={false}
+          closable={false}
+          width={500}
+          className="custom-modal"
+          bodyStyle={{ padding: '24px' }}
+          footer={[
+            <div key="footer" className="flex justify-end gap-2 border-t pt-4">
+              <Button 
+                key="cancel" 
+                onClick={() => {
+                  setAddModalVisible(false);
+                  addForm.resetFields();
+                }}
+                className="px-6"
+              >
+                Đóng
+              </Button>
+              <Button 
+                key="submit" 
+                type="primary" 
+                onClick={handleAddSubmit}
+                loading={loading}
+                className="px-6 bg-blue-600 hover:bg-blue-700"
+              >
+                Thêm
+              </Button>
+            </div>
+          ]}
         >
-          <Form.Item
-            name="TenLoai"
-            label={
-              <span className="text-gray-700 font-medium">
-                Tên loại
-              </span>
-            }
-            rules={[
-              { required: true, message: 'Vui lòng nhập tên loại' },
-              { min: 2, message: 'Tên loại phải có ít nhất 2 ký tự' }
-            ]}
+          <Form
+            form={addForm}
+            layout="vertical"
+            className="mt-4"
           >
-            <Input 
-              placeholder="Nhập tên loại"
-              className="hover:border-blue-400 focus:border-blue-400"
-              size="large"
-            />
-          </Form.Item>
-          <Form.Item
-            name="DonViTinh"
-            label={
-              <span className="text-gray-700 font-medium">
-                Đơn vị tính
-              </span>
-            }
-            rules={[
-              { required: true, message: 'Vui lòng nhập đơn vị tính' },
-              { min: 1, message: 'Đơn vị tính phải có ít nhất 1 ký tự' }
-            ]}
-          >
-            <Input 
-              placeholder="Nhập đơn vị tính"
-              className="hover:border-blue-400 focus:border-blue-400"
-              size="large"
-            />
-          </Form.Item>
-          <Form.Item
-            name="LaThietBi"
-            label={
-              <span className="text-gray-700 font-medium">
-                Loại
-              </span>
-            }
-            rules={[
-              { required: true, message: 'Vui lòng chọn loại' }
-            ]}
-          >
-            <Radio.Group>
-              <Radio value={true}>Thiết bị</Radio>
-              <Radio value={false}>Vật tư</Radio>
-            </Radio.Group>
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Form.Item
+              name="TenLoai"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Tên loại
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập tên loại' },
+                { min: 2, message: 'Tên loại phải có ít nhất 2 ký tự' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập tên loại"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="DonViTinh"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Đơn vị tính
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập đơn vị tính' },
+                { min: 1, message: 'Đơn vị tính phải có ít nhất 1 ký tự' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập đơn vị tính"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="LaThietBi"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Loại
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng chọn loại' }
+              ]}
+            >
+              <Radio.Group>
+                <Radio value={true}>Thiết bị</Radio>
+                <Radio value={false}>Vật tư</Radio>
+              </Radio.Group>
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
 
       <Modal
         title="Chi tiết loại thiết bị vật tư"

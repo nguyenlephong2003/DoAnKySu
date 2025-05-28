@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+/* Forced Colors Mode */
+@media (forced-colors: active) {
+  /* Ensure text remains visible when forced-colors is active */
+  * {
+    forced-color-adjust: none;
+  }
+
+  /* Ensure buttons and interactive elements remain visible */
+  button,
+  [role="button"],
+  a {
+    forced-color-adjust: none;
+  }
+
+  /* Ensure form elements remain visible */
+  input,
+  select,
+  textarea {
+    forced-color-adjust: none;
+  }
+
+  /* Ensure table elements remain visible */
+  table,
+  th,
+  td {
+    forced-color-adjust: none;
+  }
+}

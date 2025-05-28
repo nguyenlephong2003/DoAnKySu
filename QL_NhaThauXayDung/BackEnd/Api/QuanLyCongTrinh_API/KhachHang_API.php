@@ -1,26 +1,53 @@
 <?php
-// Set headers
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("Access-Control-Allow-Origin: http://localhost:5173");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    header("Access-Control-Allow-Credentials: true");
+    header("Access-Control-Max-Age: 86400"); // 24 hours
     http_response_code(200);
     exit();
 }
 
-// Include database and object files
-include_once '../../Config/Database.php';
-include_once '../../Model/KhachHang.php';
+// Regular request headers
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
 
-// Get database connection
+require_once __DIR__ . '/../../Config/Database.php';
+require_once __DIR__ . '/../../Model/KhachHang.php';
+require_once __DIR__ . '/../../Config/VerifyToken.php';
+
 $database = new Database();
 $db = $database->getConn();
+$khachhang = new KhachHang($db);
+$verifyToken = new VerifyToken();
 
-// Initialize KhachHang object
-$khachHang = new KhachHang($db);
+$method = $_SERVER['REQUEST_METHOD'];
+$action = isset($_GET['action']) ? $_GET['action'] : null;
+
+if (!$action) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => "Yêu cầu không hợp lệ: thiếu tham số action"
+    ]);
+    http_response_code(400);
+    exit;
+}
+
+// Xác thực token
+$tokenValidation = $verifyToken->validate();
+if (!$tokenValidation['valid']) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => $tokenValidation['message']
+    ]);
+    http_response_code(401);
+    exit;
+}
 
 // Get action from request
 $action = isset($_GET['action']) ? $_GET['action'] : '';
@@ -29,29 +56,29 @@ $action = isset($_GET['action']) ? $_GET['action'] : '';
 switch ($action) {
     case 'GET':
         // Read all khach hang
-        $stmt = $khachHang->readAll();
+        $stmt = $khachhang->readAll();
         $num = $stmt->rowCount();
 
         if ($num > 0) {
-            $khachHang_arr = array(
+            $khachhang_arr = array(
                 "status" => "success",
                 "data" => array()
             );
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 extract($row);
-                $khachHang_item = array(
+                $khachhang_item = array(
                     "MaKhachHang" => $MaKhachHang,
                     "TenKhachHang" => $TenKhachHang,
                     "SoDT" => $SoDT,
                     "CCCD" => $CCCD,
                     "Email" => $Email
                 );
-                array_push($khachHang_arr["data"], $khachHang_item);
+                array_push($khachhang_arr["data"], $khachhang_item);
             }
 
             http_response_code(200);
-            echo json_encode($khachHang_arr);
+            echo json_encode($khachhang_arr);
         } else {
             http_response_code(200);
             echo json_encode(array("status" => "success", "data" => array()));
@@ -60,22 +87,22 @@ switch ($action) {
 
     case 'GET_SINGLE':
         // Get khach hang ID
-        $khachHang->MaKhachHang = isset($_GET['id']) ? $_GET['id'] : die();
+        $khachhang->MaKhachHang = isset($_GET['id']) ? $_GET['id'] : die();
 
         // Read single khach hang
-        $khachHang->readSingle();
+        $khachhang->readSingle();
 
-        if ($khachHang->MaKhachHang != null) {
-            $khachHang_arr = array(
-                "MaKhachHang" => $khachHang->MaKhachHang,
-                "TenKhachHang" => $khachHang->TenKhachHang,
-                "SoDT" => $khachHang->SoDT,
-                "CCCD" => $khachHang->CCCD,
-                "Email" => $khachHang->Email
+        if ($khachhang->MaKhachHang != null) {
+            $khachhang_arr = array(
+                "MaKhachHang" => $khachhang->MaKhachHang,
+                "TenKhachHang" => $khachhang->TenKhachHang,
+                "SoDT" => $khachhang->SoDT,
+                "CCCD" => $khachhang->CCCD,
+                "Email" => $khachhang->Email
             );
 
             http_response_code(200);
-            echo json_encode($khachHang_arr);
+            echo json_encode($khachhang_arr);
         } else {
             http_response_code(404);
             echo json_encode(array("message" => "Không tìm thấy khách hàng."));
@@ -94,14 +121,14 @@ switch ($action) {
             !empty($data->CCCD)
         ) {
             // Set khach hang property values
-            $khachHang->MaKhachHang = $data->MaKhachHang;
-            $khachHang->TenKhachHang = $data->TenKhachHang;
-            $khachHang->SoDT = $data->SoDT;
-            $khachHang->CCCD = $data->CCCD;
-            $khachHang->Email = $data->Email ?? null;
+            $khachhang->MaKhachHang = $data->MaKhachHang;
+            $khachhang->TenKhachHang = $data->TenKhachHang;
+            $khachhang->SoDT = $data->SoDT;
+            $khachhang->CCCD = $data->CCCD;
+            $khachhang->Email = $data->Email ?? null;
 
             // Create khach hang
-            if ($khachHang->create()) {
+            if ($khachhang->create()) {
                 http_response_code(201);
                 echo json_encode(array("message" => "Tạo khách hàng thành công."));
             } else {
@@ -126,14 +153,14 @@ switch ($action) {
             !empty($data->CCCD)
         ) {
             // Set khach hang property values
-            $khachHang->MaKhachHang = $data->MaKhachHang;
-            $khachHang->TenKhachHang = $data->TenKhachHang;
-            $khachHang->SoDT = $data->SoDT;
-            $khachHang->CCCD = $data->CCCD;
-            $khachHang->Email = $data->Email ?? null;
+            $khachhang->MaKhachHang = $data->MaKhachHang;
+            $khachhang->TenKhachHang = $data->TenKhachHang;
+            $khachhang->SoDT = $data->SoDT;
+            $khachhang->CCCD = $data->CCCD;
+            $khachhang->Email = $data->Email ?? null;
 
             // Update khach hang
-            if ($khachHang->update()) {
+            if ($khachhang->update()) {
                 http_response_code(200);
                 echo json_encode(array("message" => "Cập nhật khách hàng thành công."));
             } else {
@@ -148,10 +175,10 @@ switch ($action) {
 
     case 'DELETE':
         // Get khach hang ID
-        $khachHang->MaKhachHang = isset($_GET['id']) ? $_GET['id'] : die();
+        $khachhang->MaKhachHang = isset($_GET['id']) ? $_GET['id'] : die();
 
         // Delete khach hang
-        if ($khachHang->delete()) {
+        if ($khachhang->delete()) {
             http_response_code(200);
             echo json_encode(array("message" => "Xóa khách hàng thành công."));
         } else {
