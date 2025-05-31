@@ -45,7 +45,9 @@ const QuanLyCongTrinh = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=GET`);
+      const res = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=GET`, {
+        withCredentials: true
+      });
       if (res.data.status === 'success') {
         setData(res.data.data);
       } else {
@@ -60,7 +62,9 @@ const QuanLyCongTrinh = () => {
 
   const fetchKhachHangList = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/KhachHang_API.php?action=GET`);
+      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/KhachHang_API.php?action=GET`, {
+        withCredentials: true
+      });
       console.log('KhachHang Response:', response.data);
       if (response.data.status === 'success') {
         setKhachHangList(response.data.data);
@@ -80,7 +84,9 @@ const QuanLyCongTrinh = () => {
     setHopDongLoading(true);
     try {
       console.log('Fetching unused contracts...');
-      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET_UNUSED`);
+      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET_UNUSED`, {
+        withCredentials: true
+      });
       console.log('HopDong Response:', response.data);
       console.log('Response status:', response.status);
       console.log('Response headers:', response.headers);
@@ -107,7 +113,9 @@ const QuanLyCongTrinh = () => {
 
   const fetchLoaiCongTrinhList = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=GET`);
+      const response = await axios.get(`${BASE_URL}DanhMuc_API/LoaiCongTrinh_API.php?action=GET`, {
+        withCredentials: true
+      });
       console.log('LoaiCongTrinh Response:', response.data);
       if (response.data.status === 'success') {
         setLoaiCongTrinhList(response.data.data);
@@ -171,7 +179,13 @@ const QuanLyCongTrinh = () => {
       
       const response = await axios.post(
         `${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=POST`,
-        values
+        values,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.status === 'success') {
@@ -239,7 +253,16 @@ const QuanLyCongTrinh = () => {
       };
 
       // API call to update the record
-      const res = await axios.put(`${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=PUT`, updatedRecord);
+      const res = await axios.put(
+        `${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=PUT`, 
+        updatedRecord,
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       
       if (res.data.status === 'success') {
         message.success('Cập nhật công trình thành công');
