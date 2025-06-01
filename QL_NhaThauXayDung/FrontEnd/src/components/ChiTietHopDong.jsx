@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Button, Tag, Spin, Typography, Card, Divider } from 'antd';
-import { InfoCircleOutlined, FileOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, FileOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -19,6 +19,26 @@ const ChiTietHopDong = ({
   onDelete 
 }) => {
   if (!contract) return null;
+
+  const handleViewFile = (fileUrl) => {
+    if (!fileUrl) return;
+    
+    // Sử dụng Google Docs Viewer để xem cả PDF và DOCX
+    const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+    
+    Modal.info({
+      title: 'Xem file hợp đồng',
+      width: '80%',
+      content: (
+        <iframe
+          src={googleDocsUrl}
+          style={{ width: '100%', height: '80vh', border: 'none' }}
+          title="File Viewer"
+        />
+      ),
+      onOk() {},
+    });
+  };
 
   return (
     <Modal
@@ -55,6 +75,15 @@ const ChiTietHopDong = ({
               Xóa
             </Button>
           </>
+        ),
+        contract.FileHopDong && (
+          <Button
+            key="view"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewFile(contract.FileHopDong)}
+          >
+            Xem file
+          </Button>
         ),
       ]}
       width={800}
@@ -138,7 +167,7 @@ const ChiTietHopDong = ({
                     <Button
                       type="primary"
                       icon={<FileOutlined />}
-                      onClick={() => window.open(contract.FileHopDong, '_blank')}
+                      onClick={() => handleViewFile(contract.FileHopDong)}
                     >
                       Xem file hợp đồng
                     </Button>

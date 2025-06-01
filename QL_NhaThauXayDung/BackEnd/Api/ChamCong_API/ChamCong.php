@@ -313,28 +313,27 @@ switch ($action) {
             $data = json_decode(file_get_contents("php://input"), true);
 
             // Kiểm tra các trường bắt buộc
-            if (!isset($data['MaCongTrinh']) || !isset($data['MaNhanVien']) || !isset($data['NgayThamGia'])) {
+            if (!isset($data['MaNhanVien']) || !isset($data['LoaiChamCong'])) {
                 echo json_encode([
                     "status" => "error",
-                    "message" => "Thiếu thông tin bắt buộc"
+                    "message" => "Thiếu thông tin bắt buộc (MaNhanVien, LoaiChamCong)"
                 ]);
                 exit();
             }
 
-            // Tạo phân công mới
-            $result = $chamCongModel->createBangPhanCong(
-                $data['MaCongTrinh'],
+            // Tạo chấm công mới
+            $result = $chamCongModel->createBangChamCong(
                 $data['MaNhanVien'],
-                $data['NgayThamGia'],
-                $data['NgayKetThuc'] ?? null,
-                $data['SoNgayThamGia'] ?? null
+                $data['LoaiChamCong'],
+                $data['GioVao'] ?? '08:00:00',
+                $data['GioRa'] ?? '17:00:00'
             );
 
             echo json_encode($result);
         } catch (Exception $e) {
             echo json_encode([
                 "status" => "error",
-                "message" => "Lỗi khi tạo phân công: " . $e->getMessage()
+                "message" => "Lỗi khi tạo chấm công: " . $e->getMessage()
             ]);
         }
         break;
@@ -366,6 +365,40 @@ switch ($action) {
             echo json_encode([
                 "status" => "error",
                 "message" => "Lỗi khi cập nhật phân công: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'POST_BANG_CHAM_CONG':
+        try {
+            // Lấy dữ liệu từ request body
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            // Kiểm tra các trường bắt buộc
+            if (!isset($data['MaNhanVien']) || !isset($data['LoaiChamCong'])) {
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Thiếu thông tin bắt buộc (MaNhanVien, LoaiChamCong)"
+                ]);
+                exit();
+            }
+
+            // Tạo chấm công mới
+            $result = $chamCongModel->createBangChamCong(
+                $data['MaNhanVien'],
+                $data['LoaiChamCong'],
+                $data['SoNgayLam'] ?? 1,
+                $data['KyLuong'] ?? null,
+                $data['TrangThai'] ?? 'Chưa thanh toán',
+                $data['GioVao'] ?? '08:00:00',
+                $data['GioRa'] ?? '17:00:00'
+            );
+
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi tạo chấm công: " . $e->getMessage()
             ]);
         }
         break;
