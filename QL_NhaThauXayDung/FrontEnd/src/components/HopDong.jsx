@@ -20,9 +20,30 @@ const statusColors = {
 };
 
 const contractTemplates = [
-  { value: 'Mau-hop-dong-xay-dung-nha-o.pdf', label: 'Nhà ở' },
-  { value: 'Mau-hop-dong-xay-dung-nha-o-tron-goi.pdf', label: 'Nhà ở trọn gói' },
-  { value: 'Mau-hop-dong-xay-dung-nha-o-phan-tho.pdf', label: 'Xây thô' }
+  { 
+    value: 'Mau-hop-dong-xay-dung-nha-o',
+    label: 'Nhà ở',
+    options: [
+      { value: 'Mau-hop-dong-xay-dung-nha-o.pdf', label: 'PDF' },
+      { value: 'Mau-hop-dong-xay-dung-nha-o.docx', label: 'DOCX' }
+    ]
+  },
+  { 
+    value: 'Mau-hop-dong-xay-dung-nha-o-tron-goi',
+    label: 'Nhà ở trọn gói',
+    options: [
+      { value: 'Mau-hop-dong-xay-dung-nha-o-tron-goi.pdf', label: 'PDF' },
+      { value: 'Mau-hop-dong-xay-dung-nha-o-tron-goi.docx', label: 'DOCX' }
+    ]
+  },
+  { 
+    value: 'Mau-hop-dong-xay-dung-nha-o-phan-tho',
+    label: 'Xây thô',
+    options: [
+      { value: 'Mau-hop-dong-xay-dung-nha-o-phan-tho.pdf', label: 'PDF' },
+      { value: 'Mau-hop-dong-xay-dung-nha-o-phan-tho.docx', label: 'DOCX' }
+    ]
+  }
 ];
 
 const HopDong = () => {
@@ -57,16 +78,9 @@ const HopDong = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       // Fetch contracts
       const hopDongResponse = await axios.get(
-        `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+        `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET`
       );
 
       if (hopDongResponse.data.data) {
@@ -82,12 +96,7 @@ const HopDong = () => {
           if (hopDong.MaNhanVien && !nhanVienMap[hopDong.MaNhanVien]) {
             try {
               const nhanVienResponse = await axios.get(
-                `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=getById&MaNhanVien=${hopDong.MaNhanVien}`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${token}`
-                  }
-                }
+                `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=getById&MaNhanVien=${hopDong.MaNhanVien}`
               );
               if (nhanVienResponse.data.data) {
                 nhanVienMap[hopDong.MaNhanVien] = nhanVienResponse.data.data;
@@ -146,8 +155,6 @@ const HopDong = () => {
   const handleCreateContract = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      // Lấy mã hợp đồng từ state (đã sinh khi upload file)
       const contractCode = currentContractCode;
       const fileUrl = form.getFieldValue('FileHopDong');
       const contractData = {
@@ -167,7 +174,6 @@ const HopDong = () => {
         contractData,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
@@ -201,32 +207,42 @@ const HopDong = () => {
   };
 
   const handleTemplateChange = async (value) => {
-  try {
-    setLoading(true);
-    // Sinh mã hợp đồng
-    const contractCode = 'HD' + dayjs().format('DDMMYYYYHHmmss');
-    setCurrentContractCode(contractCode);
-    // Lấy file mẫu tương ứng
-    const response = await fetch(`/src/File/${value}`);
-    const blob = await response.blob();
-    // Đặt tên file là mã hợp đồng + .pdf
-    const file = new File([blob], `${contractCode}.pdf`, { type: 'application/pdf' });
-    // Upload file lên Firebase
-    const fileUrl = await uploadFileAndGetURL(file);
-    // Cập nhật form với URL file
-    form.setFieldsValue({
-      FileHopDong: fileUrl,
-      LoaiHopDong: value
-    });
-    setSelectedTemplate(value);
-    message.success('Đã tải file mẫu thành công');
-  } catch (error) {
-    console.error('Error loading template:', error);
-    message.error('Không thể tải file mẫu');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      // Sinh mã hợp đồng
+      const contractCode = 'HD' + dayjs().format('DDMMYYYYHHmmss');
+      setCurrentContractCode(contractCode);
+      
+      // Lấy file mẫu tương ứng
+      const response = await fetch(`/src/File/${value}`);
+      const blob = await response.blob();
+      
+      // Xác định định dạng file từ tên file
+      const fileExtension = value.split('.').pop().toLowerCase();
+      
+      // Đặt tên file là mã hợp đồng + định dạng tương ứng
+      const file = new File([blob], `${contractCode}.${fileExtension}`, { 
+        type: fileExtension === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      });
+      
+      // Upload file lên Firebase
+      const fileUrl = await uploadFileAndGetURL(file);
+      
+      // Cập nhật form với URL file
+      form.setFieldsValue({
+        FileHopDong: fileUrl,
+        LoaiHopDong: value
+      });
+      
+      setSelectedTemplate(value);
+      message.success('Đã tải file mẫu thành công');
+    } catch (error) {
+      console.error('Error loading template:', error);
+      message.error('Không thể tải file mẫu');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const showDetailModal = (record) => {
     setSelectedContract(record);
@@ -253,7 +269,6 @@ const HopDong = () => {
       onOk: async () => {
         try {
           setLoading(true);
-          const token = localStorage.getItem('token');
 
           // Tìm hợp đồng cần xóa để lấy URL file
           const contractToDelete = hopDongList.find(hd => hd.MaHopDong === maHopDong);
@@ -269,28 +284,17 @@ const HopDong = () => {
               console.log('Đã xóa file PDF từ Firebase');
             } catch (error) {
               console.error('Lỗi khi xóa file PDF:', error);
-              // Vẫn tiếp tục xóa hợp đồng ngay cả khi không xóa được file
             }
           }
 
           // Xóa hợp đồng từ database
           const response = await axios.delete(
-            `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=DELETE&id=${maHopDong}`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            }
+            `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=DELETE&id=${maHopDong}`
           );
 
           if (response.data.message === "Xóa hợp đồng thành công.") {
-            // Đóng modal trước
             setDetailModalVisible(false);
-            
-            // Sau đó cập nhật dữ liệu
             await fetchData();
-            
-            // Cuối cùng mới hiển thị thông báo
             message.success({
               content: 'Xóa hợp đồng thành công',
               icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
@@ -326,7 +330,6 @@ const HopDong = () => {
   const handleEditSubmit = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
       const response = await axios.put(
         `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=PUT`,
@@ -337,22 +340,16 @@ const HopDong = () => {
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
 
       if (response.data.message === "Cập nhật hợp đồng thành công.") {
-        // Đóng modal trước
         setEditModalVisible(false);
         setDetailModalVisible(false);
         editForm.resetFields();
-        
-        // Sau đó cập nhật dữ liệu
         await fetchData();
-        
-        // Cuối cùng mới hiển thị thông báo
         message.success({
           content: 'Cập nhật hợp đồng thành công',
           icon: <CheckCircleOutlined style={{ color: '#52c41a' }} />,
@@ -381,6 +378,26 @@ const HopDong = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewFile = (fileUrl) => {
+    if (!fileUrl) return;
+    
+    // Sử dụng Google Docs Viewer để xem cả PDF và DOCX
+    const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+    
+    Modal.info({
+      title: 'Xem file hợp đồng',
+      width: '80%',
+      content: (
+        <iframe
+          src={googleDocsUrl}
+          style={{ width: '100%', height: '80vh', border: 'none' }}
+          title="File Viewer"
+        />
+      ),
+      onOk() {},
+    });
   };
 
   return (
@@ -626,10 +643,19 @@ const HopDong = () => {
           >
             <Select
               placeholder="Chọn loại hợp đồng"
-              options={contractTemplates}
               onChange={handleTemplateChange}
               loading={loading}
-            />
+            >
+              {contractTemplates.map(template => (
+                <Select.OptGroup key={template.value} label={template.label}>
+                  {template.options.map(option => (
+                    <Select.Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Select.Option>
+                  ))}
+                </Select.OptGroup>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item className="mb-0 text-right">
             <Button
