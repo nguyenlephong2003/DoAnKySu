@@ -16,18 +16,20 @@ import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
+import { useAuth } from "../Config/AuthContext";
 
 const PageNhanSu = ({ children }) => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
   const [userInfo, setUserInfo] = useState({ name: "", role: "" });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState("qlnhanvien"); // Menu mặc định
+  const [activeMenu, setActiveMenu] = useState("quanlynhanvien"); // Menu mặc định
   
   const sidebarRef = useRef();
   const userMenuRef = useRef();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
@@ -49,16 +51,11 @@ const PageNhanSu = ({ children }) => {
   };
 
   useEffect(() => {
-    try {
-      const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || '{}');
-      if (storedUserInfo && storedUserInfo.TenNhanVien) {
-        setUserInfo({ 
-          name: storedUserInfo.TenNhanVien, 
-          role: storedUserInfo.TenLoaiNhanVien || "Admin" 
-        });
-      }
-    } catch (error) {
-      console.error("Lỗi khi đọc thông tin người dùng:", error);
+    if (user) {
+      setUserInfo({ 
+        name: user.TenNhanVien, 
+        role: user.TenLoaiNhanVien || "Admin" 
+      });
     }
 
     const currentPath = location.pathname;
@@ -71,18 +68,11 @@ const PageNhanSu = ({ children }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [location.pathname]);
+  }, [location.pathname, user]);
 
   const handleLogout = () => {
-    // Xác nhận đăng xuất
     setIsLogoutModalOpen(false);
-    
-    // Xóa tất cả thông tin đăng nhập
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
-    localStorage.removeItem("expires");
-    
-    // Chuyển hướng về trang đăng nhập
+    logout();
     navigate("/login");
   };
   

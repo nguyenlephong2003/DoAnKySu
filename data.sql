@@ -75,13 +75,66 @@ INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh) VALUES
 
 -- Bảng BangChamCong (Timesheet)
 DELETE FROM BangChamCong;
-INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, MaNhanVien, TrangThai) VALUES
--- Tháng 1/2025
-('CC001', 22, '2025-01-31', 'TC001', 'Đã thanh toán'),
-('CC002', 21, '2025-01-31', 'TP001', 'Đã thanh toán'),
-('CC003', 23, '2025-01-31', 'TP002', 'Đã thanh toán'),
-('CC004', 22, '2025-02-28', 'TC001', 'Chưa thanh toán'),
-('CC005', 21, '2025-02-28', 'TP001', 'Chưa thanh toán');
+INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, TrangThai, GioVao, GioRa, LoaiChamCong, MaNhanVien) VALUES
+-- TC001: 21 ngày (10 ngày CT001 + 11 ngày CT002)
+('CC001', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC002', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC003', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC004', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC005', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC006', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC007', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC008', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC009', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC010', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC011', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC012', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC013', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC014', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC015', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC016', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC017', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC018', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC019', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC020', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+('CC021', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TC001'),
+-- TP001: 15 ngày
+('CC022', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC023', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC024', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC025', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC026', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC027', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC028', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC029', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC030', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC031', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC032', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC033', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC034', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC035', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+('CC036', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP001'),
+-- TP002: 20 ngày (12 ngày CT002 + 8 ngày CT001)
+('CC037', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC038', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC039', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC040', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC041', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC042', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC043', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC044', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC045', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC046', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC047', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC048', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC049', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC050', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC051', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC052', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC053', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC054', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC055', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002'),
+('CC056', 1, '2025-01-31', 'Đã thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TP002');
 
 INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu) VALUES
 ('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001', 'GD001', 'Đã Duyệt', 'Khách hàng đã ký hợp đồng.'),
@@ -119,13 +172,15 @@ INSERT INTO BangBaoCaoTienDo (MaTienDo, ThoiGianHoanThanhThucTe, CongViec, NoiDu
 
 -- Bảng BangPhanCong (Work Assignments)
 DELETE FROM BangPhanCong;
-INSERT INTO BangPhanCong (MaCongTrinh, MaNhanVien, NgayThamGia, NgayKetThuc, SoNgayThamGia) VALUES
--- Tháng 1/2025
-('CT001', 'TC001', '2025-01-01', NULL, 11),
-('CT002', 'TC001', '2025-01-16', NULL, 11),
-('CT001', 'TP001', '2025-01-01', NULL, 21),
-('CT002', 'TP002', '2025-01-01', NULL, 11),
-('CT001', 'TP002', '2025-01-16', NULL, 12);
+INSERT INTO BangPhanCong (MaBangPhanCong, MaCongTrinh, MaNhanVien, NgayThamGia, SoNgayThamGia) VALUES
+-- TC001: Làm CT001 10 ngày và CT002 11 ngày
+(1, 'CT001', 'TC001', '2025-01-01', 10),
+(2, 'CT002', 'TC001', '2025-01-01', 11),
+-- TP001: Làm CT001 15 ngày
+(3, 'CT001', 'TP001', '2025-01-01', 15),
+-- TP002: Làm CT002 12 ngày và CT001 8 ngày
+(4, 'CT002', 'TP002', '2025-01-01', 12),
+(5, 'CT001', 'TP002', '2025-01-01', 8);
 
 -- Bảng ThietBiVatTu (Equipment/Materials)
 INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, SoLuongTon, TrangThai, MaLoaiThietBiVatTu, MaNhaCungCap) VALUES
