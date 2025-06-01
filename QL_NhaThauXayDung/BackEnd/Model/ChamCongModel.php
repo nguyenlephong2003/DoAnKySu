@@ -9,7 +9,9 @@ class ChamCongModel {
     public $KyLuong;
     public $TrangThai;
     public $MaNhanVien;
-
+    public $LoaiChamCong;
+    public $GioVao;
+    public $GioRa;
     // Các thuộc tính từ BangPhanCong
     public $MaBangPhanCong;
     public $MaCongTrinh;

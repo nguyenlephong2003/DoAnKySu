@@ -874,7 +874,7 @@ const QuanLyChamCong = () => {
             disabled={selectedNhanVienChamCong.length === 0}
             onClick={handleChamCong}
           >
-            Chấm công
+            Chấm côngs
           </Button>,
         ]}
         width={600}

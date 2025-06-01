@@ -36,6 +36,9 @@ CREATE TABLE `BangChamCong` (
   `SoNgayLam` float,
   `KyLuong` datetime,
   `TrangThai` varchar(255),
+  `GioVao` time,
+  `GioRa` time,
+  `LoaiChamCong` varchar(255),
   `MaNhanVien` varchar(20)
 );
 
