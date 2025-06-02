@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import huitImage from "../assets/nen2.png";
 import { useNavigate } from "react-router-dom";
 import BASE_URL from "../Config.js";
@@ -11,7 +11,40 @@ function LoginPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  // Kiểm tra nếu đã đăng nhập thì chuyển hướng
+  useEffect(() => {
+    if (user) {
+      const tenLoai = user.loainhanvien[0].TenLoai;
+      switch (tenLoai) {
+        case "Admin":
+          navigate("/admin");
+          break;
+        case "Giám đốc":
+          navigate("/giamdoc");
+          break;
+        case "Kế toán":
+          navigate("/ketoan");
+          break;
+        case "Nhân sự":
+          navigate("/nhansu");
+          break;
+        case "Quản lý công trình":
+          navigate("/qlcongtrinh");
+          break;
+        case "Nhân viên kho":
+          navigate("/nhanvienkho");
+          break;
+        case "Nhân viên tư vấn":
+          navigate("/nhanvientuvan/lapbaogia");
+          break;
+        default:
+          console.error("Không tìm thấy loại nhân viên phù hợp:", tenLoai);
+          break;
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,7 +95,7 @@ function LoginPage() {
         setSuccess("Đăng nhập thành công!");
         setError("");
 
-        const tenLoai = data.nhanvien[0].TenLoaiNhanVien;
+        const tenLoai = data.nhanvien[0].loainhanvien[0].TenLoai;
         console.log("Tên loại nhân viên:", tenLoai);
 
         setTimeout(() => {

@@ -4,6 +4,7 @@ import { PlusOutlined, DeleteOutlined, InfoCircleOutlined } from '@ant-design/ic
 import axios from 'axios';
 import BASE_URL from '../Config';
 import moment from 'moment';
+import { useAuth } from '../Config/AuthContext';
 
 const LapDeXuatMua = () => {
   const [form] = Form.useForm();
@@ -11,48 +12,50 @@ const LapDeXuatMua = () => {
   const [nhaCungCapList, setNhaCungCapList] = useState([]);
   const [thietBiVatTuList, setThietBiVatTuList] = useState([]);
   const [filteredThietBiVatTuList, setFilteredThietBiVatTuList] = useState([]);
-  const [nhanVienList, setNhanVienList] = useState([]);
   const [selectedUnits, setSelectedUnits] = useState({});
-  const maNhanVienSession = sessionStorage.getItem("maNhanVien") || "";
-
-  // Fetch danh sách nhà cung cấp, thiết bị vật tư và nhân viên
-  useEffect(() => {
-    fetchNhaCungCapList();
-    fetchThietBiVatTuList();
-    fetchNhanVienList();
-  }, []);
+  const { user } = useAuth();
+  const maNhanVien = user?.MaNhanVien || "";
 
   const fetchNhaCungCapList = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET`);
+      const response = await axios.get(
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       if (response.data.status === 'success') {
         setNhaCungCapList(response.data.data);
       }
     } catch (error) {
+      console.error('Error fetching NhaCungCap:', error.response?.data || error);
       message.error('Không thể lấy danh sách nhà cung cấp');
     }
   };
 
   const fetchThietBiVatTuList = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}DeXuat_API/ThietBiVatTu_API.php?action=GET`);
+      const response = await axios.get(
+        `${BASE_URL}DeXuat_API/ThietBiVatTu_API.php?action=GET`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       if (response.data.status === 'success') {
         setThietBiVatTuList(response.data.data);
         setFilteredThietBiVatTuList(response.data.data);
       }
     } catch (error) {
+      console.error('Error fetching ThietBiVatTu:', error.response?.data || error);
       message.error('Không thể lấy danh sách thiết bị vật tư');
-    }
-  };
-
-  const fetchNhanVienList = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}QuanLyCongTrinh_API/NhanVien_API.php?action=GET`);
-      if (response.data.status === 'success') {
-        setNhanVienList(response.data.data);
-      }
-    } catch (error) {
-      message.error('Không thể lấy danh sách nhân viên');
     }
   };
 
@@ -65,16 +68,30 @@ const LapDeXuatMua = () => {
 
     try {
       const response = await axios.get(
-        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET_EQUIPMENT_BY_SUPPLIER&maNhaCungCap=${maNhaCungCap}`
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET_EQUIPMENT_BY_SUPPLIER&maNhaCungCap=${maNhaCungCap}`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
       if (response.data.status === 'success') {
         setFilteredThietBiVatTuList(response.data.data);
       }
     } catch (error) {
+      console.error('Error fetching equipment by supplier:', error.response?.data || error);
       message.error('Không thể lấy danh sách thiết bị vật tư của nhà cung cấp');
       setFilteredThietBiVatTuList([]);
     }
   };
+
+  // Fetch danh sách nhà cung cấp và thiết bị vật tư
+  useEffect(() => {
+    fetchNhaCungCapList();
+    fetchThietBiVatTuList();
+  }, []);
 
   // Tạo mã phiếu nhập tự động
   const generateAutoMaPhieuNhap = () => {
@@ -105,22 +122,42 @@ const LapDeXuatMua = () => {
         TrangThai: values.TrangThai,
         GhiChu: values.GhiChu || null
       };
+
       // Gửi tạo đề xuất
       const response = await axios.post(
         `${BASE_URL}DeXuat_API/DeXuat_API.php`,
-        deXuatData
+        deXuatData,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
+
       if (response.data.status === 'success') {
         // Gửi từng chi tiết đề xuất
         const chiTietPromises = values.ChiTietPhieuNhap.map(item => {
-          return axios.post(`${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php`, {
-            MaDeXuat: maDeXuat,
-            MaThietBiVatTu: item.MaThietBiVatTu,
-            SoLuong: parseInt(item.SoLuong),
-            DonGia: parseFloat(item.DonGia),
-            MaNhaCungCap: values.MaNhaCungCap
-          });
+          return axios.post(
+            `${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php`,
+            {
+              MaDeXuat: maDeXuat,
+              MaThietBiVatTu: item.MaThietBiVatTu,
+              SoLuong: parseInt(item.SoLuong),
+              DonGia: parseFloat(item.DonGia),
+              MaNhaCungCap: values.MaNhaCungCap
+            },
+            {
+              withCredentials: true,
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            }
+          );
         });
+
         await Promise.all(chiTietPromises);
         Modal.success({
           title: 'Thành công',
@@ -133,11 +170,123 @@ const LapDeXuatMua = () => {
         message.error(response.data.message || 'Tạo đề xuất thất bại');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error creating proposal:', error.response?.data || error);
       message.error('Có lỗi xảy ra khi tạo đề xuất');
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderChiTietPhieuNhap = () => {
+    return (
+      <Form.List name="ChiTietPhieuNhap">
+        {(fields, { add, remove }) => (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Chi tiết phiếu nhập</h3>
+              <Button
+                type="dashed"
+                onClick={() => add({
+                  MaThietBiVatTu: null,
+                  SoLuong: null,
+                  DonGia: null
+                })}
+                icon={<PlusOutlined />}
+                disabled={!(form.getFieldValue('MaNhaCungCap'))}
+              >
+                Thêm chi tiết
+              </Button>
+            </div>
+            {fields.map(({ key, name, ...restField }) => (
+              <div key={key} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg">
+                <Form.Item
+                  {...restField}
+                  name={[name, 'MaThietBiVatTu']}
+                  rules={[{ required: true, message: 'Vui lòng chọn thiết bị/vật tư' }]}
+                  className="md:col-span-2"
+                >
+                  <Select
+                    placeholder="Chọn thiết bị/vật tư"
+                    showSearch
+                    optionFilterProp="children"
+                    optionLabelProp="label"
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                    }
+                    onChange={(value) => {
+                      const selectedItem = filteredThietBiVatTuList.find(tb => tb.MaThietBiVatTu === value);
+                      if (selectedItem) {
+                        setSelectedUnits(prev => ({
+                          ...prev,
+                          [name]: selectedItem.DonViTinh
+                        }));
+                      }
+                    }}
+                    disabled={!(form.getFieldValue('MaNhaCungCap'))}
+                  >
+                    {filteredThietBiVatTuList.map(tb => (
+                      <Select.Option
+                        key={tb.MaThietBiVatTu}
+                        value={tb.MaThietBiVatTu}
+                        label={tb.TenThietBiVatTu}
+                      >
+                        <div>
+                          <div className="font-medium">{tb.TenThietBiVatTu}</div>
+                          <div className="text-gray-500 text-sm">Loại: {tb.TenLoaiThietBiVatTu}</div>
+                          <div className="text-gray-500 text-sm">Đơn vị: {tb.DonViTinh}</div>
+                        </div>
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, 'SoLuong']}
+                  rules={[{ required: true, message: 'Vui lòng nhập số lượng' }]}
+                  className="flex items-center"
+                >
+                  <div className="flex items-center gap-2">
+                    <InputNumber
+                      placeholder="Số lượng"
+                      min={1}
+                      className="w-full"
+                      disabled={!(form.getFieldValue('MaNhaCungCap'))}
+                    />
+                    <span className="text-gray-600 text-base font-medium px-2 whitespace-nowrap">
+                      {selectedUnits[name] || ''}
+                    </span>
+                  </div>
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, 'DonGia']}
+                  rules={[{ required: true, message: 'Vui lòng nhập đơn giá' }]}
+                >
+                  <InputNumber
+                    placeholder="Đơn giá"
+                    min={0}
+                    className="w-full"
+                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
+                    disabled={!(form.getFieldValue('MaNhaCungCap'))}
+                  />
+                </Form.Item>
+                {fields.length > 1 && (
+                  <Button
+                    type="text"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => remove(name)}
+                    className="absolute top-2 right-2"
+                    disabled={!(form.getFieldValue('MaNhaCungCap'))}
+                  />
+                )}
+              </div>
+            ))}
+          </>
+        )}
+      </Form.List>
+    );
   };
 
   return (
@@ -149,9 +298,9 @@ const LapDeXuatMua = () => {
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={{
-          TrangThai: 'Chờ duyệt',
-          MaNhanVien: maNhanVienSession,
+          MaNhanVien: maNhanVien,
           NgayLap: moment(),
+          TrangThai: 'Chờ duyệt',
           ChiTietPhieuNhap: [{
             MaThietBiVatTu: null,
             SoLuong: null,
@@ -209,7 +358,7 @@ const LapDeXuatMua = () => {
             name="MaNhanVien"
             label="Nhân viên lập phiếu"
           >
-            <Input value={maNhanVienSession} disabled />
+            <Input disabled />
           </Form.Item>
 
           <Form.Item
@@ -239,9 +388,8 @@ const LapDeXuatMua = () => {
           <Form.Item
             name="TrangThai"
             label="Trạng thái"
-            initialValue="Chờ duyệt"
           >
-            <Input disabled value="Chờ duyệt" />
+            <Input disabled />
           </Form.Item>
         </div>
 
@@ -254,117 +402,7 @@ const LapDeXuatMua = () => {
             </div>
           )}
           <div className={!(form.getFieldValue('MaNhaCungCap')) ? 'pointer-events-none select-none opacity-60' : ''}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Chi tiết phiếu nhập</h3>
-              <Form.List name="ChiTietPhieuNhap">
-                {(fields, { add, remove }) => (
-                  <Button
-                    type="dashed"
-                    onClick={() => add({
-                      MaThietBiVatTu: null,
-                      SoLuong: null,
-                      DonGia: null
-                    })}
-                    icon={<PlusOutlined />}
-                    disabled={!(form.getFieldValue('MaNhaCungCap'))}
-                  >
-                    Thêm chi tiết
-                  </Button>
-                )}
-              </Form.List>
-            </div>
-            <Form.List name="ChiTietPhieuNhap">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg">
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'MaThietBiVatTu']}
-                        rules={[{ required: true, message: 'Vui lòng chọn thiết bị/vật tư' }]}
-                        className="md:col-span-2"
-                      >
-                        <Select
-                          placeholder="Chọn thiết bị/vật tư"
-                          showSearch
-                          optionFilterProp="children"
-                          optionLabelProp="label"
-                          filterOption={(input, option) =>
-                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                          }
-                          onChange={(value) => {
-                            const selectedItem = filteredThietBiVatTuList.find(tb => tb.MaThietBiVatTu === value);
-                            if (selectedItem) {
-                              setSelectedUnits(prev => ({
-                                ...prev,
-                                [name]: selectedItem.DonViTinh
-                              }));
-                            }
-                          }}
-                          disabled={!(form.getFieldValue('MaNhaCungCap'))}
-                        >
-                          {filteredThietBiVatTuList.map(tb => (
-                            <Select.Option
-                              key={tb.MaThietBiVatTu}
-                              value={tb.MaThietBiVatTu}
-                              label={tb.TenThietBiVatTu}
-                            >
-                              <div>
-                                <div className="font-medium">{tb.TenThietBiVatTu}</div>
-                                <div className="text-gray-500 text-sm">Loại: {tb.TenLoaiThietBiVatTu}</div>
-                                <div className="text-gray-500 text-sm">Đơn vị: {tb.DonViTinh}</div>
-                              </div>
-                            </Select.Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'SoLuong']}
-                        rules={[{ required: true, message: 'Vui lòng nhập số lượng' }]}
-                        className="flex items-center"
-                      >
-                        <div className="flex items-center gap-2">
-                          <InputNumber
-                            placeholder="Số lượng"
-                            min={1}
-                            className="w-full"
-                            disabled={!(form.getFieldValue('MaNhaCungCap'))}
-                          />
-                          <span className="text-gray-600 text-base font-medium px-2 whitespace-nowrap">
-                            {selectedUnits[name] || ''}
-                          </span>
-                        </div>
-                      </Form.Item>
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'DonGia']}
-                        rules={[{ required: true, message: 'Vui lòng nhập đơn giá' }]}
-                      >
-                        <InputNumber
-                          placeholder="Đơn giá"
-                          min={0}
-                          className="w-full"
-                          formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                          parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                          disabled={!(form.getFieldValue('MaNhaCungCap'))}
-                        />
-                      </Form.Item>
-                      {fields.length > 1 && (
-                        <Button
-                          type="text"
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => remove(name)}
-                          className="absolute top-2 right-2"
-                          disabled={!(form.getFieldValue('MaNhaCungCap'))}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </>
-              )}
-            </Form.List>
+            {renderChiTietPhieuNhap()}
           </div>
         </div>
 

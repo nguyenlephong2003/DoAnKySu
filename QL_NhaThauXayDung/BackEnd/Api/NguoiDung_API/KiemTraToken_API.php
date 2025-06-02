@@ -26,11 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Kiểm tra token trong cookie
 if (!isset($_COOKIE['auth_token'])) {
-    error_log("No auth_token cookie found");
     echo json_encode([
         "message" => "Unauthorized",
-        "error" => "No token found in cookie",
-        "cookies" => $_COOKIE // Debug: Return all cookies
+        "error" => "No token found in cookie"
     ]);
     http_response_code(401);
     exit;
@@ -38,8 +36,6 @@ if (!isset($_COOKIE['auth_token'])) {
 
 try {
     $token = $_COOKIE['auth_token'];
-    error_log("Found token: " . $token); // Debug: Log token
-    
     $secretKey = "your_secret_key_nhathau_xaydung_2024";
 
     // Verify token
@@ -55,11 +51,26 @@ try {
         exit;
     }
 
-    // Lấy thông tin nhân viên từ database
+    // Kiểm tra session ID
     $database = new Database();
     $db = $database->getConn();
-    $manager = new NguoiDungAll($db);
+    
+    $checkSessionQuery = "SELECT SessionID FROM taikhoan WHERE MaTaiKhoan = :maTaiKhoan";
+    $stmt = $db->prepare($checkSessionQuery);
+    $stmt->execute([':maTaiKhoan' => $decoded->data->MaTaiKhoan]);
+    $currentSession = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    if (!$currentSession || $currentSession['SessionID'] !== $decoded->data->SessionID) {
+        echo json_encode([
+            "message" => "Session invalid",
+            "error" => "This session has been invalidated by a new login"
+        ]);
+        http_response_code(401);
+        exit;
+    }
+
+    // Lấy thông tin nhân viên từ database
+    $manager = new NguoiDungAll($db);
     $nhanVienStmt = $manager->getNhanVienById($decoded->data->MaNhanVien);
     $nhanVien = $nhanVienStmt->fetch(PDO::FETCH_ASSOC);
 

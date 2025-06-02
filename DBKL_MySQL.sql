@@ -45,7 +45,8 @@ CREATE TABLE `BangChamCong` (
 CREATE TABLE `TaiKhoan` (
   `MaTaiKhoan` varchar(20) PRIMARY KEY,
   `MatKhau` varchar(255),
-  `MaNhanVien` varchar(20) UNIQUE
+  `MaNhanVien` varchar(20) UNIQUE,
+  `SessionID` varchar(255) NULL
 );
 
 CREATE TABLE `HopDong` (
