@@ -63,6 +63,8 @@ const QuanLyChamCong = () => {
   const [selectedTenCongTrinh, setSelectedTenCongTrinh] = useState("");
   const [selectedNhanVienChamCong, setSelectedNhanVienChamCong] = useState([]);
   const [loaiNgayChamCong, setLoaiNgayChamCong] = useState({});
+  const [gioVao, setGioVao] = useState('08:00');
+  const [gioRa, setGioRa] = useState({});
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -329,14 +331,9 @@ const QuanLyChamCong = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       
-      // Log thông tin phân công được chọn
-      console.log('Selected PhanCong:', selectedPhanCong);
-      console.log('Selected NhanVienChamCong:', selectedNhanVienChamCong);
-      
       // Tạo mảng dữ liệu chấm công cho từng nhân viên được chọn
       const chamCongData = selectedNhanVienChamCong.map((maBangPhanCong) => {
         const phanCong = selectedPhanCong.find(pc => pc.MaBangPhanCong === maBangPhanCong);
-        console.log('Found PhanCong for', maBangPhanCong, ':', phanCong);
         
         if (!phanCong || !phanCong.MaBangPhanCong) {
           throw new Error(`Không tìm thấy thông tin phân công cho MaBangPhanCong: ${maBangPhanCong}`);
@@ -349,15 +346,29 @@ const QuanLyChamCong = () => {
         const ngayThamGia = phanCong.NgayThamGia ? new Date(phanCong.NgayThamGia).toISOString().split('T')[0] : null;
         const ngayKetThuc = phanCong.NgayKetThuc ? new Date(phanCong.NgayKetThuc).toISOString().split('T')[0] : null;
 
-        const data = {
-          MaBangPhanCong: parseInt(phanCong.MaBangPhanCong),
-          NgayThamGia: ngayThamGia,
-          NgayKetThuc: ngayKetThuc,
-          SoNgayThamGia: newSoNgayThamGia
-        };
+        // Lấy loại chấm công và giờ ra từ state
+        const loaiChamCong = loaiNgayChamCong[maBangPhanCong] || 'Ngày thường';
+        const gioRaNhanVien = gioRa[maBangPhanCong] || '17:00';
 
-        console.log('Created ChamCong data:', data);
-        return data;
+        return {
+          // Dữ liệu cập nhật BangPhanCong
+          phanCongData: {
+            MaBangPhanCong: parseInt(phanCong.MaBangPhanCong),
+            NgayThamGia: ngayThamGia,
+            NgayKetThuc: ngayKetThuc,
+            SoNgayThamGia: newSoNgayThamGia
+          },
+          // Dữ liệu tạo mới BangChamCong
+          chamCongData: {
+            MaNhanVien: phanCong.MaNhanVien,
+            LoaiChamCong: loaiChamCong,
+            SoNgayLam: 1,
+            KyLuong: new Date().toISOString().split('T')[0],
+            TrangThai: 'Chưa thanh toán',
+            GioVao: gioVao,
+            GioRa: gioRaNhanVien
+          }
+        };
       });
 
       // Thêm validation
@@ -366,65 +377,69 @@ const QuanLyChamCong = () => {
         return;
       }
 
-      // Kiểm tra dữ liệu trước khi gửi
-      console.log('Final ChamCong data to be sent:', chamCongData);
+      let successCount = 0;
+      let errorCount = 0;
 
-      // Gửi request PUT cho từng nhân viên
-      const promises = chamCongData.map(data => {
-        if (!data.MaBangPhanCong) {
-          throw new Error('MaBangPhanCong không được để trống');
-        }
-        return axios.put(
-          `${BASE_URL}ChamCong_API/ChamCong.php?action=PUT`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
+      // Thực hiện các thao tác cho từng nhân viên
+      for (const data of chamCongData) {
+        try {
+          // 1. Cập nhật BangPhanCong
+          const phanCongResponse = await axios.put(
+            `${BASE_URL}ChamCong_API/ChamCong.php?action=PUT`,
+            data.phanCongData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // 2. Tạo mới BangChamCong
+          const chamCongResponse = await axios.post(
+            `${BASE_URL}ChamCong_API/ChamCong.php?action=POST_BANG_CHAM_CONG`,
+            data.chamCongData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          // Kiểm tra response
+          if (phanCongResponse.data.status === "success" && chamCongResponse.data.status === "success") {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error("Error response:", {
+              phanCong: phanCongResponse.data,
+              chamCong: chamCongResponse.data
+            });
           }
-        );
-      });
+        } catch (error) {
+          errorCount++;
+          console.error("Error processing employee:", data.chamCongData.MaNhanVien, error);
+        }
+      }
 
-      // Đợi tất cả các request hoàn thành
-      const results = await Promise.all(promises);
-      
-      // Log response chi tiết
-      results.forEach((result, index) => {
-        console.log(`Response ${index + 1}:`, {
-          status: result.status,
-          data: result.data,
-          message: result.data.message
-        });
-      });
-
-      // Kiểm tra kết quả chi tiết hơn
-      const success = results.every(result => {
-        return result.status === 200 && 
-               (result.data.status === "success" || 
-                (result.data.message && result.data.message.includes("thành công")));
-      });
-      
-      if (success) {
-        message.success(`Đã chấm công thành công cho ${chamCongData.length} nhân viên!`);
+      // Hiển thị thông báo kết quả
+      if (successCount > 0) {
+        message.success(`Đã chấm công thành công cho ${successCount} nhân viên!`);
+        if (errorCount > 0) {
+          message.warning(`Có ${errorCount} nhân viên chấm công thất bại.`);
+        }
         setPhanCongModalVisible(false);
         setSelectedNhanVienChamCong([]);
         setLoaiNgayChamCong({});
-        fetchData(); // Refresh lại dữ liệu
+        setGioVao('08:00');
+        setGioRa({});
+        await fetchData(); // Refresh lại dữ liệu
       } else {
-        // Log chi tiết lỗi
-        console.error('Chấm công thất bại:', results.map(r => r.data));
-        message.error("Có lỗi xảy ra khi chấm công! Vui lòng kiểm tra lại thông tin.");
+        message.error("Không thể chấm công cho bất kỳ nhân viên nào!");
       }
     } catch (error) {
-      // Log chi tiết lỗi
-      console.error("Error updating attendance:", error.response?.data || error);
-      console.error("Error details:", {
-        message: error.message,
-        response: error.response?.data,
-        selectedPhanCong,
-        selectedNhanVienChamCong
-      });
+      console.error("Error in handleChamCong:", error);
       message.error(error.response?.data?.message || error.message || "Lỗi khi chấm công!");
     } finally {
       setLoading(false);
@@ -862,6 +877,8 @@ const QuanLyChamCong = () => {
           setPhanCongModalVisible(false);
           setSelectedNhanVienChamCong([]);
           setLoaiNgayChamCong({});
+          setGioVao('08:00');
+          setGioRa({});
         }}
         footer={[
           <Button key="close" onClick={() => setPhanCongModalVisible(false)}>
@@ -877,8 +894,21 @@ const QuanLyChamCong = () => {
             Chấm công
           </Button>,
         ]}
-        width={600}
+        width={800}
       >
+        <div className="mb-4">
+          <div className="flex gap-4 mb-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Giờ vào</label>
+              <Input 
+                type="time" 
+                value={gioVao}
+                onChange={(e) => setGioVao(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
         <Table
           dataSource={selectedPhanCong}
           columns={[
@@ -886,33 +916,48 @@ const QuanLyChamCong = () => {
               title: "Nhân viên",
               dataIndex: "TenNhanVien",
               key: "TenNhanVien",
-              width: "35%",
+              width: "25%",
               ellipsis: true,
             },
             {
               title: "Loại nhân viên",
               dataIndex: "MaLoaiNhanVien",
               key: "MaLoaiNhanVien",
-              width: "20%",
+              width: "15%",
               align: "center",
               render: (text) => text === 6 ? "Thợ chính" : "Thợ phụ",
             },
             {
               title: "Loại ngày",
               key: "LoaiNgay",
-              width: "30%",
+              width: "20%",
               align: "center",
               render: (_, record) => (
                 <Select
-                  value={loaiNgayChamCong[record.MaBangPhanCong] || "ngay_thuong"}
+                  value={loaiNgayChamCong[record.MaBangPhanCong] || "Ngày thường"}
                   style={{ width: 120 }}
                   onChange={(value) => setLoaiNgayChamCong((prev) => ({ ...prev, [record.MaBangPhanCong]: value }))}
                   disabled={!selectedNhanVienChamCong.includes(record.MaBangPhanCong)}
                 >
-                  <Option value="ngay_thuong">Ngày thường</Option>
-                  <Option value="cuoi_tuan">Cuối tuần</Option>
-                  <Option value="le_tet">Ngày lễ/tết</Option>
+                  <Option value="Ngày thường">Ngày thường</Option>
+                  <Option value="Cuối tuần">Cuối tuần</Option>
+                  <Option value="Ngày lễ">Ngày lễ</Option>
                 </Select>
+              ),
+            },
+            {
+              title: "Giờ ra",
+              key: "GioRa",
+              width: "20%",
+              align: "center",
+              render: (_, record) => (
+                <Input
+                  type="time"
+                  value={gioRa[record.MaBangPhanCong] || '17:00'}
+                  onChange={(e) => setGioRa((prev) => ({ ...prev, [record.MaBangPhanCong]: e.target.value }))}
+                  disabled={!selectedNhanVienChamCong.includes(record.MaBangPhanCong)}
+                  style={{ width: 120 }}
+                />
               ),
             },
           ]}

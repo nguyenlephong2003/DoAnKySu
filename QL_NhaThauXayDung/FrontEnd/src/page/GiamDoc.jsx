@@ -17,6 +17,7 @@ import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import LogoHUIT from "../assets/logohuit.png";
+import { useAuth } from "../Config/AuthContext";
 
 const PageGiamDoc = () => {
   const [sidebarToggle, setSidebarToggle] = useState(false);
@@ -25,6 +26,7 @@ const PageGiamDoc = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("duyetdexuat"); // Menu mặc định
   const [currentComponent, setCurrentComponent] = useState(null);
+  const { user, logout } = useAuth();
 
   const sidebarRef = useRef();
   const userMenuRef = useRef();
@@ -82,16 +84,11 @@ const PageGiamDoc = () => {
   };
 
   useEffect(() => {
-    try {
-      const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || '{}');
-      if (storedUserInfo && storedUserInfo.TenNhanVien) {
-        setUserInfo({ 
-          name: storedUserInfo.TenNhanVien, 
-          role: storedUserInfo.TenLoaiNhanVien || "Admin" 
-        });
-      }
-    } catch (error) {
-      console.error("Lỗi khi đọc thông tin người dùng:", error);
+    if (user) {
+      setUserInfo({ 
+        name: user.TenNhanVien, 
+        role: user.TenLoaiNhanVien || "Admin" 
+      });
     }
 
     const currentPath = location.pathname;
@@ -104,13 +101,11 @@ const PageGiamDoc = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [location.pathname]);
+  }, [location.pathname, user]);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
-    localStorage.removeItem("expires");
+    logout();
     navigate("/login");
   };
   

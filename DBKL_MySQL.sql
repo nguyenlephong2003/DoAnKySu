@@ -17,7 +17,7 @@ CREATE TABLE `LoaiThietBiVatTu` (
   `MaLoaiThietBiVatTu` int AUTO_INCREMENT PRIMARY KEY,
   `TenLoai` varchar(255),
   `DonViTinh` varchar(20),
-  `LaThietBi` TINYINT(1) DEFAULT 1
+  `LaThietBi` TINYINT(1)
 );
 
 CREATE TABLE `NhanVien` (
@@ -36,6 +36,9 @@ CREATE TABLE `BangChamCong` (
   `SoNgayLam` float,
   `KyLuong` datetime,
   `TrangThai` varchar(255),
+  `GioVao` time,
+  `GioRa` time,
+  `LoaiChamCong` varchar(255),
   `MaNhanVien` varchar(20)
 );
 
@@ -179,6 +182,26 @@ CREATE TABLE `ChiTietDeXuat` (
   `MaNhaCungCap` varchar(20),
   FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`),
   FOREIGN KEY (`MaDeXuat`) REFERENCES `DeXuat` (`MaDeXuat`),
+  FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
+);
+
+CREATE TABLE `PhieuKiemTraThietBi` (
+  `MaPhieuKiemTra` varchar(20) PRIMARY KEY,
+  `NgayLap` DateTime,
+  `TrangThai` varchar(50) DEFAULT 'Chờ kiểm tra',
+  `GhiChu` varchar(255),
+  `MaNhanVien` varchar(20),
+  FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`)
+);
+
+CREATE TABLE `ChiTietPhieuKiemTraThietBi` (
+  `MaChiTietKiemTra` int AUTO_INCREMENT PRIMARY KEY,
+  `MaPhieuKiemTra` varchar(20),
+  `MaThietBiVatTu` varchar(20),
+  `KhauHao` float,
+  `TinhTrang` varchar(255),
+  `KetLuan` varchar(255),
+  FOREIGN KEY (`MaPhieuKiemTra`) REFERENCES `PhieuKiemTraThietBi` (`MaPhieuKiemTra`),
   FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
 );
 

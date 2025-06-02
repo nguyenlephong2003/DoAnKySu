@@ -1,44 +1,68 @@
 <?php
-// Set headers
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("Access-Control-Allow-Origin: http://localhost:5173");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    header("Access-Control-Allow-Credentials: true");
+    header("Access-Control-Max-Age: 86400"); 
     http_response_code(200);
     exit();
 }
 
-// Include database and object files
-include_once '../../Config/Database.php';
-include_once '../../Model/HopDong.php';
+// Regular request headers
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
 
-// Get database connection
+require_once __DIR__ . '/../../Config/Database.php';
+require_once __DIR__ . '/../../Model/HopDong.php';
+require_once __DIR__ . '/../../Config/VerifyToken.php';
+
 $database = new Database();
 $db = $database->getConn();
+$hopdong = new HopDong($db);
+$verifyToken = new VerifyToken();
 
-// Initialize HopDong object
-$hopDong = new HopDong($db);
+$method = $_SERVER['REQUEST_METHOD'];
+$action = isset($_GET['action']) ? $_GET['action'] : null;
 
-// Get action from request
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+if (!$action) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => "Yêu cầu không hợp lệ: thiếu tham số action"
+    ]);
+    http_response_code(400);
+    exit;
+}
+
+// Xác thực token
+$tokenValidation = $verifyToken->validate();
+if (!$tokenValidation['valid']) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => $tokenValidation['message']
+    ]);
+    http_response_code(401);
+    exit;
+}
 
 // Handle different actions
 switch ($action) {
     case 'GET':
         // Read all hop dong
-        $stmt = $hopDong->readAll();
+        $stmt = $hopdong->readAll();
         $num = $stmt->rowCount();
 
         if ($num > 0) {
-            $hopDong_arr = array();
-            $hopDong_arr["data"] = array();
+            $hopdong_arr = array();
+            $hopdong_arr["data"] = array();
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 extract($row);
-                $hopDong_item = array(
+                $hopdong_item = array(
                     "MaHopDong" => $MaHopDong,
                     "NgayKy" => $NgayKy,
                     "MoTa" => $MoTa,
@@ -50,11 +74,11 @@ switch ($action) {
                     "TenNhanVien" => $TenNhanVien,
                     "SoDT" => $SoDT
                 );
-                array_push($hopDong_arr["data"], $hopDong_item);
+                array_push($hopdong_arr["data"], $hopdong_item);
             }
 
             http_response_code(200);
-            echo json_encode($hopDong_arr);
+            echo json_encode($hopdong_arr);
         } else {
             http_response_code(200);
             echo json_encode(array("data" => array()));
@@ -63,17 +87,17 @@ switch ($action) {
 
     case 'GET_UNUSED':
         // Get unused contracts
-        $stmt = $hopDong->getUnusedContracts();
+        $stmt = $hopdong->getUnusedContracts();
         $num = $stmt->rowCount();
 
         if ($num > 0) {
-            $hopDong_arr = array();
-            $hopDong_arr["status"] = "success";
-            $hopDong_arr["data"] = array();
+            $hopdong_arr = array();
+            $hopdong_arr["status"] = "success";
+            $hopdong_arr["data"] = array();
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 extract($row);
-                $hopDong_item = array(
+                $hopdong_item = array(
                     "MaHopDong" => $MaHopDong,
                     "NgayKy" => $NgayKy,
                     "MoTa" => $MoTa,
@@ -83,11 +107,11 @@ switch ($action) {
                     "TrangThai" => $TrangThai,
                     "GhiChu" => $GhiChu
                 );
-                array_push($hopDong_arr["data"], $hopDong_item);
+                array_push($hopdong_arr["data"], $hopdong_item);
             }
 
             http_response_code(200);
-            echo json_encode($hopDong_arr);
+            echo json_encode($hopdong_arr);
         } else {
             http_response_code(200);
             echo json_encode(array(
@@ -99,25 +123,25 @@ switch ($action) {
 
     case 'GET_SINGLE':
         // Get hop dong ID
-        $hopDong->MaHopDong = isset($_GET['id']) ? $_GET['id'] : die();
+        $hopdong->MaHopDong = isset($_GET['id']) ? $_GET['id'] : die();
 
         // Read single hop dong
-        $hopDong->readSingle();
+        $hopdong->readSingle();
 
-        if ($hopDong->MaHopDong != null) {
-            $hopDong_arr = array(
-                "MaHopDong" => $hopDong->MaHopDong,
-                "NgayKy" => $hopDong->NgayKy,
-                "MoTa" => $hopDong->MoTa,
-                "TongTien" => $hopDong->TongTien,
-                "FileHopDong" => $hopDong->FileHopDong,
-                "MaNhanVien" => $hopDong->MaNhanVien,
-                "TrangThai" => $hopDong->TrangThai,
-                "GhiChu" => $hopDong->GhiChu
+        if ($hopdong->MaHopDong != null) {
+            $hopdong_arr = array(
+                "MaHopDong" => $hopdong->MaHopDong,
+                "NgayKy" => $hopdong->NgayKy,
+                "MoTa" => $hopdong->MoTa,
+                "TongTien" => $hopdong->TongTien,
+                "FileHopDong" => $hopdong->FileHopDong,
+                "MaNhanVien" => $hopdong->MaNhanVien,
+                "TrangThai" => $hopdong->TrangThai,
+                "GhiChu" => $hopdong->GhiChu
             );
 
             http_response_code(200);
-            echo json_encode($hopDong_arr);
+            echo json_encode($hopdong_arr);
         } else {
             http_response_code(404);
             echo json_encode(array("message" => "Không tìm thấy hợp đồng."));
@@ -138,17 +162,17 @@ switch ($action) {
             !empty($data->TrangThai)
         ) {
             // Set hop dong property values
-            $hopDong->MaHopDong = $data->MaHopDong;
-            $hopDong->NgayKy = $data->NgayKy;
-            $hopDong->MoTa = $data->MoTa;
-            $hopDong->TongTien = $data->TongTien;
-            $hopDong->FileHopDong = $data->FileHopDong ?? null;
-            $hopDong->MaNhanVien = $data->MaNhanVien;
-            $hopDong->TrangThai = $data->TrangThai;
-            $hopDong->GhiChu = $data->GhiChu ?? null;
+            $hopdong->MaHopDong = $data->MaHopDong;
+            $hopdong->NgayKy = $data->NgayKy;
+            $hopdong->MoTa = $data->MoTa;
+            $hopdong->TongTien = $data->TongTien;
+            $hopdong->FileHopDong = $data->FileHopDong ?? null;
+            $hopdong->MaNhanVien = $data->MaNhanVien;
+            $hopdong->TrangThai = $data->TrangThai;
+            $hopdong->GhiChu = $data->GhiChu ?? null;
 
             // Create hop dong
-            if ($hopDong->create()) {
+            if ($hopdong->create()) {
                 http_response_code(201);
                 echo json_encode(array("message" => "Tạo hợp đồng thành công."));
             } else {
@@ -175,17 +199,17 @@ switch ($action) {
             !empty($data->TrangThai)
         ) {
             // Set hop dong property values
-            $hopDong->MaHopDong = $data->MaHopDong;
-            $hopDong->NgayKy = $data->NgayKy;
-            $hopDong->MoTa = $data->MoTa;
-            $hopDong->TongTien = $data->TongTien;
-            $hopDong->FileHopDong = $data->FileHopDong ?? null;
-            $hopDong->MaNhanVien = $data->MaNhanVien;
-            $hopDong->TrangThai = $data->TrangThai;
-            $hopDong->GhiChu = $data->GhiChu ?? null;
+            $hopdong->MaHopDong = $data->MaHopDong;
+            $hopdong->NgayKy = $data->NgayKy;
+            $hopdong->MoTa = $data->MoTa;
+            $hopdong->TongTien = $data->TongTien;
+            $hopdong->FileHopDong = $data->FileHopDong ?? null;
+            $hopdong->MaNhanVien = $data->MaNhanVien;
+            $hopdong->TrangThai = $data->TrangThai;
+            $hopdong->GhiChu = $data->GhiChu ?? null;
 
             // Update hop dong
-            if ($hopDong->update()) {
+            if ($hopdong->update()) {
                 http_response_code(200);
                 echo json_encode(array("message" => "Cập nhật hợp đồng thành công."));
             } else {
@@ -200,10 +224,10 @@ switch ($action) {
 
     case 'DELETE':
         // Get hop dong ID
-        $hopDong->MaHopDong = isset($_GET['id']) ? $_GET['id'] : die();
+        $hopdong->MaHopDong = isset($_GET['id']) ? $_GET['id'] : die();
 
         // Delete hop dong
-        if ($hopDong->delete()) {
+        if ($hopdong->delete()) {
             http_response_code(200);
             echo json_encode(array("message" => "Xóa hợp đồng thành công."));
         } else {

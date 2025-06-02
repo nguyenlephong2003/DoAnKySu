@@ -4,6 +4,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     header("Access-Control-Allow-Origin: http://localhost:5173");
     header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    header("Access-Control-Allow-Credentials: true");
     header("Access-Control-Max-Age: 86400"); // 24 hours
     http_response_code(200);
     exit();
@@ -14,13 +15,16 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
 
 require_once __DIR__ . '/../../Config/Database.php';
 require_once __DIR__ . '/../../Model/LoaiCongTrinh.php';
+require_once __DIR__ . '/../../Config/VerifyToken.php';
 
 $database = new Database();
 $db = $database->getConn();
 $loaicongtrinh = new LoaiCongTrinh($db);
+$verifyToken = new VerifyToken();
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = isset($_GET['action']) ? $_GET['action'] : null;
@@ -33,6 +37,19 @@ if (!$action) {
     http_response_code(400);
     exit;
 }
+
+// Xác thực token
+$tokenValidation = $verifyToken->validate();
+if (!$tokenValidation['valid']) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => $tokenValidation['message']
+    ]);
+    http_response_code(401);
+    exit;
+}
+
+// Tiếp tục xử lý nếu token hợp lệ
 
 switch ($method) {
     case 'GET':

@@ -39,7 +39,16 @@ const QuanLyNhaCungCap = () => {
 
   const fetchEquipmentTypes = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET_EQUIPMENT_TYPES`);
+      const res = await axios.get(
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET_EQUIPMENT_TYPES`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       if (res.data.status === 'success') {
         setEquipmentTypes(res.data.data);
       } else {
@@ -55,7 +64,14 @@ const QuanLyNhaCungCap = () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET_BY_EQUIPMENT_TYPE&maLoaiThietBiVatTu=${maLoaiThietBiVatTu}`
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET_BY_EQUIPMENT_TYPE&maLoaiThietBiVatTu=${maLoaiThietBiVatTu}`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
       if (res.data.status === 'success') {
         setData(res.data.data);
@@ -85,7 +101,16 @@ const QuanLyNhaCungCap = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET`);
+      const res = await axios.get(
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=GET`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       if (res.data.status === 'success') {
         setData(res.data.data);
       } else {
@@ -128,7 +153,17 @@ const QuanLyNhaCungCap = () => {
         ...editForm,
       };
 
-      const res = await axios.put(`${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=PUT`, updatedRecord);
+      const res = await axios.put(
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=PUT`,
+        updatedRecord,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       
       if (res.data.status === 'success') {
         message.success('Cập nhật nhà cung cấp thành công');
@@ -154,7 +189,14 @@ const QuanLyNhaCungCap = () => {
       
       const response = await axios.post(
         `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=POST`,
-        values
+        values,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
       if (response.data.status === 'success') {

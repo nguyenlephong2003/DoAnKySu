@@ -9,7 +9,9 @@ class ChamCongModel {
     public $KyLuong;
     public $TrangThai;
     public $MaNhanVien;
-
+    public $LoaiChamCong;
+    public $GioVao;
+    public $GioRa;
     // Các thuộc tính từ BangPhanCong
     public $MaBangPhanCong;
     public $MaCongTrinh;
@@ -371,6 +373,62 @@ class ChamCongModel {
             return [
                 "status" => "error",
                 "message" => "Lỗi khi cập nhật phân công: " . $e->getMessage()
+            ];
+        }
+    }
+
+    // Tạo bảng chấm công mới
+    public function createBangChamCong($maNhanVien, $loaiChamCong, $soNgayLam = 1, $kyLuong = null, $trangThai = 'Chưa thanh toán', $gioVao = '08:00:00', $gioRa = '17:00:00') {
+        try {
+            // Tạo mã chấm công mới với microtime để đảm bảo tính duy nhất
+            $microtime = microtime(true);
+            $timestamp = str_replace('.', '', $microtime); // Loại bỏ dấu chấm
+            $random = rand(100, 999); // Thêm số ngẫu nhiên để tăng tính duy nhất
+            $maChamCong = 'CC' . $timestamp . $random;
+            
+            // Nếu không có kỳ lương, lấy ngày hiện tại
+            if ($kyLuong === null) {
+                $kyLuong = date('Y-m-d H:i:s');
+            }
+
+            // Đảm bảo định dạng giờ đúng
+            $gioVao = date('H:i:s', strtotime($gioVao));
+            $gioRa = date('H:i:s', strtotime($gioRa));
+
+            $query = "INSERT INTO BangChamCong 
+                     (MaChamCong, SoNgayLam, KyLuong, TrangThai, GioVao, GioRa, LoaiChamCong, MaNhanVien) 
+                     VALUES 
+                     (:maChamCong, :soNgayLam, :kyLuong, :trangThai, :gioVao, :gioRa, :loaiChamCong, :maNhanVien)";
+
+            $stmt = $this->conn->prepare($query);
+
+            // Bind các tham số
+            $stmt->bindParam(":maChamCong", $maChamCong);
+            $stmt->bindParam(":soNgayLam", $soNgayLam);
+            $stmt->bindParam(":kyLuong", $kyLuong);
+            $stmt->bindParam(":trangThai", $trangThai);
+            $stmt->bindParam(":gioVao", $gioVao);
+            $stmt->bindParam(":gioRa", $gioRa);
+            $stmt->bindParam(":loaiChamCong", $loaiChamCong);
+            $stmt->bindParam(":maNhanVien", $maNhanVien);
+
+            // Thực thi câu lệnh
+            if ($stmt->execute()) {
+                return [
+                    "status" => "success",
+                    "message" => "Tạo chấm công thành công",
+                    "id" => $maChamCong
+                ];
+            } else {
+                return [
+                    "status" => "error",
+                    "message" => "Không thể tạo chấm công"
+                ];
+            }
+        } catch (PDOException $e) {
+            return [
+                "status" => "error",
+                "message" => "Lỗi khi tạo chấm công: " . $e->getMessage()
             ];
         }
     }

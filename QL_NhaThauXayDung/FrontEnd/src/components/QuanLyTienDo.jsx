@@ -144,13 +144,10 @@ const QuanLyTienDo = () => {
 
   const fetchAllConstructions = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=GET`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true
         }
       );
       if (response.data.data) {

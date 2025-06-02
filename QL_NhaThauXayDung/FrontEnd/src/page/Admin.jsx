@@ -15,6 +15,7 @@ import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
 import { Link, useNavigate, useLocation, Outlet } from "react-router-dom"; // Thêm Outlet
 import LogoHUIT from "../assets/logohuit.png";
+import { useAuth } from "../Config/AuthContext";
 
 const PageAdmin = () => { // Bỏ {children} vì không cần
   const [sidebarToggle, setSidebarToggle] = useState(false);
@@ -27,6 +28,7 @@ const PageAdmin = () => { // Bỏ {children} vì không cần
   const userMenuRef = useRef();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   // Định nghĩa cấu trúc menu
   const menuItems = [
@@ -45,16 +47,11 @@ const PageAdmin = () => { // Bỏ {children} vì không cần
   };
 
   useEffect(() => {
-    try {
-      const storedUserInfo = JSON.parse(localStorage.getItem("userInfo") || '{}');
-      if (storedUserInfo && storedUserInfo.TenNhanVien) {
-        setUserInfo({ 
-          name: storedUserInfo.TenNhanVien, 
-          role: storedUserInfo.TenLoaiNhanVien || "Admin" 
-        });
-      }
-    } catch (error) {
-      console.error("Lỗi khi đọc thông tin người dùng:", error);
+    if (user) {
+      setUserInfo({ 
+        name: user.TenNhanVien, 
+        role: user.TenLoaiNhanVien || "Admin" 
+      });
     }
 
     const currentPath = location.pathname;
@@ -67,13 +64,11 @@ const PageAdmin = () => { // Bỏ {children} vì không cần
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [location.pathname]);
+  }, [location.pathname, user]);
 
   const handleLogout = () => {
     setIsLogoutModalOpen(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
-    localStorage.removeItem("expires");
+    logout();
     navigate("/login");
   };
   
