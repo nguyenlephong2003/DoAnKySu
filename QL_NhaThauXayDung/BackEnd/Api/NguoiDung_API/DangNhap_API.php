@@ -80,6 +80,33 @@ if ($result) {
         ]
     ];
     
+    // Tạo session ID duy nhất
+    $sessionId = uniqid('session_', true);
+    
+    try {
+        // Kiểm tra xem cột SessionID đã tồn tại chưa
+        $checkColumnQuery = "SHOW COLUMNS FROM taikhoan LIKE 'SessionID'";
+        $columnExists = $db->query($checkColumnQuery)->rowCount() > 0;
+        
+        if (!$columnExists) {
+            // Nếu cột chưa tồn tại, thêm cột
+            $addColumnQuery = "ALTER TABLE taikhoan ADD COLUMN SessionID VARCHAR(255) NULL";
+            $db->exec($addColumnQuery);
+        }
+        
+        // Cập nhật session ID
+        $updateSessionQuery = "UPDATE taikhoan SET SessionID = :sessionId WHERE MaTaiKhoan = :maTaiKhoan";
+        $stmt = $db->prepare($updateSessionQuery);
+        $stmt->execute([
+            ':sessionId' => $sessionId,
+            ':maTaiKhoan' => $result['MaTaiKhoan']
+        ]);
+    } catch (PDOException $e) {
+        // Log lỗi nhưng vẫn cho phép đăng nhập
+        error_log("Error updating session ID: " . $e->getMessage());
+        $sessionId = null;
+    }
+    
     // Tạo JWT
     $secretKey = "your_secret_key_nhathau_xaydung_2024";
     $issuedAt = time();
@@ -91,27 +118,27 @@ if ($result) {
             'MaTaiKhoan' => $result['MaTaiKhoan'],
             'MaNhanVien' => $result['MaNhanVien'],
             'TenNhanVien' => $result['TenNhanVien'],
-            'MaLoaiNhanVien' => $nhanVien['MaLoaiNhanVien']
+            'MaLoaiNhanVien' => $nhanVien['MaLoaiNhanVien'],
+            'SessionID' => $sessionId
         ]
     ];
     
     $jwt = JWT::encode($payload, $secretKey, 'HS256');
     
-    // Set cookie đúng chuẩn cho localhost
+    // Set cookie
     setcookie(
         'auth_token',
         $jwt,
         [
             'expires' => $expirationTime,
             'path' => '/',
-            // KHÔNG có 'domain'
-            'secure' => false, // Chỉ true nếu dùng HTTPS
+            'secure' => false,
             'httponly' => true,
-            'samesite' => 'Lax' // Dùng Lax cho local dev
+            'samesite' => 'Lax'
         ]
     );
     
-    // Trả về response không bao gồm token
+    // Trả về response
     echo json_encode([
         "message" => "success",
         "nhanvien" => [$nhanVien]

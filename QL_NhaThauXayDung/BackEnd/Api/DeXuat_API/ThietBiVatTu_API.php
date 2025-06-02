@@ -49,9 +49,10 @@ if (!$tokenValidation['valid']) {
     exit;
 }
 
+// Tiếp tục xử lý nếu token hợp lệ
 switch ($method) {
     case 'GET':
-        if ($action === "GET") {
+        if ($action === "GET" || $action === "GET_ALL") {
             try {
                 $stmt = $thietbivattu->read();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -193,7 +194,15 @@ switch ($method) {
                 if ($thietbivattu->create()) {
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Thiết bị vật tư đã được thêm thành công"
+                        'message' => "Thiết bị vật tư đã được thêm thành công",
+                        'data' => [
+                            'MaThietBiVatTu' => $thietbivattu->MaThietBiVatTu,
+                            'TenThietBiVatTu' => $thietbivattu->TenThietBiVatTu,
+                            'SoLuongTon' => $thietbivattu->SoLuongTon,
+                            'TrangThai' => $thietbivattu->TrangThai,
+                            'MaLoaiThietBiVatTu' => $thietbivattu->MaLoaiThietBiVatTu,
+                            'MaNhaCungCap' => $thietbivattu->MaNhaCungCap
+                        ]
                     ]);
                 } else {
                     echo json_encode([
@@ -239,7 +248,15 @@ switch ($method) {
                 if ($thietbivattu->update()) {
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Thiết bị vật tư đã được cập nhật"
+                        'message' => "Thiết bị vật tư đã được cập nhật",
+                        'data' => [
+                            'MaThietBiVatTu' => $thietbivattu->MaThietBiVatTu,
+                            'TenThietBiVatTu' => $thietbivattu->TenThietBiVatTu,
+                            'SoLuongTon' => $thietbivattu->SoLuongTon,
+                            'TrangThai' => $thietbivattu->TrangThai,
+                            'MaLoaiThietBiVatTu' => $thietbivattu->MaLoaiThietBiVatTu,
+                            'MaNhaCungCap' => $thietbivattu->MaNhaCungCap
+                        ]
                     ]);
                 } else {
                     echo json_encode([
@@ -270,7 +287,11 @@ switch ($method) {
                 if ($thietbivattu->updateQuantity($data->quantity, $data->type)) {
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Cập nhật số lượng thiết bị vật tư thành công"
+                        'message' => "Cập nhật số lượng thiết bị vật tư thành công",
+                        'data' => [
+                            'MaThietBiVatTu' => $thietbivattu->MaThietBiVatTu,
+                            'SoLuongTon' => $data->quantity
+                        ]
                     ]);
                 } else {
                     echo json_encode([
@@ -311,7 +332,7 @@ switch ($method) {
                 if ($thietbivattu->delete()) {
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Thiết bị vật tư đã được xóa"
+                        'message' => "Thiết bị vật tư đã được xóa thành công"
                     ]);
                 } else {
                     echo json_encode([

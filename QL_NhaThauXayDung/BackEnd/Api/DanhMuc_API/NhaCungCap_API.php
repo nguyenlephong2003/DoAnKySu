@@ -52,7 +52,7 @@ if (!$tokenValidation['valid']) {
 // Tiếp tục xử lý nếu token hợp lệ
 switch ($method) {
     case 'GET':
-        if ($action === "GET") {
+        if ($action === "GET" || $action === "GET_ALL") {
             try {
                 $stmt = $nhacungcap->read();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
