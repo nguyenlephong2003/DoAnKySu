@@ -302,6 +302,25 @@ class ChamCongModel {
         return $stmt;
     }
 
+    // Lấy danh sách nhân viên không phải thợ
+    public function getNhanVienKhongPhaiTho() {
+        $query = "SELECT 
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    nv.SoDT,
+                    nv.Email,
+                    lnv.TenLoai as LoaiNhanVien
+                 FROM NhanVien nv
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE lnv.TenLoai NOT IN ('Thợ chính', 'Thợ phụ')
+                 ORDER BY lnv.TenLoai, nv.TenNhanVien";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
     // Tạo bảng phân công mới
     public function createBangPhanCong($maCongTrinh, $maNhanVien, $ngayThamGia, $ngayKetThuc = null, $soNgayThamGia = null) {
         try {

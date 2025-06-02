@@ -307,6 +307,41 @@ switch ($action) {
         }
         break;
 
+    case 'GET_NHAN_VIEN_KHONG_PHAI_THO':
+        try {
+            $stmt = $chamCongModel->getNhanVienKhongPhaiTho();
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $item = [
+                        "MaNhanVien" => $row['MaNhanVien'],
+                        "TenNhanVien" => $row['TenNhanVien'],
+                        "SoDT" => $row['SoDT'],
+                        "Email" => $row['Email'],
+                        "LoaiNhanVien" => $row['LoaiNhanVien']
+                    ];
+                    $result[] = $item;
+                }
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $result
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => []
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy danh sách nhân viên: " . $e->getMessage()
+            ]);
+        }
+        break;
+
     case 'POST':
         try {
             // Lấy dữ liệu từ request body
