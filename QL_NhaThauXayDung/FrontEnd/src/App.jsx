@@ -27,6 +27,7 @@ import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
 import BASE_URL from "./Config.js";  // Thêm dòng này
 import Backup_Restore from "./components/Backup_Restore.jsx";
 import QuanLyChamCong from "./components/QuanLyChamCong.jsx";
+import ChamCongNhanVien from "./components/ChamCongNhanVien.jsx";
 import { AuthProvider } from './Config/AuthContext';
 
 function ProtectedRoute({ children, allowedRole }) {
@@ -170,15 +171,12 @@ function App() {
               <NhanSuPage />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/nhansu/quan-ly-nhan-vien"
-          element={
-            <ProtectedRoute allowedRole="NS">
-              <NhanSuPage children={<QL_NhanVien />} />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="quan-ly-nhan-vien" element={<QL_NhanVien />} />
+          <Route path="chamcong" element={<ChamCongNhanVien />} />
+          <Route path="timkiem" element={<div>Tìm kiếm</div>} />
+          <Route path="baocaothongke" element={<div>Báo cáo thống kê</div>} />
+        </Route>
 
         <Route
           path="/qlcongtrinh"

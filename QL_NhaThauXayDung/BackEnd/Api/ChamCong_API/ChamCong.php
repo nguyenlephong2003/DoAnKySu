@@ -1,6 +1,17 @@
 <?php
 // Set headers
-header("Access-Control-Allow-Origin: *");
+$allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173'
+];
+
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: " . $origin);
+    header("Access-Control-Allow-Credentials: true");
+}
+
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
@@ -320,7 +331,9 @@ switch ($action) {
                         "TenNhanVien" => $row['TenNhanVien'],
                         "SoDT" => $row['SoDT'],
                         "Email" => $row['Email'],
-                        "LoaiNhanVien" => $row['LoaiNhanVien']
+                        "LoaiNhanVien" => $row['LoaiNhanVien'],
+                        "LuongCanBan" => $row['LuongCanBan'],
+                        "NgayVao" => $row['NgayVao']
                     ];
                     $result[] = $item;
                 }
@@ -338,6 +351,99 @@ switch ($action) {
             echo json_encode([
                 "status" => "error",
                 "message" => "Lỗi khi lấy danh sách nhân viên: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'GET_BY_MONTH_KHONG_PHAI_THO':
+        try {
+            // Get cham cong records for non-worker employees
+            $stmt = $chamCongModel->getBangChamCongTheoThangKhongPhaiTho();
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                $groupedData = [];
+
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $item = [
+                        "MaChamCong" => $row['MaChamCong'],
+                        "MaNhanVien" => $row['MaNhanVien'],
+                        "TenNhanVien" => $row['TenNhanVien'],
+                        "LoaiNhanVien" => $row['LoaiNhanVien'],
+                        "SoNgayLam" => $row['SoNgayLam'],
+                        "KyLuong" => $row['KyLuong'],
+                        "TrangThai" => $row['TrangThai'],
+                        "GioVao" => $row['GioVao'],
+                        "GioRa" => $row['GioRa'],
+                        "LoaiChamCong" => $row['LoaiChamCong']
+                    ];
+
+                    // Tạo key cho tháng/năm
+                    $key = $row['Nam'] . '-' . $row['Thang'];
+                    
+                    if (!isset($groupedData[$key])) {
+                        $groupedData[$key] = [
+                            "Thang" => $row['Thang'],
+                            "Nam" => $row['Nam'],
+                            "DanhSachChamCong" => []
+                        ];
+                    }
+
+                    // Tìm nhân viên trong danh sách với cùng TrangThai và LoaiChamCong
+                    $found = false;
+
+                    foreach ($groupedData[$key]["DanhSachChamCong"] as &$chamCong) {
+                        if ($chamCong["MaNhanVien"] === $row['MaNhanVien'] && 
+                            $chamCong["TrangThai"] === $row['TrangThai'] &&
+                            $chamCong["LoaiChamCong"] === $row['LoaiChamCong']) {
+                            // Cập nhật số ngày làm
+                            $chamCong["SoNgayLam"] += $row['SoNgayLam'];
+                            // Cập nhật kỳ lương thành mảng
+                            if (!isset($chamCong["KyLuongArray"])) {
+                                $chamCong["KyLuongArray"] = [$chamCong["KyLuong"]];
+                            }
+                            $chamCong["KyLuongArray"][] = $row['KyLuong'];
+                            // Cập nhật giờ vào/ra nếu khác
+                            if ($chamCong["GioVao"] !== $row['GioVao'] || $chamCong["GioRa"] !== $row['GioRa']) {
+                                $chamCong["GioVao"] = $row['GioVao'];
+                                $chamCong["GioRa"] = $row['GioRa'];
+                            }
+                            $found = true;
+                            break;
+                        }
+                    }
+
+                    if (!$found) {
+                        // Thêm mới nếu chưa có
+                        $item["KyLuongArray"] = [$row['KyLuong']];
+                        $groupedData[$key]["DanhSachChamCong"][] = $item;
+                    }
+                }
+
+                // Chuyển đổi từ object sang array và sắp xếp theo tháng/năm giảm dần
+                $result = array_values($groupedData);
+                usort($result, function($a, $b) {
+                    if ($a['Nam'] != $b['Nam']) {
+                        return $b['Nam'] - $a['Nam'];
+                    }
+                    return $b['Thang'] - $a['Thang'];
+                });
+
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $result
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => []
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy thông tin chấm công: " . $e->getMessage()
             ]);
         }
         break;

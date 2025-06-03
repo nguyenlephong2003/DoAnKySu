@@ -12,10 +12,12 @@ import {
   Popconfirm,
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
 const QL_NhanVien = () => {
+  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [data, setData] = useState([]); // Danh sách nhân viên
   const [modalVisible, setModalVisible] = useState(false);
@@ -36,6 +38,21 @@ const QL_NhanVien = () => {
     { MaLoaiNhanVien: 9, TenLoaiNhanVien: 'Nhân viên tư vấn' },
   ];
 
+  // Cấu hình axios mặc định
+  axios.defaults.withCredentials = true;
+
+  // Cấu hình interceptor để xử lý lỗi 401
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response && error.response.status === 401) {
+        message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        navigate('/login');
+      }
+      return Promise.reject(error);
+    }
+  );
+
   useEffect(() => {
     console.log('Component QL_NhanVien mounted');
     fetchData();
@@ -46,7 +63,9 @@ const QL_NhanVien = () => {
     console.log('Fetching data...');
     setLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`);
+      const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`, {
+        withCredentials: true
+      });
       const res = response.data;
 
       if (res.status === 'success') {
@@ -62,7 +81,12 @@ const QL_NhanVien = () => {
       }
     } catch (err) {
       console.error('Error fetching data:', err);
-      message.error('Lỗi khi kết nối API');
+      if (err.response && err.response.status === 401) {
+        message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        navigate('/login');
+      } else {
+        message.error('Lỗi khi kết nối API');
+      }
     } finally {
       setLoading(false);
     }
@@ -105,6 +129,7 @@ const QL_NhanVien = () => {
     console.log('Deleting record:', record);
     try {
       const response = await axios.delete(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=DELETE`, {
+        withCredentials: true,
         data: { MaNhanVien: record.MaNhanVien }
       });
 
@@ -116,7 +141,12 @@ const QL_NhanVien = () => {
       }
     } catch (err) {
       console.error('Error deleting:', err);
-      message.error('Lỗi khi xóa nhân viên');
+      if (err.response && err.response.status === 401) {
+        message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        navigate('/login');
+      } else {
+        message.error('Lỗi khi xóa nhân viên');
+      }
     }
   };
 
@@ -127,7 +157,9 @@ const QL_NhanVien = () => {
 
       if (editingNV) {
         // Cập nhật nhân viên
-        const response = await axios.put(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=PUT`, values);
+        const response = await axios.put(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=PUT`, values, {
+          withCredentials: true
+        });
 
         if (response.data.status === 'success') {
           message.success('Cập nhật thành công');
@@ -137,7 +169,9 @@ const QL_NhanVien = () => {
         }
       } else {
         // Thêm nhân viên mới
-        const response = await axios.post(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=POST`, values);
+        const response = await axios.post(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=POST`, values, {
+          withCredentials: true
+        });
 
         if (response.data.status === 'success') {
           message.success('Thêm mới thành công');
@@ -149,6 +183,12 @@ const QL_NhanVien = () => {
       setModalVisible(false);
     } catch (err) {
       console.error('Error saving form:', err);
+      if (err.response && err.response.status === 401) {
+        message.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        navigate('/login');
+      } else {
+        message.error('Lỗi khi lưu dữ liệu');
+      }
     }
   };
 

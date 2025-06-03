@@ -16,14 +16,12 @@ import {
   Card,
   Typography,
   Divider,
+  Space,
 } from "antd";
 import {
   SearchOutlined,
-  PlusOutlined,
   InfoCircleOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import BASE_URL from "../Config";
@@ -31,6 +29,7 @@ import dayjs from "dayjs";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
+const { MonthPicker } = DatePicker;
 
 const statusColors = {
   "Đã thanh toán": "green",
@@ -42,25 +41,13 @@ const ChamCongNhanVien = () => {
   const [nhanVienList, setNhanVienList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedMonth, setSelectedMonth] = useState(dayjs());
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [currentUser, setCurrentUser] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedChamCong, setSelectedChamCong] = useState(null);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editForm] = Form.useForm();
-  const [selectedNhanVien, setSelectedNhanVien] = useState("all");
-  const [selectedKyLuong, setSelectedKyLuong] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedNhanVienChamCong, setSelectedNhanVienChamCong] = useState([]);
-  const [loaiNgayChamCong, setLoaiNgayChamCong] = useState({});
-  const [gioVao, setGioVao] = useState('08:00');
-  const [gioRa, setGioRa] = useState({});
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -74,7 +61,7 @@ const ChamCongNhanVien = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${BASE_URL}ChamCong_API/ChamCong.php?action=GET_BY_EMPLOYEE`,
+        `${BASE_URL}ChamCong_API/ChamCong.php?action=GET_BY_MONTH_KHONG_PHAI_THO`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -82,12 +69,8 @@ const ChamCongNhanVien = () => {
         }
       );
 
-      if (response.data.data) {
+      if (response.data.status === "success") {
         setChamCongList(response.data.data);
-        setPagination((prev) => ({
-          ...prev,
-          total: response.data.data.length,
-        }));
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -120,37 +103,60 @@ const ChamCongNhanVien = () => {
   const getFilteredData = () => {
     let filteredData = [...chamCongList];
 
-    if (searchText) {
-      filteredData = filteredData.filter(
-        (item) =>
-          item.MaChamCong.toLowerCase().includes(searchText.toLowerCase()) ||
-          item.TenNhanVien.toLowerCase().includes(searchText.toLowerCase())
+    // Lọc theo tháng được chọn
+    if (selectedMonth) {
+      filteredData = filteredData.filter(month => 
+        month.Nam === selectedMonth.year() && 
+        month.Thang === selectedMonth.month() + 1
       );
+    }
+
+    // Gộp dữ liệu theo nhân viên trong mỗi tháng
+    filteredData = filteredData.map(month => {
+      const employeeMap = new Map();
+      
+      month.DanhSachChamCong.forEach(record => {
+        const key = record.MaNhanVien;
+        if (!employeeMap.has(key)) {
+          employeeMap.set(key, {
+            ...record,
+            TongSoNgayLam: record.SoNgayLam,
+            DanhSachChamCong: [record]
+          });
+        } else {
+          const existingRecord = employeeMap.get(key);
+          existingRecord.TongSoNgayLam += record.SoNgayLam;
+          existingRecord.DanhSachChamCong.push(record);
+        }
+      });
+
+      return {
+        ...month,
+        DanhSachChamCong: Array.from(employeeMap.values())
+      };
+    });
+
+    if (searchText) {
+      filteredData = filteredData.map(month => ({
+        ...month,
+        DanhSachChamCong: month.DanhSachChamCong.filter(
+          item =>
+            item.MaNhanVien.toLowerCase().includes(searchText.toLowerCase()) ||
+            item.TenNhanVien.toLowerCase().includes(searchText.toLowerCase())
+        )
+      })).filter(month => month.DanhSachChamCong.length > 0);
     }
 
     if (selectedStatus !== "all") {
-      filteredData = filteredData.filter(
-        (item) => item.TrangThai === selectedStatus
-      );
+      filteredData = filteredData.map(month => ({
+        ...month,
+        DanhSachChamCong: month.DanhSachChamCong.filter(
+          item => item.TrangThai === selectedStatus
+        )
+      })).filter(month => month.DanhSachChamCong.length > 0);
     }
 
-    // Sắp xếp theo tên nhân viên
-    filteredData.sort((a, b) => a.TenNhanVien.localeCompare(b.TenNhanVien, 'vi'));
-
     return filteredData;
-  };
-
-  const handleTableChange = (pagination) => {
-    setPagination(pagination);
-  };
-
-  const getPaginatedData = () => {
-    const filteredData = getFilteredData();
-    const { current, pageSize } = pagination;
-    const startIndex = (current - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-
-    return filteredData.slice(startIndex, endIndex);
   };
 
   const handleCreateChamCong = async (values) => {
@@ -160,12 +166,12 @@ const ChamCongNhanVien = () => {
 
       const chamCongData = {
         MaNhanVien: values.MaNhanVien,
-        LoaiChamCong: values.LoaiChamCong || 'Ngày thường',
+        LoaiChamCong: values.LoaiChamCong,
         SoNgayLam: 1,
         KyLuong: new Date().toISOString().split('T')[0],
         TrangThai: 'Chưa thanh toán',
-        GioVao: gioVao,
-        GioRa: values.GioRa || '17:00'
+        GioVao: values.GioVao || '08:00:00',
+        GioRa: values.GioRa || '17:00:00'
       };
 
       const response = await axios.post(
@@ -200,89 +206,75 @@ const ChamCongNhanVien = () => {
     setDetailModalVisible(true);
   };
 
-  const handleEdit = (record) => {
+  const handleChamCong = (record) => {
     setSelectedChamCong(record);
-    editForm.setFieldsValue({
-      ...record,
-      KyLuong: dayjs(record.KyLuong),
+    form.setFieldsValue({
+      MaNhanVien: record.MaNhanVien,
+      GioVao: '08:00',
+      GioRa: '17:00'
     });
-    setEditModalVisible(true);
+    setModalVisible(true);
   };
 
-  const handleDelete = async (maChamCong) => {
-    Modal.confirm({
-      title: "Xác nhận xóa",
-      icon: <ExclamationCircleOutlined />,
-      content: "Bạn có chắc chắn muốn xóa bản ghi chấm công này không?",
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          setLoading(true);
-          const token = localStorage.getItem("token");
-
-          const response = await axios.delete(
-            `${BASE_URL}ChamCong_API/ChamCong.php?action=DELETE&id=${maChamCong}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (response.data.message === "Xóa bản ghi chấm công thành công.") {
-            setDetailModalVisible(false);
-            await fetchData();
-            message.success("Xóa bản ghi chấm công thành công");
-          } else {
-            message.error(response.data.message || "Xóa bản ghi chấm công thất bại");
-          }
-        } catch (error) {
-          console.error("Error deleting attendance:", error);
-          message.error("Lỗi khi xóa bản ghi chấm công");
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-  };
-
-  const handleEditSubmit = async (values) => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-
-      const response = await axios.put(
-        `${BASE_URL}ChamCong_API/ChamCong.php?action=PUT`,
-        {
-          ...values,
-          KyLuong: values.KyLuong.format("YYYY-MM-DD"),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.message === "Cập nhật bản ghi chấm công thành công.") {
-        setEditModalVisible(false);
-        setDetailModalVisible(false);
-        editForm.resetFields();
-        await fetchData();
-        message.success("Cập nhật bản ghi chấm công thành công");
-      } else {
-        message.error(response.data.message || "Cập nhật bản ghi chấm công thất bại");
-      }
-    } catch (error) {
-      console.error("Error updating attendance:", error);
-      message.error("Lỗi khi cập nhật bản ghi chấm công");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const columns = [
+    {
+      title: "Mã nhân viên",
+      dataIndex: "MaNhanVien",
+      key: "MaNhanVien",
+      width: 120,
+      ellipsis: true,
+    },
+    {
+      title: "Nhân viên",
+      dataIndex: "TenNhanVien",
+      key: "TenNhanVien",
+      width: 200,
+      ellipsis: true,
+    },
+    {
+      title: "Loại nhân viên",
+      dataIndex: "LoaiNhanVien",
+      key: "LoaiNhanVien",
+      width: 120,
+      align: "center",
+    },
+    {
+      title: "Tổng số ngày làm",
+      dataIndex: "TongSoNgayLam",
+      key: "TongSoNgayLam",
+      width: 120,
+      align: "center",
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      width: 200,
+      align: "center",
+      render: (_, record) => (
+        <Space>
+          <Button
+            icon={<InfoCircleOutlined />}
+            type="primary"
+            onClick={() => showDetailModal(record)}
+          >
+            Chi tiết
+          </Button>
+          <Button
+            type="primary"
+            icon={<ClockCircleOutlined />}
+            onClick={() => handleChamCong(record)}
+            style={{
+              backgroundColor: '#52c41a',
+              borderColor: '#52c41a',
+              boxShadow: '0 2px 0 rgba(82, 196, 26, 0.1)',
+            }}
+          >
+            Chấm công
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
   return (
     <div className="container mx-auto p-6">
@@ -313,128 +305,32 @@ const ChamCongNhanVien = () => {
               <Option value="Đã thanh toán">Đã thanh toán</Option>
             </Select>
           </div>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalVisible(true)}
-          >
-            Tạo chấm công mới
-          </Button>
+          <MonthPicker
+            value={selectedMonth}
+            onChange={setSelectedMonth}
+            format="MM/YYYY"
+            placeholder="Chọn tháng"
+            style={{ width: 200 }}
+          />
         </div>
 
         {/* Table Section */}
         <div className="bg-white rounded-lg border border-gray-200">
           <Table
-            dataSource={getPaginatedData()}
-            columns={[
-              {
-                title: "Mã chấm công",
-                dataIndex: "MaChamCong",
-                key: "MaChamCong",
-                width: 120,
-                ellipsis: true,
-              },
-              {
-                title: "Nhân viên",
-                dataIndex: "TenNhanVien",
-                key: "TenNhanVien",
-                width: 200,
-                ellipsis: true,
-              },
-              {
-                title: "Loại nhân viên",
-                dataIndex: "LoaiNhanVien",
-                key: "LoaiNhanVien",
-                width: 120,
-                align: "center",
-              },
-              {
-                title: "Kỳ lương",
-                dataIndex: "KyLuong",
-                key: "KyLuong",
-                width: 120,
-                align: "center",
-                render: (text) => new Date(text).toLocaleDateString("vi-VN"),
-              },
-              {
-                title: "Số ngày làm",
-                dataIndex: "SoNgayLam",
-                key: "SoNgayLam",
-                width: 100,
-                align: "center",
-              },
-              {
-                title: "Trạng thái",
-                dataIndex: "TrangThai",
-                key: "TrangThai",
-                width: 120,
-                align: "center",
-                render: (text) => (
-                  <Tag color={statusColors[text] || "default"}>
-                    {text}
-                  </Tag>
-                ),
-              },
-              {
-                title: "Thao tác",
-                key: "action",
-                width: 150,
-                align: "center",
-                render: (_, record) => (
-                  <div className="flex gap-2 justify-center">
-                    <Button
-                      icon={<InfoCircleOutlined />}
-                      type="primary"
-                      onClick={() => showDetailModal(record)}
-                    >
-                      Chi tiết
-                    </Button>
-                    <Button
-                      icon={<EditOutlined />}
-                      type="primary"
-                      onClick={() => handleEdit(record)}
-                    >
-                      Sửa
-                    </Button>
-                    <Button
-                      icon={<DeleteOutlined />}
-                      type="primary"
-                      danger
-                      onClick={() => handleDelete(record.MaChamCong)}
-                    >
-                      Xóa
-                    </Button>
-                  </div>
-                ),
-              },
-            ]}
-            rowKey="MaChamCong"
+            dataSource={getFilteredData()[0]?.DanhSachChamCong || []}
+            columns={columns}
+            rowKey="MaNhanVien"
             pagination={false}
             loading={loading}
             bordered
             size="middle"
           />
         </div>
-
-        {/* Pagination Section */}
-        <div className="mt-4 flex justify-end">
-          <Pagination
-            current={pagination.current}
-            pageSize={pagination.pageSize}
-            total={getFilteredData().length}
-            onChange={(page, pageSize) =>
-              setPagination({ ...pagination, current: page, pageSize })
-            }
-            showSizeChanger
-            showTotal={(total) => `Tổng cộng ${total} bản ghi`}
-            showQuickJumper
-          />
-        </div>
       </div>
 
       {/* Create Modal */}
       <Modal
-        title="Tạo chấm công mới"
+        title="Chấm công nhân viên"
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
@@ -449,28 +345,7 @@ const ChamCongNhanVien = () => {
             label="Nhân viên"
             rules={[{ required: true, message: "Vui lòng chọn nhân viên" }]}
           >
-            <Select 
-              placeholder="Chọn nhân viên" 
-              loading={loading}
-              showSearch
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {nhanVienList.map((nv) => (
-                <Option 
-                  key={nv.MaNhanVien} 
-                  value={nv.MaNhanVien}
-                  label={`${nv.TenNhanVien} - ${nv.LoaiNhanVien}`}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>{nv.TenNhanVien}</span>
-                    <span style={{ color: '#888' }}>{nv.LoaiNhanVien}</span>
-                  </div>
-                </Option>
-              ))}
-            </Select>
+            <Input disabled />
           </Form.Item>
 
           <Form.Item
@@ -490,7 +365,7 @@ const ChamCongNhanVien = () => {
             label="Giờ vào"
             rules={[{ required: true, message: "Vui lòng nhập giờ vào" }]}
           >
-            <Input type="time" defaultValue="08:00" />
+            <Input type="time" />
           </Form.Item>
 
           <Form.Item
@@ -498,7 +373,7 @@ const ChamCongNhanVien = () => {
             label="Giờ ra"
             rules={[{ required: true, message: "Vui lòng nhập giờ ra" }]}
           >
-            <Input type="time" defaultValue="17:00" />
+            <Input type="time" />
           </Form.Item>
 
           <Form.Item className="mb-0 text-right">
@@ -511,94 +386,16 @@ const ChamCongNhanVien = () => {
             >
               Hủy
             </Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Tạo chấm công
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      {/* Edit Modal */}
-      <Modal
-        title="Chỉnh sửa chấm công"
-        open={editModalVisible}
-        onCancel={() => {
-          setEditModalVisible(false);
-          editForm.resetFields();
-        }}
-        footer={null}
-        width={600}
-      >
-        <Form form={editForm} layout="vertical" onFinish={handleEditSubmit}>
-          <Form.Item name="MaChamCong" hidden>
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="MaNhanVien"
-            label="Nhân viên"
-            rules={[{ required: true, message: "Vui lòng chọn nhân viên" }]}
-          >
-            <Select placeholder="Chọn nhân viên" loading={loading}>
-              {nhanVienList.map((nv) => (
-                <Option key={nv.MaNhanVien} value={nv.MaNhanVien}>
-                  {nv.TenNhanVien} - {nv.LoaiNhanVien}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="LoaiChamCong"
-            label="Loại chấm công"
-            rules={[{ required: true, message: "Vui lòng chọn loại chấm công" }]}
-          >
-            <Select placeholder="Chọn loại chấm công">
-              <Option value="Ngày thường">Ngày thường</Option>
-              <Option value="Cuối tuần">Cuối tuần</Option>
-              <Option value="Ngày lễ">Ngày lễ</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="KyLuong"
-            label="Kỳ lương"
-            rules={[{ required: true, message: "Vui lòng chọn kỳ lương" }]}
-          >
-            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" />
-          </Form.Item>
-
-          <Form.Item
-            name="SoNgayLam"
-            label="Số ngày làm"
-            rules={[{ required: true, message: "Vui lòng nhập số ngày làm" }]}
-          >
-            <InputNumber style={{ width: "100%" }} min={1} />
-          </Form.Item>
-
-          <Form.Item
-            name="TrangThai"
-            label="Trạng thái"
-            rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
-          >
-            <Select placeholder="Chọn trạng thái">
-              <Option value="Chưa thanh toán">Chưa thanh toán</Option>
-              <Option value="Đã thanh toán">Đã thanh toán</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item className="mb-0 text-right">
-            <Button
-              onClick={() => {
-                setEditModalVisible(false);
-                editForm.resetFields();
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={loading}
+              style={{
+                backgroundColor: '#52c41a',
+                borderColor: '#52c41a',
               }}
-              className="mr-2"
             >
-              Hủy
-            </Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Cập nhật
+              Chấm công
             </Button>
           </Form.Item>
         </Form>
@@ -612,43 +409,69 @@ const ChamCongNhanVien = () => {
         footer={[
           <Button key="back" onClick={() => setDetailModalVisible(false)}>
             Đóng
-          </Button>,
-          <Button
-            key="edit"
-            type="primary"
-            onClick={() => {
-              handleEdit(selectedChamCong);
-              setDetailModalVisible(false);
-            }}
-          >
-            Chỉnh sửa
-          </Button>,
+          </Button>
         ]}
-        width={600}
+        width={800}
       >
         {selectedChamCong && (
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="Mã chấm công">
-              {selectedChamCong.MaChamCong}
-            </Descriptions.Item>
-            <Descriptions.Item label="Nhân viên">
-              {selectedChamCong.TenNhanVien}
-            </Descriptions.Item>
-            <Descriptions.Item label="Loại nhân viên">
-              {selectedChamCong.LoaiNhanVien}
-            </Descriptions.Item>
-            <Descriptions.Item label="Kỳ lương">
-              {new Date(selectedChamCong.KyLuong).toLocaleDateString("vi-VN")}
-            </Descriptions.Item>
-            <Descriptions.Item label="Số ngày làm">
-              {selectedChamCong.SoNgayLam}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={statusColors[selectedChamCong.TrangThai] || "default"}>
-                {selectedChamCong.TrangThai}
-              </Tag>
-            </Descriptions.Item>
-          </Descriptions>
+          <>
+            <Descriptions bordered column={2} className="mb-4">
+              <Descriptions.Item label="Mã nhân viên" span={2}>
+                {selectedChamCong.MaNhanVien}
+              </Descriptions.Item>
+              <Descriptions.Item label="Nhân viên" span={2}>
+                {selectedChamCong.TenNhanVien}
+              </Descriptions.Item>
+              <Descriptions.Item label="Loại nhân viên" span={2}>
+                {selectedChamCong.LoaiNhanVien}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tổng số ngày làm" span={2}>
+                {selectedChamCong.TongSoNgayLam} ngày
+              </Descriptions.Item>
+            </Descriptions>
+
+            <Divider orientation="left">Chi tiết chấm công</Divider>
+            
+            <Table
+              dataSource={selectedChamCong.DanhSachChamCong}
+              columns={[
+                {
+                  title: "Loại chấm công",
+                  dataIndex: "LoaiChamCong",
+                  key: "LoaiChamCong",
+                },
+                {
+                  title: "Số ngày làm",
+                  dataIndex: "SoNgayLam",
+                  key: "SoNgayLam",
+                },
+                {
+                  title: "Kỳ lương",
+                  dataIndex: "KyLuong",
+                  key: "KyLuong",
+                  render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+                },
+                {
+                  title: "Giờ làm",
+                  key: "GioLam",
+                  render: (_, record) => `${record.GioVao} - ${record.GioRa}`,
+                },
+                {
+                  title: "Trạng thái",
+                  dataIndex: "TrangThai",
+                  key: "TrangThai",
+                  render: (text) => (
+                    <Tag color={statusColors[text] || "default"}>
+                      {text}
+                    </Tag>
+                  ),
+                },
+              ]}
+              pagination={false}
+              bordered
+              size="small"
+            />
+          </>
         )}
       </Modal>
     </div>
