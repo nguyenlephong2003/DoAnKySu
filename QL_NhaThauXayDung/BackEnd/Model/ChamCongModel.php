@@ -451,5 +451,32 @@ class ChamCongModel {
             ];
         }
     }
+
+    // Lấy danh sách bảng chấm công của nhân viên không phải thợ theo từng tháng
+    public function getBangChamCongTheoThangKhongPhaiTho() {
+        $query = "SELECT 
+                    cc.MaChamCong,
+                    cc.SoNgayLam,
+                    cc.KyLuong,
+                    cc.TrangThai,
+                    cc.GioVao,
+                    cc.GioRa,
+                    cc.LoaiChamCong,
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    lnv.TenLoai as LoaiNhanVien,
+                    MONTH(cc.KyLuong) as Thang,
+                    YEAR(cc.KyLuong) as Nam
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE lnv.TenLoai NOT IN ('Thợ chính', 'Thợ phụ')
+                 ORDER BY YEAR(cc.KyLuong) DESC, MONTH(cc.KyLuong) DESC, nv.TenNhanVien";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+
+        return $stmt;
+    }
 }
 ?> 
