@@ -177,13 +177,16 @@ class NhaCungCap {
 
     // Get supplier's supplied equipment
     public function getSuppliedEquipment() {
-        $query = "SELECT tbvt.MaThietBiVatTu, tbvt.TenThietBiVatTu, 
-                         tbvt.SoLuongTon, tbvt.TrangThai, 
+        $query = "SELECT cu.*, 
+                         tbvt.TenThietBiVatTu,
+                         tbvt.TrangThai,
                          lvt.TenLoai as TenLoaiThietBiVatTu,
                          lvt.DonViTinh
-                  FROM ThietBiVatTu tbvt
+                  FROM CungUng cu
+                  JOIN ThietBiVatTu tbvt ON cu.MaThietBiVatTu = tbvt.MaThietBiVatTu
                   LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
-                  WHERE tbvt.MaNhaCungCap = ?";
+                  WHERE cu.MaNhaCungCap = ?
+                  ORDER BY tbvt.TenThietBiVatTu";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);

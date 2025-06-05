@@ -77,7 +77,7 @@ switch ($method) {
         break;
     case 'POST':
         $data = json_decode(file_get_contents("php://input"));
-        if (!isset($data->MaDeXuat, $data->MaThietBiVatTu, $data->SoLuong, $data->DonGia, $data->MaNhaCungCap)) {
+        if (!isset($data->MaDeXuat, $data->MaThietBiVatTu, $data->SoLuong, $data->MaNhaCungCap)) {
             echo json_encode(['status' => 'error', 'message' => 'Dữ liệu không đầy đủ']);
             http_response_code(400);
             exit;
@@ -85,7 +85,6 @@ switch ($method) {
         $chitietdexuat->MaDeXuat = $data->MaDeXuat;
         $chitietdexuat->MaThietBiVatTu = $data->MaThietBiVatTu;
         $chitietdexuat->SoLuong = $data->SoLuong;
-        $chitietdexuat->DonGia = $data->DonGia;
         $chitietdexuat->MaNhaCungCap = $data->MaNhaCungCap;
         if ($chitietdexuat->create()) {
             echo json_encode(['status' => 'success', 'message' => 'Tạo chi tiết đề xuất thành công']);
@@ -105,7 +104,6 @@ switch ($method) {
         $chitietdexuat->MaDeXuat = $data->MaDeXuat ?? null;
         $chitietdexuat->MaThietBiVatTu = $data->MaThietBiVatTu ?? null;
         $chitietdexuat->SoLuong = $data->SoLuong ?? null;
-        $chitietdexuat->DonGia = $data->DonGia ?? null;
         $chitietdexuat->MaNhaCungCap = $data->MaNhaCungCap ?? null;
         if ($chitietdexuat->update()) {
             echo json_encode(['status' => 'success', 'message' => 'Cập nhật chi tiết đề xuất thành công']);
