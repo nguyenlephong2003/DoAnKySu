@@ -48,6 +48,10 @@ const ChamCongNhanVien = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedChamCong, setSelectedChamCong] = useState(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [batchForm] = Form.useForm();
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -185,17 +189,44 @@ const ChamCongNhanVien = () => {
         }
       );
 
-      if (response.data.status === "success") {
-        message.success("Tạo chấm công thành công");
+      // Xử lý response từ API
+      const responseData = response.data;
+      
+      if (responseData.status === "success") {
+        message.success({
+          content: responseData.message,
+          duration: 3,
+          style: {
+            marginTop: '20vh',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }
+        });
         setModalVisible(false);
         form.resetFields();
         fetchData();
-      } else {
-        message.error(response.data.message || "Tạo chấm công thất bại");
+      } else if (responseData.status === "error") {
+        message.error({
+          content: responseData.message,
+          duration: 3,
+          style: {
+            marginTop: '20vh',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }
+        });
       }
     } catch (error) {
       console.error("Error creating attendance:", error);
-      message.error("Lỗi khi tạo chấm công");
+      message.error({
+        content: "Lỗi kết nối server, vui lòng thử lại",
+        duration: 3,
+        style: {
+          marginTop: '20vh',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -214,6 +245,60 @@ const ChamCongNhanVien = () => {
       GioRa: '17:00'
     });
     setModalVisible(true);
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys, rows) => {
+      setSelectedRowKeys(keys);
+      setSelectedRows(rows);
+    },
+    getCheckboxProps: (record) => ({
+      // Không cho chọn nếu đã chọn trong tháng này rồi (có thể custom thêm logic nếu cần)
+      disabled: false,
+    }),
+  };
+
+  const handleBatchChamCong = () => {
+    batchForm.resetFields();
+    setBatchModalVisible(true);
+  };
+
+  const handleBatchChamCongSubmit = async (values) => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      await Promise.all(selectedRows.map(async (row) => {
+        const chamCongData = {
+          MaNhanVien: row.MaNhanVien,
+          LoaiChamCong: values.LoaiChamCong,
+          SoNgayLam: 1,
+          KyLuong: new Date().toISOString().split('T')[0],
+          TrangThai: 'Chưa thanh toán',
+          GioVao: values.GioVao || '08:00:00',
+          GioRa: values.GioRa || '17:00:00'
+        };
+        await axios.post(
+          `${BASE_URL}ChamCong_API/ChamCong.php?action=POST_BANG_CHAM_CONG`,
+          chamCongData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }));
+      message.success("Chấm công hàng loạt thành công");
+      setBatchModalVisible(false);
+      setSelectedRowKeys([]);
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      message.error("Lỗi khi chấm công hàng loạt");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [
@@ -250,29 +335,38 @@ const ChamCongNhanVien = () => {
       key: "action",
       width: 200,
       align: "center",
-      render: (_, record) => (
-        <Space>
-          <Button
-            icon={<InfoCircleOutlined />}
-            type="primary"
-            onClick={() => showDetailModal(record)}
-          >
-            Chi tiết
-          </Button>
-          <Button
-            type="primary"
-            icon={<ClockCircleOutlined />}
-            onClick={() => handleChamCong(record)}
-            style={{
-              backgroundColor: '#52c41a',
-              borderColor: '#52c41a',
-              boxShadow: '0 2px 0 rgba(82, 196, 26, 0.1)',
-            }}
-          >
-            Chấm công
-          </Button>
-        </Space>
-      ),
+      render: (_, record) => {
+        // Kiểm tra xem có phải tháng hiện tại không
+        const isCurrentMonth = selectedMonth && 
+          selectedMonth.year() === dayjs().year() && 
+          selectedMonth.month() === dayjs().month();
+
+        return (
+          <Space>
+            <Button
+              icon={<InfoCircleOutlined />}
+              type="primary"
+              onClick={() => showDetailModal(record)}
+            >
+              Chi tiết
+            </Button>
+            {isCurrentMonth && (
+              <Button
+                type="primary"
+                icon={<ClockCircleOutlined />}
+                onClick={() => handleChamCong(record)}
+                style={{
+                  backgroundColor: '#52c41a',
+                  borderColor: '#52c41a',
+                  boxShadow: '0 2px 0 rgba(82, 196, 26, 0.1)',
+                }}
+              >
+                Chấm công
+              </Button>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -314,9 +408,24 @@ const ChamCongNhanVien = () => {
           />
         </div>
 
+        {/* Batch check-in button */}
+        {selectedRowKeys.length > 0 && (
+          <div className="mb-4 flex justify-end">
+            <Button
+              type="primary"
+              style={{ background: '#52c41a', borderColor: '#52c41a', fontWeight: 'bold', fontSize: 16 }}
+              icon={<ClockCircleOutlined />}
+              onClick={handleBatchChamCong}
+            >
+              Chấm công hàng loạt ({selectedRowKeys.length})
+            </Button>
+          </div>
+        )}
+
         {/* Table Section */}
         <div className="bg-white rounded-lg border border-gray-200">
           <Table
+            rowSelection={rowSelection}
             dataSource={getFilteredData()[0]?.DanhSachChamCong || []}
             columns={columns}
             rowKey="MaNhanVien"
@@ -473,6 +582,62 @@ const ChamCongNhanVien = () => {
             />
           </>
         )}
+      </Modal>
+
+      {/* Batch Check-in Modal */}
+      <Modal
+        title="Chấm công hàng loạt"
+        open={batchModalVisible}
+        onCancel={() => setBatchModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <Form form={batchForm} layout="vertical" onFinish={handleBatchChamCongSubmit}>
+          <Form.Item label="Số nhân viên được chọn">
+            <b>{selectedRows.length}</b>
+          </Form.Item>
+          <Form.Item
+            name="LoaiChamCong"
+            label="Loại chấm công"
+            rules={[{ required: true, message: "Vui lòng chọn loại chấm công" }]}
+          >
+            <Select placeholder="Chọn loại chấm công">
+              <Option value="Ngày thường">Ngày thường</Option>
+              <Option value="Cuối tuần">Cuối tuần</Option>
+              <Option value="Ngày lễ">Ngày lễ</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="GioVao"
+            label="Giờ vào"
+            rules={[{ required: true, message: "Vui lòng nhập giờ vào" }]}
+          >
+            <Input type="time" defaultValue="08:00" />
+          </Form.Item>
+          <Form.Item
+            name="GioRa"
+            label="Giờ ra"
+            rules={[{ required: true, message: "Vui lòng nhập giờ ra" }]}
+          >
+            <Input type="time" defaultValue="17:00" />
+          </Form.Item>
+          <Form.Item className="mb-0 text-right">
+            <Button
+              onClick={() => setBatchModalVisible(false)}
+              className="mr-2"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+            >
+              Chấm công hàng loạt
+            </Button>
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   );

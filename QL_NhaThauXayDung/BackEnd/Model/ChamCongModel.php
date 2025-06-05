@@ -399,16 +399,29 @@ class ChamCongModel {
     // Tạo bảng chấm công mới
     public function createBangChamCong($maNhanVien, $loaiChamCong, $soNgayLam = 1, $kyLuong = null, $trangThai = 'Chưa thanh toán', $gioVao = '08:00:00', $gioRa = '17:00:00') {
         try {
+            // Nếu không có kỳ lương, lấy ngày hiện tại
+            if ($kyLuong === null) {
+                $kyLuong = date('Y-m-d H:i:s');
+            }
+
+            // Kiểm tra đã có chấm công hôm đó chưa
+            $queryCheck = "SELECT COUNT(*) FROM BangChamCong WHERE MaNhanVien = :maNhanVien AND DATE(KyLuong) = :kyLuong";
+            $stmtCheck = $this->conn->prepare($queryCheck);
+            $stmtCheck->bindParam(":maNhanVien", $maNhanVien);
+            $stmtCheck->bindParam(":kyLuong", date('Y-m-d', strtotime($kyLuong)));
+            $stmtCheck->execute();
+            if ($stmtCheck->fetchColumn() > 0) {
+                return [
+                    "status" => "error",
+                    "message" => "Nhân viên đã chấm công ngày này!"
+                ];
+            }
+
             // Tạo mã chấm công mới với microtime để đảm bảo tính duy nhất
             $microtime = microtime(true);
             $timestamp = str_replace('.', '', $microtime); // Loại bỏ dấu chấm
             $random = rand(100, 999); // Thêm số ngẫu nhiên để tăng tính duy nhất
             $maChamCong = 'CC' . $timestamp . $random;
-            
-            // Nếu không có kỳ lương, lấy ngày hiện tại
-            if ($kyLuong === null) {
-                $kyLuong = date('Y-m-d H:i:s');
-            }
 
             // Đảm bảo định dạng giờ đúng
             $gioVao = date('H:i:s', strtotime($gioVao));
