@@ -408,7 +408,7 @@ const HopDong = () => {
   return (
     <div className="container mx-auto ">
       <div className="bg-white rounded-lg shadow-lg p-10">
-        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Danh sách hợp đồng</h1>
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Quản lý hợp đồng</h1>
         
         {/* Search and Filter Section */}
         <div className="flex justify-between items-center mb-6">

@@ -148,7 +148,8 @@ function App() {
           <Route path="quanlytiendo" element={<QuanLyTienDo />} />
           <Route path="lapdexuat" element={<TaoDeXuat />} />
           <Route path="lapdexuatmua" element={<LapDeXuatMua />} />
-          <Route path="quanlydanhmuc" element={<div>Quản lý danh mục</div>} />
+          <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
+
           <Route path="timkiem" element={<div>Tìm kiếm</div>} />
           <Route path="chamcongtho" element={<QuanLyChamCong />} />
         </Route>
