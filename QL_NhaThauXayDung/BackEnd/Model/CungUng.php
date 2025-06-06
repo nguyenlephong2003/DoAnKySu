@@ -105,30 +105,50 @@ class CungUng {
 
     // Update CungUng entry
     public function update() {
-        $query = "UPDATE " . $this->table_name . " 
-                  SET SoLuongTon = :soLuongTon, 
-                      DonGia = :donGia,
-                      NgayCapNhat = CURRENT_TIMESTAMP
-                  WHERE MaCungUng = :maCungUng";
+        try {
+            $query = "UPDATE " . $this->table_name . " 
+                      SET SoLuongTon = :soLuongTon, 
+                          DonGia = :donGia,
+                          NgayCapNhat = CURRENT_TIMESTAMP
+                      WHERE MaCungUng = :maCungUng";
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            // Prepare statement
+            $stmt = $this->conn->prepare($query);
 
-        // Clean and bind data
-        $this->SoLuongTon = filter_var($this->SoLuongTon, FILTER_VALIDATE_FLOAT);
-        $this->DonGia = filter_var($this->DonGia, FILTER_VALIDATE_FLOAT);
-        $this->MaCungUng = filter_var($this->MaCungUng, FILTER_VALIDATE_INT);
+            // Clean and bind data
+            $this->SoLuongTon = filter_var($this->SoLuongTon, FILTER_VALIDATE_FLOAT);
+            $this->DonGia = filter_var($this->DonGia, FILTER_VALIDATE_FLOAT);
+            $this->MaCungUng = filter_var($this->MaCungUng, FILTER_VALIDATE_INT);
 
-        $stmt->bindParam(":soLuongTon", $this->SoLuongTon);
-        $stmt->bindParam(":donGia", $this->DonGia);
-        $stmt->bindParam(":maCungUng", $this->MaCungUng);
+            // Validate data
+            if ($this->SoLuongTon === false || $this->SoLuongTon < 0) {
+                error_log("Invalid SoLuongTon value: " . $this->SoLuongTon);
+                return false;
+            }
 
-        // Execute query
-        if($stmt->execute()) {
-            return true;
+            if ($this->MaCungUng === false) {
+                error_log("Invalid MaCungUng value: " . $this->MaCungUng);
+                return false;
+            }
+
+            $stmt->bindParam(":soLuongTon", $this->SoLuongTon);
+            $stmt->bindParam(":donGia", $this->DonGia);
+            $stmt->bindParam(":maCungUng", $this->MaCungUng);
+
+            // Execute query
+            if($stmt->execute()) {
+                return true;
+            }
+
+            error_log("Failed to execute update query for MaCungUng: " . $this->MaCungUng);
+            return false;
+        } catch (PDOException $e) {
+            error_log("PDO Error in CungUng::update: " . $e->getMessage());
+            return false;
+        } catch (Exception $e) {
+            error_log("Error in CungUng::update: " . $e->getMessage());
+            return false;
         }
-
-        return false;
     }
 
     // Delete CungUng entry
@@ -248,12 +268,60 @@ class CungUng {
         $stmt = $this->conn->prepare($query);
 
         // Bind threshold
-        $stmt->bindParam(1, $threshold, PDO::PARAM_INT);
+        $stmt->bindParam(1, $threshold);
 
         // Execute query
         $stmt->execute();
 
         return $stmt;
+    }
+
+    // Get suppliers that are not linked to a specific equipment
+    public function getUnlinkedSuppliers($maThietBiVatTu) {
+        $query = "SELECT ncc.* 
+                  FROM NhaCungCap ncc
+                  WHERE ncc.MaNhaCungCap NOT IN (
+                      SELECT cu.MaNhaCungCap 
+                      FROM " . $this->table_name . " cu 
+                      WHERE cu.MaThietBiVatTu = ?
+                  )
+                  ORDER BY ncc.TenNhaCungCap";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Bind equipment ID
+        $stmt->bindParam(1, $maThietBiVatTu);
+
+        // Execute query
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Delete CungUng entry by equipment and supplier IDs
+    public function deleteByEquipmentAndSupplier($maThietBiVatTu, $maNhaCungCap) {
+        $query = "DELETE FROM " . $this->table_name . " 
+                  WHERE MaThietBiVatTu = :maThietBiVatTu 
+                  AND MaNhaCungCap = :maNhaCungCap";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean data
+        $maThietBiVatTu = htmlspecialchars(strip_tags($maThietBiVatTu));
+        $maNhaCungCap = htmlspecialchars(strip_tags($maNhaCungCap));
+
+        // Bind parameters
+        $stmt->bindParam(":maThietBiVatTu", $maThietBiVatTu);
+        $stmt->bindParam(":maNhaCungCap", $maNhaCungCap);
+
+        // Execute query
+        if($stmt->execute()) {
+            return true;
+        }
+
+        return false;
     }
 }
 ?> 

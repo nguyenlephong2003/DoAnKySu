@@ -1,18 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, message, Modal, Form, Popconfirm, Radio } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, InfoCircleOutlined } from '@ant-design/icons';
-import axios from 'axios';
-import BASE_URL from '../Config';
-import { useAuth } from '../Config/AuthContext';
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  Button,
+  Input,
+  message,
+  Modal,
+  Form,
+  Popconfirm,
+  Radio,
+} from "antd";
+import {
+  SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  InfoCircleOutlined,
+} from "@ant-design/icons";
+import axios from "axios";
+import BASE_URL from "../Config";
+import { useAuth } from "../Config/AuthContext";
 
 const QuanLyLoaiThietBiVatTu = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
-    total: 0
+    total: 0,
   });
   const [detailVisible, setDetailVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
@@ -23,14 +37,20 @@ const QuanLyLoaiThietBiVatTu = () => {
   const { user } = useAuth();
 
   // Kiểm tra quyền
-  const canAdd = user?.TenLoaiNhanVien === 'Admin' || 
-                user?.TenLoaiNhanVien === 'Giám đốc' ||
-                user?.TenLoaiNhanVien === 'Kế toán';
-  
-  const canEdit = user?.TenLoaiNhanVien === 'Admin' || 
-                 user?.TenLoaiNhanVien === 'Giám đốc';
-  
-  const canDelete = user?.TenLoaiNhanVien === 'Admin';
+  const canAdd =
+    user?.TenLoaiNhanVien === "Admin" ||
+    user?.TenLoaiNhanVien === "Giám đốc" ||
+    user?.TenLoaiNhanVien === "Nhân viên kho";
+
+  const canEdit =
+    user?.TenLoaiNhanVien === "Admin" ||
+    user?.TenLoaiNhanVien === "Giám đốc" ||
+    user?.TenLoaiNhanVien === "Nhân viên kho";
+
+  const canDelete =
+    user?.TenLoaiNhanVien === "Admin" ||
+    user?.TenLoaiNhanVien === "Giám đốc" ||
+    user?.TenLoaiNhanVien === "Nhân viên kho";
 
   useEffect(() => {
     fetchData();
@@ -44,13 +64,13 @@ const QuanLyLoaiThietBiVatTu = () => {
         {
           withCredentials: true,
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
       let arr = [];
-      if (response.data.status === 'success') {
+      if (response.data.status === "success") {
         arr = response.data.data;
       } else if (Array.isArray(response.data)) {
         arr = response.data;
@@ -58,13 +78,13 @@ const QuanLyLoaiThietBiVatTu = () => {
         arr = response.data.data;
       }
       setData(arr);
-      setPagination(prev => ({
+      setPagination((prev) => ({
         ...prev,
-        total: arr.length
+        total: arr.length,
       }));
     } catch (error) {
-      console.error('Error fetching data:', error.response?.data || error);
-      message.error('Lỗi khi kết nối đến server');
+      console.error("Error fetching data:", error.response?.data || error);
+      message.error("Lỗi khi kết nối đến server");
     } finally {
       setLoading(false);
     }
@@ -76,16 +96,21 @@ const QuanLyLoaiThietBiVatTu = () => {
 
   const getFilteredData = () => {
     if (!data) return [];
-    
+
     let filteredData = [...data];
 
     if (searchText) {
       const searchLower = searchText.toLowerCase();
       filteredData = filteredData.filter(
-        item => 
-          (item.MaLoaiThietBiVatTu && item.MaLoaiThietBiVatTu.toString().toLowerCase().includes(searchLower)) ||
-          (item.TenLoai && item.TenLoai.toString().toLowerCase().includes(searchLower)) ||
-          (item.DonViTinh && item.DonViTinh.toString().toLowerCase().includes(searchLower))
+        (item) =>
+          (item.MaLoaiThietBiVatTu &&
+            item.MaLoaiThietBiVatTu.toString()
+              .toLowerCase()
+              .includes(searchLower)) ||
+          (item.TenLoai &&
+            item.TenLoai.toString().toLowerCase().includes(searchLower)) ||
+          (item.DonViTinh &&
+            item.DonViTinh.toString().toLowerCase().includes(searchLower))
       );
     }
 
@@ -102,7 +127,7 @@ const QuanLyLoaiThietBiVatTu = () => {
     form.setFieldsValue({
       TenLoai: record.TenLoai,
       DonViTinh: record.DonViTinh,
-      LaThietBi: record.LaThietBi
+      LaThietBi: record.LaThietBi,
     });
     setEditModalVisible(true);
   };
@@ -111,33 +136,38 @@ const QuanLyLoaiThietBiVatTu = () => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      
+
       const response = await axios.put(
         `${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=PUT`,
         {
           MaLoaiThietBiVatTu: currentRecord.MaLoaiThietBiVatTu,
-          ...values
+          ...values,
         },
         {
           withCredentials: true,
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      if (response.data.status === 'success' || response.data.message?.includes('đã được cập nhật')) {
-        message.success('Cập nhật thành công');
+      if (
+        response.data.status === "success" ||
+        response.data.message?.includes("đã được cập nhật")
+      ) {
+        message.success("Cập nhật thành công");
         setEditModalVisible(false);
         await fetchData();
-        setPagination(prev => ({ ...prev, current: 1 }));
+        setPagination((prev) => ({ ...prev, current: 1 }));
       } else {
-        message.error(response.data.message || 'Cập nhật thất bại');
+        message.error(response.data.message || "Cập nhật thất bại");
       }
     } catch (error) {
-      console.error('Error updating:', error.response?.data || error);
-      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật');
+      console.error("Error updating:", error.response?.data || error);
+      message.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi cập nhật"
+      );
     } finally {
       setLoading(false);
     }
@@ -151,31 +181,36 @@ const QuanLyLoaiThietBiVatTu = () => {
     try {
       setLoading(true);
       const values = await addForm.validateFields();
-      
+
       const response = await axios.post(
         `${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=POST`,
         values,
         {
           withCredentials: true,
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      if (response.data.status === 'success' || response.data.message?.includes('đã được thêm')) {
-        message.success('Thêm mới thành công');
+      if (
+        response.data.status === "success" ||
+        response.data.message?.includes("đã được thêm")
+      ) {
+        message.success("Thêm mới thành công");
         setAddModalVisible(false);
         addForm.resetFields();
         await fetchData();
-        setPagination(prev => ({ ...prev, current: 1 }));
+        setPagination((prev) => ({ ...prev, current: 1 }));
       } else {
-        message.error(response.data.message || 'Thêm mới thất bại');
+        message.error(response.data.message || "Thêm mới thất bại");
       }
     } catch (error) {
-      console.error('Error adding:', error.response?.data || error);
-      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi thêm mới');
+      console.error("Error adding:", error.response?.data || error);
+      message.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi thêm mới"
+      );
     } finally {
       setLoading(false);
     }
@@ -186,24 +221,24 @@ const QuanLyLoaiThietBiVatTu = () => {
       setLoading(true);
       const response = await axios.delete(
         `${BASE_URL}DanhMuc_API/LoaiThietBiVatTu_API.php?action=DELETE`,
-        { 
+        {
           data: { MaLoaiThietBiVatTu: record.MaLoaiThietBiVatTu },
           withCredentials: true,
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
-      if (response.data.status === 'success') {
-        message.success('Xóa thành công');
+      if (response.data.status === "success") {
+        message.success("Xóa thành công");
         await fetchData();
-        setPagination(prev => ({ ...prev, current: 1 }));
+        setPagination((prev) => ({ ...prev, current: 1 }));
       } else {
-        message.error(response.data.message || 'Xóa thất bại');
+        message.error(response.data.message || "Xóa thất bại");
       }
     } catch (error) {
-      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa');
+      message.error(error.response?.data?.message || "Có lỗi xảy ra khi xóa");
     } finally {
       setLoading(false);
     }
@@ -211,21 +246,23 @@ const QuanLyLoaiThietBiVatTu = () => {
 
   const columns = [
     {
-      title: 'Mã loại',
-      dataIndex: 'MaLoaiThietBiVatTu',
-      key: 'MaLoaiThietBiVatTu',
+      title: "Mã loại",
+      dataIndex: "MaLoaiThietBiVatTu",
+      key: "MaLoaiThietBiVatTu",
       width: 90,
-      align: 'center',
+      align: "center",
       sorter: (a, b) => {
         if (!a.MaLoaiThietBiVatTu) return -1;
         if (!b.MaLoaiThietBiVatTu) return 1;
-        return a.MaLoaiThietBiVatTu.toString().localeCompare(b.MaLoaiThietBiVatTu.toString());
+        return a.MaLoaiThietBiVatTu.toString().localeCompare(
+          b.MaLoaiThietBiVatTu.toString()
+        );
       },
     },
     {
-      title: 'Tên loại',
-      dataIndex: 'TenLoai',
-      key: 'TenLoai',
+      title: "Tên loại",
+      dataIndex: "TenLoai",
+      key: "TenLoai",
       width: 300,
       ellipsis: true,
       sorter: (a, b) => {
@@ -235,9 +272,9 @@ const QuanLyLoaiThietBiVatTu = () => {
       },
     },
     {
-      title: 'Đơn vị tính',
-      dataIndex: 'DonViTinh',
-      key: 'DonViTinh',
+      title: "Đơn vị tính",
+      dataIndex: "DonViTinh",
+      key: "DonViTinh",
       width: 180,
       ellipsis: true,
       sorter: (a, b) => {
@@ -247,32 +284,30 @@ const QuanLyLoaiThietBiVatTu = () => {
       },
     },
     {
-      title: 'Loại',
-      dataIndex: 'LaThietBi',
-      key: 'LaThietBi',
+      title: "Loại",
+      dataIndex: "LaThietBi",
+      key: "LaThietBi",
       width: 120,
-      align: 'center',
-      render: (laThietBi) => (
-        <span>{laThietBi ? 'Thiết bị' : 'Vật tư'}</span>
-      ),
+      align: "center",
+      render: (laThietBi) => <span>{laThietBi ? "Thiết bị" : "Vật tư"}</span>,
       filters: [
-        { text: 'Thiết bị', value: true },
-        { text: 'Vật tư', value: false }
+        { text: "Thiết bị", value: true },
+        { text: "Vật tư", value: false },
       ],
       onFilter: (value, record) => record.LaThietBi === value,
     },
     {
-      title: 'Thao tác',
-      key: 'action',
+      title: "Thao tác",
+      key: "action",
       width: 180,
-      align: 'center',
+      align: "center",
       render: (_, record) => (
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+        <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
           {canEdit || canDelete ? (
             <>
               {canEdit && (
-                <Button 
-                  icon={<EditOutlined />} 
+                <Button
+                  icon={<EditOutlined />}
                   type="default"
                   onClick={() => handleEdit(record)}
                 >
@@ -291,11 +326,13 @@ const QuanLyLoaiThietBiVatTu = () => {
               )}
             </>
           ) : (
-            <span style={{ color: '#999' }}>Bạn không đủ quyền hạn để thao tác</span>
+            <span style={{ color: "#999" }}>
+              Bạn không đủ quyền hạn để thao tác
+            </span>
           )}
         </div>
       ),
-    }
+    },
   ];
 
   return (
@@ -309,11 +346,7 @@ const QuanLyLoaiThietBiVatTu = () => {
           style={{ width: 300 }}
         />
         {canAdd && (
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
             Thêm mới
           </Button>
         )}
@@ -349,46 +382,40 @@ const QuanLyLoaiThietBiVatTu = () => {
           closable={false}
           width={500}
           className="custom-modal"
-          bodyStyle={{ padding: '24px' }}
+          bodyStyle={{ padding: "24px" }}
           footer={[
             <div key="footer" className="flex justify-end gap-2 border-t pt-4">
-              <Button 
-                key="cancel" 
+              <Button
+                key="cancel"
                 onClick={() => setEditModalVisible(false)}
                 className="px-6"
               >
                 Đóng
               </Button>
-              <Button 
-                key="submit" 
-                type="primary" 
+              <Button
+                key="submit"
+                type="primary"
                 onClick={handleUpdate}
                 loading={loading}
                 className="px-6 bg-blue-600 hover:bg-blue-700"
               >
                 Lưu
               </Button>
-            </div>
+            </div>,
           ]}
         >
-          <Form
-            form={form}
-            layout="vertical"
-            className="mt-4"
-          >
+          <Form form={form} layout="vertical" className="mt-4">
             <Form.Item
               name="TenLoai"
               label={
-                <span className="text-gray-700 font-medium">
-                  Tên loại
-                </span>
+                <span className="text-gray-700 font-medium">Tên loại</span>
               }
               rules={[
-                { required: true, message: 'Vui lòng nhập tên loại' },
-                { min: 2, message: 'Tên loại phải có ít nhất 2 ký tự' }
+                { required: true, message: "Vui lòng nhập tên loại" },
+                { min: 2, message: "Tên loại phải có ít nhất 2 ký tự" },
               ]}
             >
-              <Input 
+              <Input
                 placeholder="Nhập tên loại"
                 className="hover:border-blue-400 focus:border-blue-400"
                 size="large"
@@ -397,16 +424,14 @@ const QuanLyLoaiThietBiVatTu = () => {
             <Form.Item
               name="DonViTinh"
               label={
-                <span className="text-gray-700 font-medium">
-                  Đơn vị tính
-                </span>
+                <span className="text-gray-700 font-medium">Đơn vị tính</span>
               }
               rules={[
-                { required: true, message: 'Vui lòng nhập đơn vị tính' },
-                { min: 1, message: 'Đơn vị tính phải có ít nhất 1 ký tự' }
+                { required: true, message: "Vui lòng nhập đơn vị tính" },
+                { min: 1, message: "Đơn vị tính phải có ít nhất 1 ký tự" },
               ]}
             >
-              <Input 
+              <Input
                 placeholder="Nhập đơn vị tính"
                 className="hover:border-blue-400 focus:border-blue-400"
                 size="large"
@@ -414,14 +439,8 @@ const QuanLyLoaiThietBiVatTu = () => {
             </Form.Item>
             <Form.Item
               name="LaThietBi"
-              label={
-                <span className="text-gray-700 font-medium">
-                  Loại
-                </span>
-              }
-              rules={[
-                { required: true, message: 'Vui lòng chọn loại' }
-              ]}
+              label={<span className="text-gray-700 font-medium">Loại</span>}
+              rules={[{ required: true, message: "Vui lòng chọn loại" }]}
             >
               <Radio.Group>
                 <Radio value={true}>Thiết bị</Radio>
@@ -447,11 +466,11 @@ const QuanLyLoaiThietBiVatTu = () => {
           closable={false}
           width={500}
           className="custom-modal"
-          bodyStyle={{ padding: '24px' }}
+          bodyStyle={{ padding: "24px" }}
           footer={[
             <div key="footer" className="flex justify-end gap-2 border-t pt-4">
-              <Button 
-                key="cancel" 
+              <Button
+                key="cancel"
                 onClick={() => {
                   setAddModalVisible(false);
                   addForm.resetFields();
@@ -460,36 +479,30 @@ const QuanLyLoaiThietBiVatTu = () => {
               >
                 Đóng
               </Button>
-              <Button 
-                key="submit" 
-                type="primary" 
+              <Button
+                key="submit"
+                type="primary"
                 onClick={handleAddSubmit}
                 loading={loading}
                 className="px-6 bg-blue-600 hover:bg-blue-700"
               >
                 Thêm
               </Button>
-            </div>
+            </div>,
           ]}
         >
-          <Form
-            form={addForm}
-            layout="vertical"
-            className="mt-4"
-          >
+          <Form form={addForm} layout="vertical" className="mt-4">
             <Form.Item
               name="TenLoai"
               label={
-                <span className="text-gray-700 font-medium">
-                  Tên loại
-                </span>
+                <span className="text-gray-700 font-medium">Tên loại</span>
               }
               rules={[
-                { required: true, message: 'Vui lòng nhập tên loại' },
-                { min: 2, message: 'Tên loại phải có ít nhất 2 ký tự' }
+                { required: true, message: "Vui lòng nhập tên loại" },
+                { min: 2, message: "Tên loại phải có ít nhất 2 ký tự" },
               ]}
             >
-              <Input 
+              <Input
                 placeholder="Nhập tên loại"
                 className="hover:border-blue-400 focus:border-blue-400"
                 size="large"
@@ -498,16 +511,14 @@ const QuanLyLoaiThietBiVatTu = () => {
             <Form.Item
               name="DonViTinh"
               label={
-                <span className="text-gray-700 font-medium">
-                  Đơn vị tính
-                </span>
+                <span className="text-gray-700 font-medium">Đơn vị tính</span>
               }
               rules={[
-                { required: true, message: 'Vui lòng nhập đơn vị tính' },
-                { min: 1, message: 'Đơn vị tính phải có ít nhất 1 ký tự' }
+                { required: true, message: "Vui lòng nhập đơn vị tính" },
+                { min: 1, message: "Đơn vị tính phải có ít nhất 1 ký tự" },
               ]}
             >
-              <Input 
+              <Input
                 placeholder="Nhập đơn vị tính"
                 className="hover:border-blue-400 focus:border-blue-400"
                 size="large"
@@ -515,14 +526,8 @@ const QuanLyLoaiThietBiVatTu = () => {
             </Form.Item>
             <Form.Item
               name="LaThietBi"
-              label={
-                <span className="text-gray-700 font-medium">
-                  Loại
-                </span>
-              }
-              rules={[
-                { required: true, message: 'Vui lòng chọn loại' }
-              ]}
+              label={<span className="text-gray-700 font-medium">Loại</span>}
+              rules={[{ required: true, message: "Vui lòng chọn loại" }]}
             >
               <Radio.Group>
                 <Radio value={true}>Thiết bị</Radio>
@@ -540,7 +545,7 @@ const QuanLyLoaiThietBiVatTu = () => {
         footer={[
           <Button key="close" onClick={() => setDetailVisible(false)}>
             Đóng
-          </Button>
+          </Button>,
         ]}
       >
         {currentRecord && (
@@ -557,4 +562,4 @@ const QuanLyLoaiThietBiVatTu = () => {
   );
 };
 
-export default QuanLyLoaiThietBiVatTu; 
+export default QuanLyLoaiThietBiVatTu;

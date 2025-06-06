@@ -33,10 +33,22 @@ INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDT, Email, DiaChi, LoaiHi
 ('NCC003', 'Cơ sở Sắt thép Hưng Thịnh', '0965432109', 'hungthinh@example.com', 'Quận 9, TP.HCM', 'Sắt thép xây dựng');
 
 -- Bảng DeXuat (Proposals)
-INSERT INTO DeXuat (MaDeXuat, NgayLap, NgayGiaoDuKien, NgayDuyet, MaNhanVien, LoaiDeXuat, TrangThai, GhiChu) VALUES
-('DX001', '2023-01-10', '2023-01-15', NULL, 'QL001', 'Vật tư', 'Chờ duyệt', 'Đề xuất mua thêm xi măng'),
-('DX002', '2023-02-05', '2023-02-10', '2023-02-08', 'QL002', 'Thiết bị', 'Đã duyệt', 'Đề xuất mua máy khoan mới'),
-('DX003', '2023-03-15', '2023-03-20', NULL, 'K001', 'Vật tư', 'Chờ duyệt', 'Đề xuất mua thêm gạch');
+-- Để trống theo cấu trúc mới
+
+-- Bảng ChiTietDeXuat (Proposal Details)
+-- Để trống theo cấu trúc mới
+
+-- Bảng PhieuNhap (Import Receipts)
+-- Để trống theo cấu trúc mới
+
+-- Bảng ChiTietPhieuNhap (Import Receipt Details)
+-- Để trống theo cấu trúc mới
+
+-- Bảng ChiTietThiCong (Construction Details)
+INSERT INTO ChiTietThiCong (MaCongTrinh, MaThietBiVatTu, TrangThai, NgayRoiKho, NgayHoanKho) VALUES
+('CT001', 'TBVT001', 'Đã xuất kho', '2023-01-25', NULL),
+('CT001', 'TBVT002', 'Đã xuất kho', '2023-01-25', NULL),
+('CT002', 'TBVT003', 'Đã xuất kho', '2023-03-05', NULL);
 
 -- Bảng TaiKhoan (Không cần sửa đổi)
 INSERT INTO TaiKhoan (MaTaiKhoan, MatKhau, MaNhanVien) VALUES
@@ -269,10 +281,16 @@ INSERT INTO BangPhanCong (MaBangPhanCong, MaCongTrinh, MaNhanVien, NgayThamGia, 
 (5, 'CT001', 'TP002', '2025-01-01', 8);
 
 -- Bảng ThietBiVatTu (Equipment/Materials)
-INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, SoLuongTon, TrangThai, MaLoaiThietBiVatTu, MaNhaCungCap) VALUES
-('TBVT001', 'Xi măng Hà Tiên', 100, 'Sẵn sàng', 1, 'NCC001'),
-('TBVT002', 'Gạch ống Tuynel', 5000, 'Sẵn sàng', 2, 'NCC001'),
-('TBVT003', 'Cát xây dựng', 20, 'Sẵn sàng', 3, 'NCC001');
+INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, TrangThai, MaLoaiThietBiVatTu) VALUES
+('TBVT001', 'Xi măng Hà Tiên', 'Sẵn sàng', 1),
+('TBVT002', 'Gạch ống Tuynel', 'Sẵn sàng', 2),
+('TBVT003', 'Cát xây dựng', 'Sẵn sàng', 3);
+
+-- Bảng CungUng (Supply)
+INSERT INTO CungUng (MaThietBiVatTu, MaNhaCungCap, SoLuongTon, DonGia) VALUES
+('TBVT001', 'NCC001', 100, 100000),
+('TBVT002', 'NCC001', 5000, 5000),
+('TBVT003', 'NCC001', 20, 500000);
 
 -- Bảng PhieuNhap (Import Receipts)
 INSERT INTO PhieuNhap (MaPhieuNhap, NgayNhap, TongTien, TrangThai, MaNhaCungCap, MaNhanVien) VALUES

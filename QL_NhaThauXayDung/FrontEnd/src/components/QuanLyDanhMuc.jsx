@@ -1,25 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select } from 'antd';
 import QuanLyLoaiBaoGia from './QuanLyLoaiBaoGia';
 import QuanLyLoaiCongTrinh from './QuanLyLoaiCongTrinh';
 import QuanLyLoaiThietBiVatTu from './QuanLyLoaiThietBiVatTu';
 import QuanLyLoaiNhanVien from './QuanLyLoaiNhanVien';
+import QuanLyNhaCungCap from './QuanLyNhaCungCap';
 import { useAuth } from '../Config/AuthContext';
 
 const QuanLyDanhMuc = () => {
-  const [selectedType, setSelectedType] = useState('loaibaogia');
   const { user } = useAuth();
+  const [selectedType, setSelectedType] = useState('loaibaogia');
 
   // Kiểm tra quyền truy cập
   const canAccess = user?.TenLoaiNhanVien === 'Admin' || 
                    user?.TenLoaiNhanVien === 'Kế toán' ||
+<<<<<<< Updated upstream
                    user?.TenLoaiNhanVien === 'Giám đốc'||
                    user?.TenLoaiNhanVien === 'Quản lý công trình';
+=======
+                   user?.TenLoaiNhanVien === 'Giám đốc' ||
+                   user?.TenLoaiNhanVien === 'Nhân viên kho';
+>>>>>>> Stashed changes
 
   // Kiểm tra quyền xem loại nhân viên
   const canViewLoaiNhanVien = user?.TenLoaiNhanVien === 'Admin' || 
                              user?.TenLoaiNhanVien === 'Giám đốc'||
                              user?.TenLoaiNhanVien === 'Quản lý công trình';
+
+  // Kiểm tra xem có phải nhân viên kho không
+  const isWarehouseStaff = user?.TenLoaiNhanVien === 'Nhân viên kho';
+
+  // Tạo danh sách options dựa trên quyền
+  const getDropdownOptions = () => {
+    if (isWarehouseStaff) {
+      return [
+        { value: 'loaithietbivattu', label: 'Loại thiết bị vật tư' },
+        { value: 'nhacungcap', label: 'Nhà cung cấp' }
+      ];
+    }
+
+    const options = [
+      { value: 'loaibaogia', label: 'Loại báo giá' },
+      { value: 'loaicongtrinh', label: 'Loại công trình' },
+      { value: 'loaithietbivattu', label: 'Loại thiết bị vật tư' },
+      { value: 'nhacungcap', label: 'Nhà cung cấp' }
+    ];
+
+    if (canViewLoaiNhanVien) {
+      options.push({ value: 'loainhanvien', label: 'Loại nhân viên' });
+    }
+
+    return options;
+  };
+
+  const dropdownOptions = getDropdownOptions();
+
+  // Xử lý khi component mount và khi role thay đổi
+  useEffect(() => {
+    if (isWarehouseStaff) {
+      setSelectedType('loaithietbivattu');
+    } else {
+      setSelectedType('loaibaogia');
+    }
+  }, [isWarehouseStaff]);
 
   if (!canAccess) {
     return (
@@ -32,24 +75,6 @@ const QuanLyDanhMuc = () => {
     );
   }
 
-  // Tạo danh sách options dựa trên quyền
-  const dropdownOptions = [
-    
-    { value: 'loaibaogia', label: 'Loại báo giá' },
-    { value: 'loaicongtrinh', label: 'Loại công trình' },
-    { value: 'loaithietbivattu', label: 'Loại thiết bị vật tư' },
-  ];
-
-  // Thêm option loại nhân viên nếu có quyền
-  if (canViewLoaiNhanVien) {
-    dropdownOptions.push({ value: 'loainhanvien', label: 'Loại nhân viên' });
-  }
-
-  // Nếu đang chọn loại nhân viên nhưng không có quyền, chuyển về loại báo giá
-  if (selectedType === 'loainhanvien' && !canViewLoaiNhanVien) {
-    setSelectedType('loaibaogia');
-  }
-
   const renderComponent = () => {
     switch (selectedType) {
       case 'loaibaogia':
@@ -58,6 +83,8 @@ const QuanLyDanhMuc = () => {
         return <QuanLyLoaiCongTrinh />;
       case 'loaithietbivattu':
         return <QuanLyLoaiThietBiVatTu />;
+      case 'nhacungcap':
+        return <QuanLyNhaCungCap />;
       case 'loainhanvien':
         return canViewLoaiNhanVien ? <QuanLyLoaiNhanVien /> : <QuanLyLoaiBaoGia />;
       default:

@@ -193,26 +193,51 @@ switch ($method) {
             $thietbivattu->TenThietBiVatTu = $data->TenThietBiVatTu;
             $thietbivattu->TrangThai = $data->TrangThai;
             $thietbivattu->MaLoaiThietBiVatTu = $data->MaLoaiThietBiVatTu;
+
             try {
-                if ($thietbivattu->create()) {
-                    echo json_encode([
-                        'status' => 'success',
-                        'message' => "Thiết bị vật tư đã được thêm thành công",
-                        'data' => [
-                            'MaThietBiVatTu' => $thietbivattu->MaThietBiVatTu,
-                            'TenThietBiVatTu' => $thietbivattu->TenThietBiVatTu,
-                            'TrangThai' => $thietbivattu->TrangThai,
-                            'MaLoaiThietBiVatTu' => $thietbivattu->MaLoaiThietBiVatTu
-                        ]
-                    ]);
-                } else {
-                    echo json_encode([
-                        'status' => 'error',
-                        'message' => "Thêm thiết bị vật tư thất bại"
-                    ]);
-                    http_response_code(500);
+                // Begin transaction
+                $db->beginTransaction();
+
+                // Create new equipment
+                if (!$thietbivattu->create()) {
+                    throw new Exception("Thêm thiết bị vật tư thất bại");
                 }
+
+                // If suppliers are provided, add them to CungUng table
+                if (isset($data->suppliers) && is_array($data->suppliers)) {
+                    require_once __DIR__ . '/../../Model/CungUng.php';
+                    $cungUng = new CungUng($db);
+
+                    foreach ($data->suppliers as $supplier) {
+                        if (isset($supplier->MaNhaCungCap) && isset($supplier->SoLuongTon)) {
+                            $cungUng->MaThietBiVatTu = $data->MaThietBiVatTu;
+                            $cungUng->MaNhaCungCap = $supplier->MaNhaCungCap;
+                            $cungUng->SoLuongTon = $supplier->SoLuongTon;
+                            $cungUng->DonGia = isset($supplier->DonGia) ? $supplier->DonGia : 0;
+
+                            if (!$cungUng->create()) {
+                                throw new Exception("Thêm thông tin cung ứng thất bại");
+                            }
+                        }
+                    }
+                }
+
+                // Commit transaction
+                $db->commit();
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => "Thiết bị vật tư đã được thêm thành công",
+                    'data' => [
+                        'MaThietBiVatTu' => $thietbivattu->MaThietBiVatTu,
+                        'TenThietBiVatTu' => $thietbivattu->TenThietBiVatTu,
+                        'TrangThai' => $thietbivattu->TrangThai,
+                        'MaLoaiThietBiVatTu' => $thietbivattu->MaLoaiThietBiVatTu
+                    ]
+                ]);
             } catch (Exception $e) {
+                // Rollback transaction on error
+                $db->rollBack();
                 echo json_encode([
                     'status' => 'error',
                     'message' => 'Lỗi khi thêm dữ liệu: ' . $e->getMessage()
@@ -231,41 +256,77 @@ switch ($method) {
     case 'PUT':
         if ($action === "PUT") {
             $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaThietBiVatTu, $data->TenThietBiVatTu, $data->TrangThai, $data->MaLoaiThietBiVatTu)) {
+            if (!isset($data->MaThietBiVatTu, $data->TenThietBiVatTu, $data->TrangThai)) {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => "Dữ liệu không đầy đủ hoặc không hợp lệ"
+                    'message' => "Dữ liệu không đầy đủ"
                 ]);
                 http_response_code(400);
                 exit;
             }
-            $thietbivattu->MaThietBiVatTu = $data->MaThietBiVatTu;
-            $thietbivattu->TenThietBiVatTu = $data->TenThietBiVatTu;
-            $thietbivattu->TrangThai = $data->TrangThai;
-            $thietbivattu->MaLoaiThietBiVatTu = $data->MaLoaiThietBiVatTu;
+
             try {
-                if ($thietbivattu->update()) {
-                    echo json_encode([
-                        'status' => 'success',
-                        'message' => "Thiết bị vật tư đã được cập nhật",
-                        'data' => [
-                            'MaThietBiVatTu' => $thietbivattu->MaThietBiVatTu,
-                            'TenThietBiVatTu' => $thietbivattu->TenThietBiVatTu,
-                            'TrangThai' => $thietbivattu->TrangThai,
-                            'MaLoaiThietBiVatTu' => $thietbivattu->MaLoaiThietBiVatTu
-                        ]
-                    ]);
-                } else {
-                    echo json_encode([
-                        'status' => 'error',
-                        'message' => "Cập nhật thiết bị vật tư thất bại"
-                    ]);
-                    http_response_code(500);
+                // Begin transaction
+                $db->beginTransaction();
+
+                // Update equipment info
+                $thietbivattu->MaThietBiVatTu = $data->MaThietBiVatTu;
+                $thietbivattu->TenThietBiVatTu = $data->TenThietBiVatTu;
+                $thietbivattu->TrangThai = $data->TrangThai;
+                $thietbivattu->MaLoaiThietBiVatTu = $data->MaLoaiThietBiVatTu;
+
+                if (!$thietbivattu->update()) {
+                    throw new Exception("Cập nhật thiết bị vật tư thất bại");
                 }
+
+                // Handle suppliers
+                if (isset($data->suppliers) && is_array($data->suppliers)) {
+                    require_once __DIR__ . '/../../Model/CungUng.php';
+                    $cungUng = new CungUng($db);
+
+                    // Get current suppliers
+                    $currentSuppliers = $cungUng->getByEquipment($data->MaThietBiVatTu)->fetchAll(PDO::FETCH_ASSOC);
+                    $currentSupplierMap = array_column($currentSuppliers, null, 'MaNhaCungCap');
+
+                    foreach ($data->suppliers as $supplier) {
+                        if (isset($supplier->MaNhaCungCap) && isset($supplier->SoLuongTon)) {
+                            // If supplier exists, update quantity
+                            if (isset($currentSupplierMap[$supplier->MaNhaCungCap])) {
+                                $cungUng->MaCungUng = $currentSupplierMap[$supplier->MaNhaCungCap]['MaCungUng'];
+                                $cungUng->SoLuongTon = $supplier->SoLuongTon;
+                                $cungUng->DonGia = isset($supplier->DonGia) ? $supplier->DonGia : $currentSupplierMap[$supplier->MaNhaCungCap]['DonGia'];
+                                if (!$cungUng->update()) {
+                                    throw new Exception("Cập nhật số lượng nhà cung cấp thất bại");
+                                }
+                            } else {
+                                // If supplier is new, create new entry
+                                $cungUng->MaThietBiVatTu = $data->MaThietBiVatTu;
+                                $cungUng->MaNhaCungCap = $supplier->MaNhaCungCap;
+                                $cungUng->SoLuongTon = $supplier->SoLuongTon;
+                                $cungUng->DonGia = isset($supplier->DonGia) ? $supplier->DonGia : 0;
+                                if (!$cungUng->create()) {
+                                    throw new Exception("Thêm nhà cung cấp mới thất bại");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Commit transaction
+                $db->commit();
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => "Cập nhật thiết bị vật tư và nhà cung cấp thành công"
+                ]);
             } catch (Exception $e) {
+                // Rollback transaction on error
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
+                error_log("Error in ThietBiVatTu_API.php PUT: " . $e->getMessage());
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'Lỗi khi cập nhật dữ liệu: ' . $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
                 http_response_code(500);
             }

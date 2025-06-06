@@ -165,6 +165,13 @@ switch ($method) {
 
             try {
                 if ($nhacungcap->create()) {
+                    // If suppliers are provided, create supplier-equipment relationships
+                    if (isset($data->suppliers) && is_array($data->suppliers)) {
+                        foreach ($data->suppliers as $supplierId) {
+                            $nhacungcap->addSupplierEquipmentRelationship($supplierId, $nhacungcap->MaNhaCungCap);
+                        }
+                    }
+
                     echo json_encode([
                         'status' => 'success',
                         'message' => "Nhà cung cấp đã được thêm thành công",

@@ -14,7 +14,7 @@ import {
   FaClipboardCheck,
   FaListAlt,
   FaFileInvoice,
-  FaTruck
+  FaTruck,
 } from "react-icons/fa";
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
@@ -37,11 +37,36 @@ const PageNhanVienKho = () => {
   const location = useLocation();
 
   const menuItems = [
-    { id: "quanlythietbivattu", label: "Quản lý vật tư thiết bị", icon: <FaTools />, path: "/nhanvienkho/quanlythietbivattu" },
-    { id: "lapphieukiemtra", label: "Lập phiếu kiểm tra", icon: <FaClipboardCheck />, path: "/nhanvienkho/lapphieukiemtra" },
-    { id: "danhsachphieukiemtra", label: "Danh sách phiếu kiểm tra", icon: <FaListAlt />, path: "/nhanvienkho/danhsachphieukiemtra" },
-    { id: "danhsachphieunhap", label: "Danh sách phiếu nhập", icon: <FaFileInvoice />, path: "/nhanvienkho/danhsachphieunhap" },
-    { id: "quanlynhacungcap", label: "Quản lý nhà cung cấp", icon: <FaTruck />, path: "/nhanvienkho/quanlynhacungcap" },
+    {
+      id: "quanlythietbivattu",
+      label: "Quản lý vật tư thiết bị",
+      icon: <FaTools />,
+      path: "/nhanvienkho/quanlythietbivattu",
+    },
+    {
+      id: "lapphieukiemtra",
+      label: "Lập phiếu kiểm tra",
+      icon: <FaClipboardCheck />,
+      path: "/nhanvienkho/lapphieukiemtra",
+    },
+    {
+      id: "danhsachphieukiemtra",
+      label: "Danh sách phiếu kiểm tra",
+      icon: <FaListAlt />,
+      path: "/nhanvienkho/danhsachphieukiemtra",
+    },
+    {
+      id: "danhsachphieunhap",
+      label: "Danh sách phiếu nhập",
+      icon: <FaFileInvoice />,
+      path: "/nhanvienkho/danhsachphieunhap",
+    },
+    {
+      id: "quanlydanhmuc",
+      label: "Quản lý danh mục",
+      icon: <FaListAlt />,
+      path: "/nhanvienkho/quanlydanhmuc",
+    },
   ];
 
   const handleClickOutside = (event) => {
@@ -55,14 +80,14 @@ const PageNhanVienKho = () => {
 
   useEffect(() => {
     if (user) {
-      setUserInfo({ 
-        name: user.TenNhanVien, 
-        role: user.TenLoaiNhanVien || "Admin" 
+      setUserInfo({
+        name: user.TenNhanVien,
+        role: user.TenLoaiNhanVien || "Admin",
       });
     }
 
     const currentPath = location.pathname;
-    const activeItem = menuItems.find(item => currentPath.includes(item.id));
+    const activeItem = menuItems.find((item) => currentPath.includes(item.id));
     if (activeItem) {
       setActiveMenu(activeItem.id);
     }
@@ -122,14 +147,18 @@ const PageNhanVienKho = () => {
                 }`}
               >
                 <div className="flex items-center space-x-3">
-                  <span className={`text-lg transition-colors duration-200 whitespace-nowrap ${
-                    activeMenu === item.id ? "text-white" : "text-[#2e7d32]"
-                  }`}>
+                  <span
+                    className={`text-lg transition-colors duration-200 whitespace-nowrap ${
+                      activeMenu === item.id ? "text-white" : "text-[#2e7d32]"
+                    }`}
+                  >
                     {item.icon}
                   </span>
-                  <span className={`font-medium transition-colors duration-200 whitespace-nowrap ${
-                    activeMenu === item.id ? "text-white" : "text-gray-700"
-                  }`}>
+                  <span
+                    className={`font-medium transition-colors duration-200 whitespace-nowrap ${
+                      activeMenu === item.id ? "text-white" : "text-gray-700"
+                    }`}
+                  >
                     {item.label}
                   </span>
                 </div>
@@ -169,20 +198,20 @@ const PageNhanVienKho = () => {
                 >
                   <CiUser className="text-xl text-gray-600" />
                 </div>
-                
+
                 {userMenuOpen && (
-                  <div 
+                  <div
                     ref={userMenuRef}
                     className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-30 border border-gray-200"
                   >
-                    <div 
+                    <div
                       onClick={handleProfileEdit}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                     >
                       <FaUserEdit className="mr-2" />
                       Chỉnh sửa hồ sơ
                     </div>
-                    <div 
+                    <div
                       onClick={() => setIsLogoutModalOpen(true)}
                       className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100 cursor-pointer"
                     >
