@@ -13,11 +13,13 @@ const QuanLyDanhMuc = () => {
   // Kiểm tra quyền truy cập
   const canAccess = user?.TenLoaiNhanVien === 'Admin' || 
                    user?.TenLoaiNhanVien === 'Kế toán' ||
-                   user?.TenLoaiNhanVien === 'Giám đốc';
+                   user?.TenLoaiNhanVien === 'Giám đốc'||
+                   user?.TenLoaiNhanVien === 'Quản lý công trình';
 
   // Kiểm tra quyền xem loại nhân viên
   const canViewLoaiNhanVien = user?.TenLoaiNhanVien === 'Admin' || 
-                             user?.TenLoaiNhanVien === 'Giám đốc';
+                             user?.TenLoaiNhanVien === 'Giám đốc'||
+                             user?.TenLoaiNhanVien === 'Quản lý công trình';
 
   if (!canAccess) {
     return (
