@@ -398,7 +398,7 @@ const QuanLyTienDo = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">
           Quản lý báo cáo tiến độ
         </h1>
 
