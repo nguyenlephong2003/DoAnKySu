@@ -14,13 +14,8 @@ const QuanLyDanhMuc = () => {
   // Kiểm tra quyền truy cập
   const canAccess = user?.TenLoaiNhanVien === 'Admin' || 
                    user?.TenLoaiNhanVien === 'Kế toán' ||
-<<<<<<< Updated upstream
-                   user?.TenLoaiNhanVien === 'Giám đốc'||
-                   user?.TenLoaiNhanVien === 'Quản lý công trình';
-=======
                    user?.TenLoaiNhanVien === 'Giám đốc' ||
                    user?.TenLoaiNhanVien === 'Nhân viên kho';
->>>>>>> Stashed changes
 
   // Kiểm tra quyền xem loại nhân viên
   const canViewLoaiNhanVien = user?.TenLoaiNhanVien === 'Admin' || 
