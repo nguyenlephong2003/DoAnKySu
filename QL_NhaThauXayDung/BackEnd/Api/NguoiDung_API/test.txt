@@ -2,62 +2,992 @@
     "status": "success",
     "data": [
         {
-            "CongTrinh": {
-                "MaCongTrinh": "CT002",
-                "TenCongTrinh": "Biệt thự Thủ Đức",
-                "TrangThai": "Đã hoàn thành",
-                "PhanCong": [
-                    {
-                        "MaBangPhanCong": 4,
-                        "MaNhanVien": "TP002",
-                        "TenNhanVien": "Mai Thị Phụ",
-                        "LuongCanBan": 0,
-                        "MaLoaiNhanVien": 7,
-                        "TenLoaiNhanVien": "Thợ phụ",
-                        "NgayThamGia": "2025-01-01",
-                        "NgayKetThuc": "2025-01-15",
-                        "SoNgayThamGia": 11,
-                        "ChamCong": [
-                            {
-                                "MaChamCong": "CC003",
-                                "SoNgayLam": 23,
-                                "KyLuong": "2025-01-31 00:00:00",
-                                "TrangThai": "Đã thanh toán"
-                            }
-                        ]
-                    },
-                    {
-                        "MaBangPhanCong": 2,
-                        "MaNhanVien": "TC001",
-                        "TenNhanVien": "Trịnh Văn Thợ",
-                        "LuongCanBan": 0,
-                        "MaLoaiNhanVien": 6,
-                        "TenLoaiNhanVien": "Thợ chính",
-                        "NgayThamGia": "2025-01-16",
-                        "NgayKetThuc": "2025-01-31",
-                        "SoNgayThamGia": 11,
-                        "ChamCong": [
-                            {
-                                "MaChamCong": "CC004",
-                                "SoNgayLam": 22,
-                                "KyLuong": "2025-02-28 00:00:00",
-                                "TrangThai": "Chưa thanh toán"
-                            },
-                            {
-                                "MaChamCong": "CC001",
-                                "SoNgayLam": 22,
-                                "KyLuong": "2025-01-31 00:00:00",
-                                "TrangThai": "Đã thanh toán"
-                            }
-                        ]
-                    }
-                ]
-            }
+            "Thang": 6,
+            "Nam": 2025,
+            "DanhSachChamCong": [
+                {
+                    "MaChamCong": "CC100059",
+                    "MaNhanVien": "QL001",
+                    "TenNhanVien": "Hoàng Quản Lý",
+                    "LoaiNhanVien": "Quản lý công trình",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100060",
+                    "MaNhanVien": "QL001",
+                    "TenNhanVien": "Hoàng Quản Lý",
+                    "LoaiNhanVien": "Quản lý công trình",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100061",
+                    "MaNhanVien": "QL001",
+                    "TenNhanVien": "Hoàng Quản Lý",
+                    "LoaiNhanVien": "Quản lý công trình",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100033",
+                    "MaNhanVien": "KT001",
+                    "TenNhanVien": "Lê Văn Kế Toán",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100034",
+                    "MaNhanVien": "KT001",
+                    "TenNhanVien": "Lê Văn Kế Toán",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100035",
+                    "MaNhanVien": "KT001",
+                    "TenNhanVien": "Lê Văn Kế Toán",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100111",
+                    "MaNhanVien": "TV001",
+                    "TenNhanVien": "Lê Văn Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100112",
+                    "MaNhanVien": "TV001",
+                    "TenNhanVien": "Lê Văn Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100113",
+                    "MaNhanVien": "TV001",
+                    "TenNhanVien": "Lê Văn Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100072",
+                    "MaNhanVien": "QL002",
+                    "TenNhanVien": "Lý Thị Quản Lý",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100073",
+                    "MaNhanVien": "QL002",
+                    "TenNhanVien": "Lý Thị Quản Lý",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100074",
+                    "MaNhanVien": "QL002",
+                    "TenNhanVien": "Lý Thị Quản Lý",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100124",
+                    "MaNhanVien": "TV002",
+                    "TenNhanVien": "Nguyễn Thị Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100125",
+                    "MaNhanVien": "TV002",
+                    "TenNhanVien": "Nguyễn Thị Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100126",
+                    "MaNhanVien": "TV002",
+                    "TenNhanVien": "Nguyễn Thị Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100007",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin",
+                    "LoaiNhanVien": "Admin",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100008",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin",
+                    "LoaiNhanVien": "Admin",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100009",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin",
+                    "LoaiNhanVien": "Admin",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100046",
+                    "MaNhanVien": "NS001",
+                    "TenNhanVien": "Phạm Thị Nhân Sự",
+                    "LoaiNhanVien": "Nhân sự",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100047",
+                    "MaNhanVien": "NS001",
+                    "TenNhanVien": "Phạm Thị Nhân Sự",
+                    "LoaiNhanVien": "Nhân sự",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100048",
+                    "MaNhanVien": "NS001",
+                    "TenNhanVien": "Phạm Thị Nhân Sự",
+                    "LoaiNhanVien": "Nhân sự",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100085",
+                    "MaNhanVien": "K001",
+                    "TenNhanVien": "Phạm Văn Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100086",
+                    "MaNhanVien": "K001",
+                    "TenNhanVien": "Phạm Văn Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100087",
+                    "MaNhanVien": "K001",
+                    "TenNhanVien": "Phạm Văn Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100020",
+                    "MaNhanVien": "GD001",
+                    "TenNhanVien": "Trần Thị Giám Đốc",
+                    "LoaiNhanVien": "Giám đốc",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100021",
+                    "MaNhanVien": "GD001",
+                    "TenNhanVien": "Trần Thị Giám Đốc",
+                    "LoaiNhanVien": "Giám đốc",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100022",
+                    "MaNhanVien": "GD001",
+                    "TenNhanVien": "Trần Thị Giám Đốc",
+                    "LoaiNhanVien": "Giám đốc",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100098",
+                    "MaNhanVien": "K002",
+                    "TenNhanVien": "Trần Thị Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-06-01 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-06-01 00:00:00",
+                        "2025-06-04 00:00:00",
+                        "2025-06-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100099",
+                    "MaNhanVien": "K002",
+                    "TenNhanVien": "Trần Thị Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-02 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-06-02 00:00:00",
+                        "2025-06-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100100",
+                    "MaNhanVien": "K002",
+                    "TenNhanVien": "Trần Thị Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-06-03 00:00:00",
+                    "TrangThai": "Chưa thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-06-03 00:00:00",
+                        "2025-06-06 00:00:00"
+                    ]
+                }
+            ]
         },
+        {
+            "Thang": 5,
+            "Nam": 2025,
+            "DanhSachChamCong": [
+                {
+                    "MaChamCong": "CC100053",
+                    "MaNhanVien": "QL001",
+                    "TenNhanVien": "Hoàng Quản Lý",
+                    "LoaiNhanVien": "Quản lý công trình",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100054",
+                    "MaNhanVien": "QL001",
+                    "TenNhanVien": "Hoàng Quản Lý",
+                    "LoaiNhanVien": "Quản lý công trình",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100055",
+                    "MaNhanVien": "QL001",
+                    "TenNhanVien": "Hoàng Quản Lý",
+                    "LoaiNhanVien": "Quản lý công trình",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100027",
+                    "MaNhanVien": "KT001",
+                    "TenNhanVien": "Lê Văn Kế Toán",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100028",
+                    "MaNhanVien": "KT001",
+                    "TenNhanVien": "Lê Văn Kế Toán",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100029",
+                    "MaNhanVien": "KT001",
+                    "TenNhanVien": "Lê Văn Kế Toán",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100105",
+                    "MaNhanVien": "TV001",
+                    "TenNhanVien": "Lê Văn Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100106",
+                    "MaNhanVien": "TV001",
+                    "TenNhanVien": "Lê Văn Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100107",
+                    "MaNhanVien": "TV001",
+                    "TenNhanVien": "Lê Văn Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100066",
+                    "MaNhanVien": "QL002",
+                    "TenNhanVien": "Lý Thị Quản Lý",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100067",
+                    "MaNhanVien": "QL002",
+                    "TenNhanVien": "Lý Thị Quản Lý",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100068",
+                    "MaNhanVien": "QL002",
+                    "TenNhanVien": "Lý Thị Quản Lý",
+                    "LoaiNhanVien": "Kế toán",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100118",
+                    "MaNhanVien": "TV002",
+                    "TenNhanVien": "Nguyễn Thị Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100119",
+                    "MaNhanVien": "TV002",
+                    "TenNhanVien": "Nguyễn Thị Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100120",
+                    "MaNhanVien": "TV002",
+                    "TenNhanVien": "Nguyễn Thị Tư Vấn",
+                    "LoaiNhanVien": "Nhân viên tư vấn",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100001",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin",
+                    "LoaiNhanVien": "Admin",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100002",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin",
+                    "LoaiNhanVien": "Admin",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100003",
+                    "MaNhanVien": "AD001",
+                    "TenNhanVien": "Nguyễn Văn Admin",
+                    "LoaiNhanVien": "Admin",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100040",
+                    "MaNhanVien": "NS001",
+                    "TenNhanVien": "Phạm Thị Nhân Sự",
+                    "LoaiNhanVien": "Nhân sự",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100041",
+                    "MaNhanVien": "NS001",
+                    "TenNhanVien": "Phạm Thị Nhân Sự",
+                    "LoaiNhanVien": "Nhân sự",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100042",
+                    "MaNhanVien": "NS001",
+                    "TenNhanVien": "Phạm Thị Nhân Sự",
+                    "LoaiNhanVien": "Nhân sự",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100079",
+                    "MaNhanVien": "K001",
+                    "TenNhanVien": "Phạm Văn Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100080",
+                    "MaNhanVien": "K001",
+                    "TenNhanVien": "Phạm Văn Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100081",
+                    "MaNhanVien": "K001",
+                    "TenNhanVien": "Phạm Văn Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100014",
+                    "MaNhanVien": "GD001",
+                    "TenNhanVien": "Trần Thị Giám Đốc",
+                    "LoaiNhanVien": "Giám đốc",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100015",
+                    "MaNhanVien": "GD001",
+                    "TenNhanVien": "Trần Thị Giám Đốc",
+                    "LoaiNhanVien": "Giám đốc",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100016",
+                    "MaNhanVien": "GD001",
+                    "TenNhanVien": "Trần Thị Giám Đốc",
+                    "LoaiNhanVien": "Giám đốc",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100092",
+                    "MaNhanVien": "K002",
+                    "TenNhanVien": "Trần Thị Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 3,
+                    "KyLuong": "2025-05-01 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày thường",
+                    "KyLuongArray": [
+                        "2025-05-01 00:00:00",
+                        "2025-05-04 00:00:00",
+                        "2025-05-07 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100093",
+                    "MaNhanVien": "K002",
+                    "TenNhanVien": "Trần Thị Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 2,
+                    "KyLuong": "2025-05-02 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Cuối tuần",
+                    "KyLuongArray": [
+                        "2025-05-02 00:00:00",
+                        "2025-05-05 00:00:00"
+                    ]
+                },
+                {
+                    "MaChamCong": "CC100094",
+                    "MaNhanVien": "K002",
+                    "TenNhanVien": "Trần Thị Kho",
+                    "LoaiNhanVien": "Nhân viên kho",
+                    "SoNgayLam": 1,
+                    "KyLuong": "2025-05-03 00:00:00",
+                    "TrangThai": "Đã thanh toán",
+                    "GioVao": "08:00:00",
+                    "GioRa": "17:00:00",
+                    "LoaiChamCong": "Ngày lễ",
+                    "KyLuongArray": [
+                        "2025-05-03 00:00:00"
+                    ]
+                }
+            ]
+        }
+    ]
+}
 Next
-Chưa có
+- Nếu dương xong api voucher sẽ kiểm tra lại xem các case có work không (nếu không sẽ fix)
 6 Jun 2025
 Fasthub
 --release version mới ( CH Play, App Store)
---396-fix-bug-crash-app-tại-page-product
- 
+--396-5-fix-bug-crash-app-tại-page-product

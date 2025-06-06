@@ -32,6 +32,7 @@ const QuanLyDanhMuc = () => {
 
   // Tạo danh sách options dựa trên quyền
   const dropdownOptions = [
+    
     { value: 'loaibaogia', label: 'Loại báo giá' },
     { value: 'loaicongtrinh', label: 'Loại công trình' },
     { value: 'loaithietbivattu', label: 'Loại thiết bị vật tư' },
@@ -64,15 +65,13 @@ const QuanLyDanhMuc = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Quản lý danh mục</h1>
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Quản lý danh mục</h1>
         <Select
           value={selectedType}
           onChange={setSelectedType}
           style={{ width: 200 }}
           options={dropdownOptions}
         />
-      </div>
       
       <div className="mt-6">
         {renderComponent()}
