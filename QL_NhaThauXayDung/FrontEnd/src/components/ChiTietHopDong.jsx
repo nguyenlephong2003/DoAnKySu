@@ -75,16 +75,8 @@ const ChiTietHopDong = ({
               Xóa
             </Button>
           </>
-        ),
-        contract.FileHopDong && (
-          <Button
-            key="view"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewFile(contract.FileHopDong)}
-          >
-            Xem file
-          </Button>
-        ),
+        )
+        
       ]}
       width={800}
     >

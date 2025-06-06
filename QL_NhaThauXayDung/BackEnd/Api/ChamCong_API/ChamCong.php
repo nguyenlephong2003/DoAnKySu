@@ -1,4 +1,6 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', 0);
 // Set headers
 $allowedOrigins = [
     'http://localhost:3000',
@@ -394,9 +396,13 @@ switch ($action) {
                     $found = false;
 
                     foreach ($groupedData[$key]["DanhSachChamCong"] as &$chamCong) {
-                        if ($chamCong["MaNhanVien"] === $row['MaNhanVien'] && 
+                        if (
+                            $chamCong["MaNhanVien"] === $row['MaNhanVien'] && 
                             $chamCong["TrangThai"] === $row['TrangThai'] &&
-                            $chamCong["LoaiChamCong"] === $row['LoaiChamCong']) {
+                            $chamCong["LoaiChamCong"] === $row['LoaiChamCong'] &&
+                            $chamCong["GioVao"] === $row['GioVao'] &&
+                            $chamCong["GioRa"] === $row['GioRa']
+                        ) {
                             // Cập nhật số ngày làm
                             $chamCong["SoNgayLam"] += $row['SoNgayLam'];
                             // Cập nhật kỳ lương thành mảng
@@ -404,11 +410,6 @@ switch ($action) {
                                 $chamCong["KyLuongArray"] = [$chamCong["KyLuong"]];
                             }
                             $chamCong["KyLuongArray"][] = $row['KyLuong'];
-                            // Cập nhật giờ vào/ra nếu khác
-                            if ($chamCong["GioVao"] !== $row['GioVao'] || $chamCong["GioRa"] !== $row['GioRa']) {
-                                $chamCong["GioVao"] = $row['GioVao'];
-                                $chamCong["GioRa"] = $row['GioRa'];
-                            }
                             $found = true;
                             break;
                         }

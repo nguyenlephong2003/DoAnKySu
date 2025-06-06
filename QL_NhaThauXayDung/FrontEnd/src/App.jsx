@@ -37,75 +37,33 @@ function ProtectedRoute({ children, allowedRole }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log("Checking token..."); // Debug log
-        // Gọi API kiểm tra token
         const response = await fetch(`${BASE_URL}NguoiDung_API/KiemTraToken_API.php`, {
           method: 'GET',
-          credentials: 'include', // Quan trọng: cho phép gửi cookies
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json'
           }
         });
-
-        console.log("Response status:", response.status); // Debug log
         const data = await response.json();
-        console.log("Token check response:", data); // Debug log
-        
-        if (!response.ok) {
-          console.error("Token check failed:", data.message, data.error);
-          alert(data.error || "Vui lòng đăng nhập để tiếp tục");
+        if (!response.ok || data.message !== "success") {
           navigate("/login");
           return;
         }
-
-        if (data.message !== "success") {
-          console.error("Invalid response:", data);
-          alert(data.error || "Phiên đăng nhập không hợp lệ");
-          navigate("/login");
-          return;
-        }
-
-        // Kiểm tra vai trò người dùng
+        // Lấy loại nhân viên (TenLoai) từ API
         const userInfo = data.nhanvien[0];
-        if (!userInfo) {
-          console.error("No user info in response");
-          alert("Không tìm thấy thông tin người dùng");
-          navigate("/login");
-          return;
-        }
-
-        const maNhanVien = userInfo.MaNhanVien || "";
-        let userRole = "";
-        
-        // Xử lý đặc biệt cho nhân viên kho (K)
-        if (maNhanVien.startsWith("K") && !maNhanVien.startsWith("KT")) {
-          userRole = "K";
-        } else {
-          userRole = maNhanVien.substring(0, 2);
-        }
-        
-        console.log("User Role:", userRole);
-        console.log("User Info:", userInfo);
-
-        // Nếu vai trò không khớp với trang được phép
-        if (userRole !== allowedRole) {
-          console.log("Role mismatch - User Role:", userRole, "Allowed Role:", allowedRole);
+        const tenLoai = userInfo.loainhanvien[0].TenLoai;
+        // So sánh với allowedRole
+        if (tenLoai !== allowedRole) {
           navigate("/404");
           return;
         }
-
         setIsLoading(false);
       } catch (error) {
-        console.error("Lỗi kiểm tra xác thực:", error);
-        console.error("Error details:", error.message);
-        alert("Có lỗi xảy ra khi kiểm tra thông tin đăng nhập: " + error.message);
         navigate("/login");
       }
     };
-
     checkAuth();
   }, [navigate, allowedRole]);
-
   if (isLoading) {
     return <div>Đang kiểm tra thông tin đăng nhập...</div>;
   }
@@ -127,7 +85,7 @@ function App() {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute allowedRole="AD">
+            <ProtectedRoute allowedRole="Admin">
               <AdminPage />
             </ProtectedRoute>
           }
@@ -138,7 +96,7 @@ function App() {
         <Route
           path="/giamdoc"
           element={
-            <ProtectedRoute allowedRole="GD">
+            <ProtectedRoute allowedRole="Giám đốc">
               <GiamDocPage />
             </ProtectedRoute>
           }
@@ -153,7 +111,7 @@ function App() {
         <Route
           path="/ketoan"
           element={
-            <ProtectedRoute allowedRole="KT">
+            <ProtectedRoute allowedRole="Kế toán">
               <KeToanPage />
             </ProtectedRoute>
           }
@@ -167,7 +125,7 @@ function App() {
         <Route
           path="/nhansu"
           element={
-            <ProtectedRoute allowedRole="NS">
+            <ProtectedRoute allowedRole="Nhân sự">
               <NhanSuPage />
             </ProtectedRoute>
           }
@@ -181,7 +139,7 @@ function App() {
         <Route
           path="/qlcongtrinh"
           element={
-            <ProtectedRoute allowedRole="QL">
+            <ProtectedRoute allowedRole="Quản lý công trình">
               <QLCongTrinhPage />
             </ProtectedRoute>
           }
@@ -198,7 +156,7 @@ function App() {
         <Route
           path="/nhanvienkho"
           element={
-            <ProtectedRoute allowedRole="K">
+            <ProtectedRoute allowedRole="Nhân viên kho">
               <PageNhanVienKho />
             </ProtectedRoute>
           }
@@ -212,7 +170,7 @@ function App() {
         <Route
           path="/nhanvientuvan"
           element={
-            <ProtectedRoute allowedRole="TV">
+            <ProtectedRoute allowedRole="Nhân viên tư vấn">
               <PageNhanVienTuVan />
             </ProtectedRoute>
           }

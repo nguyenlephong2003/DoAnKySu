@@ -38,15 +38,9 @@ const DuyetHopDong = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
       const hopDongResponse = await axios.get(
         `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+        { withCredentials: true }
       );
 
       if (hopDongResponse.data.data) {
@@ -62,11 +56,7 @@ const DuyetHopDong = () => {
             try {
               const nhanVienResponse = await axios.get(
                 `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=getById&MaNhanVien=${hopDong.MaNhanVien}`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${token}`
-                  }
-                }
+                { withCredentials: true }
               );
               if (nhanVienResponse.data.data) {
                 nhanVienMap[hopDong.MaNhanVien] = nhanVienResponse.data.data;
@@ -142,8 +132,6 @@ const DuyetHopDong = () => {
   const handleNoteSubmit = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
       const response = await axios.put(
         `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=PUT`,
         {
@@ -159,9 +147,9 @@ const DuyetHopDong = () => {
         },
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          }
+          },
+          withCredentials: true
         }
       );
 
@@ -202,7 +190,7 @@ const DuyetHopDong = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">Duyệt hợp đồng</h1>
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Duyệt hợp đồng</h1>
         
         {/* Search and Filter Section */}
         <div className="flex justify-between items-center mb-6">

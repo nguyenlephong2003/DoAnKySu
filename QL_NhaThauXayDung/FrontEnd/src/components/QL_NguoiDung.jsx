@@ -72,7 +72,6 @@ const QL_NguoiDung = () => {
       console.log("Lấy api nhân viên thành công");
       if (res.data.status === 'success') {
         if (res.data.data.length === 0) {
-          message.warning('Không có nhân viên nào chưa có tài khoản');
         }
         setEmployees(res.data.data);
       } else {
@@ -137,6 +136,11 @@ const QL_NguoiDung = () => {
       const payload = { ...values };
       if (isEditing) payload.MaTaiKhoan = editingUser.MaTaiKhoan;
       delete payload.employeeId;
+
+      // Không gửi MatKhau khi cập nhật
+      if (isEditing) {
+        delete payload.MatKhau;
+      }
 
       const res = await axios({
         method: isEditing ? 'put' : 'post',
@@ -234,15 +238,29 @@ const QL_NguoiDung = () => {
 
   return (
     <div style={{ padding: 24, backgroundColor: '#fff', borderRadius: 12, margin: 24 }}>
-      <h2 style={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '20px' }}>Quản lý người dùng</h2>
+      <h2 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Quản lý người dùng</h2>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-        <Input.Search 
-          placeholder="Tìm kiếm..." 
-          style={{ maxWidth: 300 }} 
-          onSearch={handleSearch}
-          onChange={(e) => handleSearch(e.target.value)}
-        />
+        <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+          <Select
+            placeholder="Chọn quyền"
+            style={{ width: 200 }}
+            onChange={(value) => handleSearch(value)}
+            allowClear
+          >
+            {roles.map((role) => (
+              <Option key={role} value={role}>
+                {role}
+              </Option>
+            ))}
+          </Select>
+          <Input.Search 
+            placeholder="Tìm kiếm..." 
+            style={{ maxWidth: 300 }} 
+            onSearch={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
         <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}>
           Thêm mới
         </Button>

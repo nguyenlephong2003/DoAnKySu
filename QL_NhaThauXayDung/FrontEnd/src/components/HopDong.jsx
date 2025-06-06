@@ -80,7 +80,8 @@ const HopDong = () => {
     try {
       // Fetch contracts
       const hopDongResponse = await axios.get(
-        `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET`
+        `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=GET`,
+        { withCredentials: true }
       );
 
       if (hopDongResponse.data.data) {
@@ -96,7 +97,8 @@ const HopDong = () => {
           if (hopDong.MaNhanVien && !nhanVienMap[hopDong.MaNhanVien]) {
             try {
               const nhanVienResponse = await axios.get(
-                `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=getById&MaNhanVien=${hopDong.MaNhanVien}`
+                `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=getById&MaNhanVien=${hopDong.MaNhanVien}`,
+                { withCredentials: true }
               );
               if (nhanVienResponse.data.data) {
                 nhanVienMap[hopDong.MaNhanVien] = nhanVienResponse.data.data;
@@ -175,7 +177,8 @@ const HopDong = () => {
         {
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          withCredentials: true
         }
       );
 
@@ -289,7 +292,8 @@ const HopDong = () => {
 
           // Xóa hợp đồng từ database
           const response = await axios.delete(
-            `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=DELETE&id=${maHopDong}`
+            `${BASE_URL}QuanLyCongTrinh_API/HopDong_API.php?action=DELETE&id=${maHopDong}`,
+            { withCredentials: true }
           );
 
           if (response.data.message === "Xóa hợp đồng thành công.") {
@@ -341,7 +345,8 @@ const HopDong = () => {
         {
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          withCredentials: true
         }
       );
 
@@ -401,9 +406,9 @@ const HopDong = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">Danh sách hợp đồng</h1>
+    <div className="container mx-auto ">
+      <div className="bg-white rounded-lg shadow-lg p-10">
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Danh sách hợp đồng</h1>
         
         {/* Search and Filter Section */}
         <div className="flex justify-between items-center mb-6">

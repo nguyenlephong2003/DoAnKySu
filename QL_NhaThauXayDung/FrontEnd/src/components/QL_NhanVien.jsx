@@ -10,8 +10,9 @@ import {
   Select,
   message,
   Popconfirm,
+  Descriptions,
 } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
@@ -24,6 +25,8 @@ const QL_NhanVien = () => {
   const [editingNV, setEditingNV] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [selectedNV, setSelectedNV] = useState(null);
 
   // Cập nhật danh sách loại nhân viên từ API
   const loaiNhanVienOptions = [
@@ -234,54 +237,34 @@ const QL_NhanVien = () => {
     title: 'Mã NV',
     dataIndex: 'MaNhanVien',
     key: 'MaNhanVien',
-    sorter: (a, b) => a.MaNhanVien.localeCompare(b.MaNhanVien), // Sắp xếp chuỗi
+    sorter: (a, b) => a.MaNhanVien.localeCompare(b.MaNhanVien),
+    width: 110,
   },
   {
     title: 'Tên NV',
     dataIndex: 'TenNhanVien',
     key: 'TenNhanVien',
-    sorter: (a, b) => a.TenNhanVien.localeCompare(b.TenNhanVien), // Sắp xếp chuỗi
+    sorter: (a, b) => a.TenNhanVien.localeCompare(b.TenNhanVien),
+    width: 180,
   },
   {
     title: 'SĐT',
     dataIndex: 'SoDT',
     key: 'SoDT',
-    sorter: (a, b) => a.SoDT.localeCompare(b.SoDT), // Sắp xếp chuỗi
-  },
-  {
-    title: 'CCCD',
-    dataIndex: 'CCCD',
-    key: 'CCCD',
-    sorter: (a, b) => a.CCCD.localeCompare(b.CCCD), // Sắp xếp chuỗi
-  },
-  {
-    title: 'Email',
-    dataIndex: 'Email',
-    key: 'Email',
-    sorter: (a, b) => a.Email.localeCompare(b.Email), // Sắp xếp chuỗi
-  },
-  {
-    title: 'Ngày vào',
-    dataIndex: 'NgayVao',
-    key: 'NgayVao',
-    render: (text) => (text ? text.split(' ')[0] : ''),
-    sorter: (a, b) => new Date(a.NgayVao) - new Date(b.NgayVao), // Sắp xếp ngày
-  },
-  {
-    title: 'Lương Căn bản',
-    dataIndex: 'LuongCanBan',
-    key: 'LuongCanBan',
-    sorter: (a, b) => a.LuongCanBan - b.LuongCanBan, // Sắp xếp số
+    sorter: (a, b) => a.SoDT.localeCompare(b.SoDT),
+    width: 120,
   },
   {
     title: 'Loại NV',
     dataIndex: 'TenLoaiNhanVien',
     key: 'TenLoaiNhanVien',
-    sorter: (a, b) => a.TenLoaiNhanVien.localeCompare(b.TenLoaiNhanVien), // Sắp xếp chuỗi
+    sorter: (a, b) => a.TenLoaiNhanVien.localeCompare(b.TenLoaiNhanVien),
+    width: 160,
   },
   {
     title: 'Hành động',
     key: 'actions',
+    width: 180,
     render: (_, record) => (
       <>
         <Button
@@ -299,6 +282,13 @@ const QL_NhanVien = () => {
             Xóa
           </Button>
         </Popconfirm>
+        <Button
+          type="primary"
+          style={{ marginLeft: 8, backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+          onClick={() => showDetailModal(record)}
+        >
+          Chi tiết
+        </Button>
       </>
     ),
   },
@@ -309,9 +299,14 @@ const QL_NhanVien = () => {
   // Kiểm tra nếu đang được render trong route trực tiếp
   const isDirectRoute = window.location.pathname.includes("/nhansu/quan-ly-nhan-vien");
 
+  const showDetailModal = (record) => {
+    setSelectedNV(record);
+    setDetailVisible(true);
+  };
+
   return (
     <div style={{ padding: 24, backgroundColor: '#fff', borderRadius: 12, margin: isDirectRoute ? 0 : 24 }}>
-      <h2 style={{ fontWeight: 'bold', fontSize: '24px', marginBottom: '20px' }}>Quản lý nhân viên</h2>
+      <h2 className='text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6'>Quản lý nhân viên</h2>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
         <Input.Search
           placeholder="Tìm kiếm..."
@@ -329,7 +324,7 @@ const QL_NhanVien = () => {
         columns={columns}
         dataSource={filteredData}
         loading={loading}
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 10 }}
         scroll={{ x: 'max-content' }}
       />
 
@@ -381,6 +376,39 @@ const QL_NhanVien = () => {
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        open={detailVisible}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <UserOutlined style={{ color: '#1890ff', fontSize: 22 }} />
+            <span style={{ color: '#1890ff', fontWeight: 'bold', fontSize: 20 }}>Chi tiết nhân viên</span>
+          </div>
+        }
+        onCancel={() => setDetailVisible(false)}
+        footer={<Button onClick={() => setDetailVisible(false)}>Đóng</Button>}
+      >
+        {selectedNV && (
+          <div style={{ padding: 16 }}>
+            <Descriptions
+              bordered
+              column={1}
+              style={{ borderColor: '#1890ff', background: '#f6fbff', borderRadius: 8 }}
+              labelStyle={{ fontWeight: 'bold', color: '#1890ff', width: 160, textAlign: 'left' }}
+              contentStyle={{ color: '#222', textAlign: 'left', background: '#fff' }}
+            >
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>Mã NV</span>}>{selectedNV.MaNhanVien}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>Tên NV</span>}>{selectedNV.TenNhanVien}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>SĐT</span>}>{selectedNV.SoDT}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>CCCD</span>}>{selectedNV.CCCD}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>Email</span>}>{selectedNV.Email}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>Ngày vào</span>}>{selectedNV.NgayVao}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>Lương Căn bản</span>}>{selectedNV.LuongCanBan}</Descriptions.Item>
+              <Descriptions.Item label={<span style={{ color: '#1890ff', fontWeight: 'bold' }}>Loại NV</span>}>{selectedNV.TenLoaiNhanVien}</Descriptions.Item>
+            </Descriptions>
+          </div>
+        )}
       </Modal>
     </div>
   );

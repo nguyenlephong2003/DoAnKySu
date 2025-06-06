@@ -308,7 +308,7 @@ const QuanLyCongTrinh = () => {
   return (
     <div className="bg-white rounded-lg shadow-lg p-10">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
-        <h1 className="text-2xl font-bold">Quản lý công trình</h1>
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Quản lý công trình</h1>
         <Select
           value={selectedLoai}
           onChange={setSelectedLoai}
