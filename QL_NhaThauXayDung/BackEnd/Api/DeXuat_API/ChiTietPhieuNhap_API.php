@@ -160,7 +160,7 @@ switch ($method) {
     case 'POST':
         if ($action === "POST") {
             $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaPhieuNhap, $data->MaThietBiVatTu, $data->SoLuong, $data->DonGia)) {
+            if (!isset($data->MaPhieuNhap, $data->MaThietBiVatTu, $data->SoLuong, $data->MaNhaCungCap)) {
                 echo json_encode([
                     'status' => 'error',
                     'message' => "Dữ liệu không đầy đủ"
@@ -171,7 +171,7 @@ switch ($method) {
             $chitietphieunhap->MaPhieuNhap = $data->MaPhieuNhap;
             $chitietphieunhap->MaThietBiVatTu = $data->MaThietBiVatTu;
             $chitietphieunhap->SoLuong = $data->SoLuong;
-            $chitietphieunhap->DonGia = $data->DonGia;
+            $chitietphieunhap->MaNhaCungCap = $data->MaNhaCungCap;
             try {
                 if ($chitietphieunhap->create()) {
                     echo json_encode([
@@ -204,7 +204,7 @@ switch ($method) {
     case 'PUT':
         if ($action === "PUT") {
             $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaChiTietPhieuNhap, $data->MaPhieuNhap, $data->MaThietBiVatTu, $data->SoLuong, $data->DonGia)) {
+            if (!isset($data->MaChiTietPhieuNhap, $data->MaPhieuNhap, $data->MaThietBiVatTu, $data->SoLuong, $data->MaNhaCungCap)) {
                 echo json_encode([
                     'status' => 'error',
                     'message' => "Dữ liệu không đầy đủ hoặc không hợp lệ"
@@ -216,7 +216,7 @@ switch ($method) {
             $chitietphieunhap->MaPhieuNhap = $data->MaPhieuNhap;
             $chitietphieunhap->MaThietBiVatTu = $data->MaThietBiVatTu;
             $chitietphieunhap->SoLuong = $data->SoLuong;
-            $chitietphieunhap->DonGia = $data->DonGia;
+            $chitietphieunhap->MaNhaCungCap = $data->MaNhaCungCap;
             try {
                 if ($chitietphieunhap->update()) {
                     echo json_encode([

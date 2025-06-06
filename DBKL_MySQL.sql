@@ -129,10 +129,20 @@ CREATE TABLE `NhaCungCap` (
 CREATE TABLE `ThietBiVatTu` (
   `MaThietBiVatTu` varchar(20) PRIMARY KEY,
   `TenThietBiVatTu` varchar(255),
-  `SoLuongTon` float,
   `TrangThai` varchar(255),
   `MaLoaiThietBiVatTu` int,
-  `MaNhaCungCap` varchar(20)
+  FOREIGN KEY (`MaLoaiThietBiVatTu`) REFERENCES `LoaiThietBiVatTu` (`MaLoaiThietBiVatTu`)
+);
+
+CREATE TABLE `CungUng` (
+  `MaCungUng` int AUTO_INCREMENT PRIMARY KEY,
+  `MaThietBiVatTu` varchar(20),
+  `MaNhaCungCap` varchar(20),
+  `SoLuongTon` float DEFAULT 0,
+  `DonGia` float,
+  `NgayCapNhat` DateTime DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`),
+  FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`)
 );
 
 CREATE TABLE `PhieuNhap` (
@@ -164,13 +174,15 @@ CREATE TABLE `ChiTietThiCong` (
 
 CREATE TABLE `DeXuat` (
   `MaDeXuat` varchar(20) PRIMARY KEY,
-  `NgayLap` DateTime,  
+  `NgayLap` DateTime,
   `NgayGiaoDuKien` DateTime,
   `NgayDuyet` DateTime,
   `MaNhanVien` varchar(20),
   `LoaiDeXuat` varchar(50),
-  `TrangThai` nvarchar(50) DEFAULT 'Chờ duyệt',
-  `GhiChu` nvarchar(255),
+  `TrangThai` varchar(50) DEFAULT 'Chờ duyệt',
+  `TongTien` float,
+  `MaCum` varchar(100),
+  `GhiChu` varchar(255),
   FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`)
 );
 
@@ -180,6 +192,7 @@ CREATE TABLE `ChiTietDeXuat` (
   `MaThietBiVatTu` varchar(20),
   `SoLuong` float,
   `DonGia` float,
+  `TrangThai` varchar(50) DEFAULT 'Chờ duyệt',
   `MaNhaCungCap` varchar(20),
   FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`),
   FOREIGN KEY (`MaDeXuat`) REFERENCES `DeXuat` (`MaDeXuat`),
@@ -246,46 +259,14 @@ ALTER TABLE `ChiTietBaoGia`
 ADD CONSTRAINT `fk_ChiTietBaoGia_BaoGia` 
 FOREIGN KEY (`MaBaoGia`) REFERENCES `BangBaoGia` (`MaBaoGia`);
 
-ALTER TABLE `BangBaoCaoTienDo` 
-ADD CONSTRAINT `fk_CongTrinh_TienDo` 
-FOREIGN KEY (`MaCongTrinh`) REFERENCES `CongTrinh` (`MaCongTrinh`);
-
-ALTER TABLE `BangPhanCong` 
-ADD CONSTRAINT `fk_BangPhanCong_CongTrinh` 
-FOREIGN KEY (`MaCongTrinh`) REFERENCES `CongTrinh` (`MaCongTrinh`);
-
 ALTER TABLE `BangPhanCong` 
 ADD CONSTRAINT `fk_BangPhanCong_NhanVien` 
 FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`);
 
-ALTER TABLE `ThietBiVatTu` 
-ADD CONSTRAINT `fk_ThietBiVatTu_NhaCungCap` 
-FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`);
-
-ALTER TABLE `ThietBiVatTu` 
-ADD CONSTRAINT `fk_ThietBiVatTu_LoaiThietBiVatTu` 
-FOREIGN KEY (`MaLoaiThietBiVatTu`) REFERENCES `LoaiThietBiVatTu` (`MaLoaiThietBiVatTu`);
-
-ALTER TABLE `PhieuNhap` 
-ADD CONSTRAINT `fk_PhieuNhap_NhaCungCap` 
-FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`);
-
-ALTER TABLE `PhieuNhap` 
-ADD CONSTRAINT `fk_PhieuNhap_NhanVien` 
-FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`);
-
-ALTER TABLE `ChiTietPhieuNhap` 
-ADD CONSTRAINT `fk_ChiTietPhieuNhap_PhieuNhap` 
-FOREIGN KEY (`MaPhieuNhap`) REFERENCES `PhieuNhap` (`MaPhieuNhap`);
-
-ALTER TABLE `ChiTietPhieuNhap` 
-ADD CONSTRAINT `fk_ChiTietPhieuNhap_ThietBiVatTu` 
+ALTER TABLE `CungUng`
+ADD CONSTRAINT `fk_CungUng_ThietBiVatTu`
 FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`);
 
-ALTER TABLE `ChiTietThiCong` 
-ADD CONSTRAINT `fk_ChiTietThiCong_ThietBiVatTu` 
-FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`);
-
-ALTER TABLE `ChiTietThiCong` 
-ADD CONSTRAINT `fk_ChiTietThiCong_CongTrinh` 
-FOREIGN KEY (`MaCongTrinh`) REFERENCES `CongTrinh` (`MaCongTrinh`);
+ALTER TABLE `CungUng`
+ADD CONSTRAINT `fk_CungUng_NhaCungCap`
+FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`);

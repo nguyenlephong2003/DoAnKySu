@@ -177,13 +177,16 @@ class NhaCungCap {
 
     // Get supplier's supplied equipment
     public function getSuppliedEquipment() {
-        $query = "SELECT tbvt.MaThietBiVatTu, tbvt.TenThietBiVatTu, 
-                         tbvt.SoLuongTon, tbvt.TrangThai, 
+        $query = "SELECT cu.*, 
+                         tbvt.TenThietBiVatTu,
+                         tbvt.TrangThai,
                          lvt.TenLoai as TenLoaiThietBiVatTu,
                          lvt.DonViTinh
-                  FROM ThietBiVatTu tbvt
+                  FROM CungUng cu
+                  JOIN ThietBiVatTu tbvt ON cu.MaThietBiVatTu = tbvt.MaThietBiVatTu
                   LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
-                  WHERE tbvt.MaNhaCungCap = ?";
+                  WHERE cu.MaNhaCungCap = ?
+                  ORDER BY tbvt.TenThietBiVatTu";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -256,8 +259,10 @@ class NhaCungCap {
     public function getSuppliersByEquipmentType($maLoaiThietBiVatTu) {
         $query = "SELECT DISTINCT ncc.*
                   FROM NhaCungCap ncc
-                  JOIN ThietBiVatTu tbvt ON ncc.MaNhaCungCap = tbvt.MaNhaCungCap
-                  WHERE tbvt.MaLoaiThietBiVatTu = ?";
+                  JOIN CungUng cu ON ncc.MaNhaCungCap = cu.MaNhaCungCap
+                  JOIN ThietBiVatTu tbvt ON cu.MaThietBiVatTu = tbvt.MaThietBiVatTu
+                  WHERE tbvt.MaLoaiThietBiVatTu = ?
+                  ORDER BY ncc.TenNhaCungCap";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -269,6 +274,45 @@ class NhaCungCap {
         $stmt->execute();
 
         return $stmt;
+    }
+
+    // Add supplier-equipment relationship
+    public function addSupplierEquipmentRelationship($maNhaCungCap, $maThietBiVatTu) {
+        $query = "INSERT INTO CungUng (MaNhaCungCap, MaThietBiVatTu) 
+                  VALUES (:maNhaCungCap, :maThietBiVatTu)";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean and bind data
+        $maNhaCungCap = htmlspecialchars(strip_tags($maNhaCungCap));
+        $maThietBiVatTu = htmlspecialchars(strip_tags($maThietBiVatTu));
+
+        $stmt->bindParam(":maNhaCungCap", $maNhaCungCap);
+        $stmt->bindParam(":maThietBiVatTu", $maThietBiVatTu);
+
+        // Execute query
+        return $stmt->execute();
+    }
+
+    // Remove supplier-equipment relationship
+    public function removeSupplierEquipmentRelationship($maNhaCungCap, $maThietBiVatTu) {
+        $query = "DELETE FROM CungUng 
+                  WHERE MaNhaCungCap = :maNhaCungCap 
+                  AND MaThietBiVatTu = :maThietBiVatTu";
+
+        // Prepare statement
+        $stmt = $this->conn->prepare($query);
+
+        // Clean and bind data
+        $maNhaCungCap = htmlspecialchars(strip_tags($maNhaCungCap));
+        $maThietBiVatTu = htmlspecialchars(strip_tags($maThietBiVatTu));
+
+        $stmt->bindParam(":maNhaCungCap", $maNhaCungCap);
+        $stmt->bindParam(":maThietBiVatTu", $maThietBiVatTu);
+
+        // Execute query
+        return $stmt->execute();
     }
 }
 ?>

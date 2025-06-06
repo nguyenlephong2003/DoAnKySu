@@ -1,28 +1,40 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, message, Modal, Input, Select, Form } from 'antd';
+import { Table, Button, message, Modal, Input, Select, Form, Popconfirm } from 'antd';
 import axios from 'axios';
 import BASE_URL from '../Config';
 import { SearchOutlined, EditOutlined, PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { useAuth } from '../Config/AuthContext';
 
 const QuanLyNhaCungCap = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
   const [detailVisible, setDetailVisible] = useState(false);
   const [currentRecord, setCurrentRecord] = useState(null);
-  const [searchText, setSearchText] = useState('');
-  const [editVisible, setEditVisible] = useState(false);
-  const [editRecord, setEditRecord] = useState(null);
-  const [editForm, setEditForm] = useState({
-    TenNhaCungCap: '',
-    SoDT: '',
-    Email: '',
-    DiaChi: '',
-    LoaiHinhCungCap: ''
-  });
+  const [editModalVisible, setEditModalVisible] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [form] = Form.useForm();
   const [addForm] = Form.useForm();
   const [equipmentTypes, setEquipmentTypes] = useState([]);
   const [selectedEquipmentType, setSelectedEquipmentType] = useState('all');
+  const { user } = useAuth();
+
+  // Kiểm tra quyền
+  const canAdd = user?.TenLoaiNhanVien === 'Admin' || 
+                user?.TenLoaiNhanVien === 'Giám đốc' ||
+                user?.TenLoaiNhanVien === 'Kế toán';
+  
+  const canEdit = user?.TenLoaiNhanVien === 'Admin' || 
+                 user?.TenLoaiNhanVien === 'Giám đốc' ||
+                 user?.TenLoaiNhanVien === 'Kế toán';
+  
+  const canDelete = user?.TenLoaiNhanVien === 'Admin' ||
+                   user?.TenLoaiNhanVien === 'Kế toán';
 
   useEffect(() => {
     fetchData();
@@ -61,6 +73,10 @@ const QuanLyNhaCungCap = () => {
   };
 
   const fetchSuppliersByEquipmentType = async (maLoaiThietBiVatTu) => {
+    if (!maLoaiThietBiVatTu || maLoaiThietBiVatTu === 'all') {
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await axios.get(
@@ -73,30 +89,27 @@ const QuanLyNhaCungCap = () => {
           }
         }
       );
-      if (res.data.status === 'success') {
-        setData(res.data.data);
+      
+      if (res.data && res.data.status === 'success') {
+        setData(res.data.data || []);
       } else {
+        console.error('Invalid response format:', res.data);
         message.error('Không thể tải dữ liệu nhà cung cấp');
+        setData([]);
       }
     } catch (error) {
       console.error('Error fetching suppliers:', error);
-      message.error('Lỗi khi kết nối đến server');
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        message.error(error.response.data.message || 'Lỗi khi tải dữ liệu nhà cung cấp');
+      } else {
+        message.error('Lỗi khi kết nối đến server');
+      }
+      setData([]);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (editRecord) {
-      setEditForm({
-        TenNhaCungCap: editRecord.TenNhaCungCap,
-        SoDT: editRecord.SoDT,
-        Email: editRecord.Email,
-        DiaChi: editRecord.DiaChi,
-        LoaiHinhCungCap: editRecord.LoaiHinhCungCap
-      });
-    }
-  }, [editRecord]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -113,6 +126,10 @@ const QuanLyNhaCungCap = () => {
       );
       if (res.data.status === 'success') {
         setData(res.data.data);
+        setPagination(prev => ({
+          ...prev,
+          total: res.data.data.length
+        }));
       } else {
         message.error('Không thể tải dữ liệu nhà cung cấp');
       }
@@ -124,38 +141,54 @@ const QuanLyNhaCungCap = () => {
     }
   };
 
+  const handleTableChange = (pagination, filters, sorter) => {
+    setPagination(pagination);
+  };
+
   const getFilteredData = () => {
-    let filtered = data;
+    if (!data) return [];
+    
+    let filteredData = [...data];
+
     if (searchText) {
-      const lower = searchText.toLowerCase();
-      filtered = filtered.filter(
-        item =>
-          (item.MaNhaCungCap && item.MaNhaCungCap.toLowerCase().includes(lower)) ||
-          (item.TenNhaCungCap && item.TenNhaCungCap.toLowerCase().includes(lower)) ||
-          (item.SoDT && item.SoDT.toLowerCase().includes(lower)) ||
-          (item.Email && item.Email.toLowerCase().includes(lower)) ||
-          (item.DiaChi && item.DiaChi.toLowerCase().includes(lower)) ||
-          (item.LoaiHinhCungCap && item.LoaiHinhCungCap.toLowerCase().includes(lower))
+      const searchLower = searchText.toLowerCase();
+      filteredData = filteredData.filter(
+        item => 
+          (item.MaNhaCungCap && item.MaNhaCungCap.toString().toLowerCase().includes(searchLower)) ||
+          (item.TenNhaCungCap && item.TenNhaCungCap.toString().toLowerCase().includes(searchLower)) ||
+          (item.SoDT && item.SoDT.toString().toLowerCase().includes(searchLower)) ||
+          (item.Email && item.Email.toString().toLowerCase().includes(searchLower)) ||
+          (item.DiaChi && item.DiaChi.toString().toLowerCase().includes(searchLower)) ||
+          (item.LoaiHinhCungCap && item.LoaiHinhCungCap.toString().toLowerCase().includes(searchLower))
       );
     }
-    return filtered;
+
+    return filteredData;
   };
 
   const handleEdit = (record) => {
-    setEditRecord(record);
-    setEditVisible(true);
+    setCurrentRecord(record);
+    form.setFieldsValue({
+      TenNhaCungCap: record.TenNhaCungCap,
+      SoDT: record.SoDT,
+      Email: record.Email,
+      DiaChi: record.DiaChi,
+      LoaiHinhCungCap: record.LoaiHinhCungCap
+    });
+    setEditModalVisible(true);
   };
 
-  const handleSaveEdit = async () => {
+  const handleUpdate = async () => {
     try {
-      const updatedRecord = {
-        ...editRecord,
-        ...editForm,
-      };
-
-      const res = await axios.put(
+      setLoading(true);
+      const values = await form.validateFields();
+      
+      const response = await axios.put(
         `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=PUT`,
-        updatedRecord,
+        {
+          MaNhaCungCap: currentRecord.MaNhaCungCap,
+          ...values
+        },
         {
           withCredentials: true,
           headers: {
@@ -164,17 +197,20 @@ const QuanLyNhaCungCap = () => {
           }
         }
       );
-      
-      if (res.data.status === 'success') {
-        message.success('Cập nhật nhà cung cấp thành công');
-        fetchData();
-        setEditVisible(false);
+
+      if (response.data.status === 'success') {
+        message.success('Cập nhật thành công');
+        setEditModalVisible(false);
+        await fetchData();
+        setPagination(prev => ({ ...prev, current: 1 }));
       } else {
-        message.error('Cập nhật nhà cung cấp thất bại');
+        message.error(response.data.message || 'Cập nhật thất bại');
       }
     } catch (error) {
-      console.error(error);
-      message.error('Lỗi khi kết nối đến server');
+      console.error('Error updating:', error.response?.data || error);
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -200,10 +236,11 @@ const QuanLyNhaCungCap = () => {
       );
 
       if (response.data.status === 'success') {
-        message.success('Thêm mới nhà cung cấp thành công');
+        message.success('Thêm mới thành công');
         setAddModalVisible(false);
         addForm.resetFields();
         await fetchData();
+        setPagination(prev => ({ ...prev, current: 1 }));
       } else {
         message.error(response.data.message || 'Thêm mới thất bại');
       }
@@ -215,82 +252,446 @@ const QuanLyNhaCungCap = () => {
     }
   };
 
+  const handleDelete = async (record) => {
+    try {
+      setLoading(true);
+      const response = await axios.delete(
+        `${BASE_URL}DanhMuc_API/NhaCungCap_API.php?action=DELETE`,
+        { 
+          data: { MaNhaCungCap: record.MaNhaCungCap },
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      if (response.data.status === 'success') {
+        message.success('Xóa thành công');
+        await fetchData();
+        setPagination(prev => ({ ...prev, current: 1 }));
+      } else {
+        message.error(response.data.message || 'Xóa thất bại');
+      }
+    } catch (error) {
+      message.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
-    { title: 'Mã nhà cung cấp', dataIndex: 'MaNhaCungCap', key: 'MaNhaCungCap', width: 120, align: 'center' },
-    { title: 'Tên nhà cung cấp', dataIndex: 'TenNhaCungCap', key: 'TenNhaCungCap', width: 200, align: 'center' },
-    { title: 'Số điện thoại', dataIndex: 'SoDT', key: 'SoDT', width: 120, align: 'center' },
-    { title: 'Email', dataIndex: 'Email', key: 'Email', width: 180, align: 'center' },
-    { title: 'Địa chỉ', dataIndex: 'DiaChi', key: 'DiaChi', width: 200, align: 'center' },
-    { title: 'Loại hình cung cấp', dataIndex: 'LoaiHinhCungCap', key: 'LoaiHinhCungCap', width: 150, align: 'center' },
+    {
+      title: 'Mã nhà cung cấp',
+      dataIndex: 'MaNhaCungCap',
+      key: 'MaNhaCungCap',
+      width: 120,
+      align: 'center',
+      sorter: (a, b) => {
+        if (!a.MaNhaCungCap) return -1;
+        if (!b.MaNhaCungCap) return 1;
+        return a.MaNhaCungCap.toString().localeCompare(b.MaNhaCungCap.toString());
+      },
+    },
+    {
+      title: 'Tên nhà cung cấp',
+      dataIndex: 'TenNhaCungCap',
+      key: 'TenNhaCungCap',
+      width: 200,
+      ellipsis: true,
+      sorter: (a, b) => {
+        if (!a.TenNhaCungCap) return -1;
+        if (!b.TenNhaCungCap) return 1;
+        return a.TenNhaCungCap.toString().localeCompare(b.TenNhaCungCap.toString());
+      },
+    },
+    {
+      title: 'Số điện thoại',
+      dataIndex: 'SoDT',
+      key: 'SoDT',
+      width: 120,
+      align: 'center',
+    },
+    {
+      title: 'Email',
+      dataIndex: 'Email',
+      key: 'Email',
+      width: 180,
+      ellipsis: true,
+    },
+    {
+      title: 'Địa chỉ',
+      dataIndex: 'DiaChi',
+      key: 'DiaChi',
+      width: 200,
+      ellipsis: true,
+    },
+    {
+      title: 'Loại hình cung cấp',
+      dataIndex: 'LoaiHinhCungCap',
+      key: 'LoaiHinhCungCap',
+      width: 150,
+      align: 'center',
+    },
     {
       title: 'Thao tác',
       key: 'action',
-      width: 160,
+      width: 180,
       align: 'center',
       render: (_, record) => (
-        <div className="flex gap-2 justify-center">
-          <Button type="primary" onClick={() => { setCurrentRecord(record); setDetailVisible(true); }}>
-            Xem chi tiết
-          </Button>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            Sửa
-          </Button>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+          {canEdit || canDelete ? (
+            <>
+              {canEdit && (
+                <Button 
+                  icon={<EditOutlined />} 
+                  type="default"
+                  onClick={() => handleEdit(record)}
+                >
+                  Sửa
+                </Button>
+              )}
+              {canDelete && (
+                <Popconfirm
+                  title="Bạn có chắc chắn muốn xóa?"
+                  onConfirm={() => handleDelete(record)}
+                  okText="Xóa"
+                  cancelText="Hủy"
+                >
+                  <Button danger>Xóa</Button>
+                </Popconfirm>
+              )}
+            </>
+          ) : (
+            <span style={{ color: '#999' }}>Bạn không đủ quyền hạn để thao tác</span>
+          )}
         </div>
       ),
-    },
+    }
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-10">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
-        <h1 className="text-2xl font-bold">Quản lý nhà cung cấp</h1>
-        <Select
-          value={selectedEquipmentType}
-          onChange={setSelectedEquipmentType}
-          style={{ width: 250 }}
-          options={[
-            { value: 'all', label: 'Tất cả loại thiết bị' },
-            ...equipmentTypes.map(type => ({
-              value: type.MaLoaiThietBiVatTu,
-              label: `${type.TenLoai} (${type.DonViTinh})`
-            }))
-          ]}
-          placeholder="Chọn loại thiết bị"
-        />
-      </div>
+    <>
       <div className="mb-4 flex justify-between items-center">
-        <Input
-          placeholder="Tìm kiếm..."
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={e => setSearchText(e.target.value)}
-          style={{ width: '100%', maxWidth: 350 }}
-          allowClear
-        />
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
+        <div className="flex gap-4 items-center">
+          <Input
+            placeholder="Tìm kiếm..."
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 300 }}
+          />
+          <Select
+            value={selectedEquipmentType}
+            onChange={setSelectedEquipmentType}
+            style={{ width: 250 }}
+            options={[
+              { value: 'all', label: 'Tất cả loại thiết bị' },
+              ...equipmentTypes.map(type => ({
+                value: type.MaLoaiThietBiVatTu,
+                label: `${type.TenLoai} (${type.DonViTinh})`
+              }))
+            ]}
+            placeholder="Chọn loại thiết bị"
+          />
+        </div>
+        {canAdd && (
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            Thêm mới
+          </Button>
+        )}
+      </div>
+
+      <Table
+        columns={columns}
+        dataSource={getFilteredData()}
+        rowKey="MaNhaCungCap"
+        loading={loading}
+        pagination={{
+          ...pagination,
+          total: getFilteredData().length,
+          showSizeChanger: true,
+          showTotal: (total) => `Tổng số ${total} mục`,
+        }}
+        onChange={handleTableChange}
+        bordered
+      />
+
+      {/* Edit Modal */}
+      {canEdit && (
+        <Modal
+          title={
+            <div className="text-xl font-semibold text-gray-800 border-b pb-4">
+              Sửa nhà cung cấp
+            </div>
+          }
+          open={editModalVisible}
+          onCancel={() => setEditModalVisible(false)}
+          maskClosable={false}
+          keyboard={false}
+          closable={false}
+          width={500}
+          className="custom-modal"
+          bodyStyle={{ padding: '24px' }}
+          footer={[
+            <div key="footer" className="flex justify-end gap-2 border-t pt-4">
+              <Button 
+                key="cancel" 
+                onClick={() => setEditModalVisible(false)}
+                className="px-6"
+              >
+                Đóng
+              </Button>
+              <Button 
+                key="submit" 
+                type="primary" 
+                onClick={handleUpdate}
+                loading={loading}
+                className="px-6 bg-blue-600 hover:bg-blue-700"
+              >
+                Lưu
+              </Button>
+            </div>
+          ]}
         >
-          Thêm mới
-        </Button>
-      </div>
-      <div className="mt-6">
-        <Table
-          columns={columns}
-          dataSource={getFilteredData()}
-          rowKey="MaNhaCungCap"
-          loading={loading}
-          bordered
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `Tổng số ${total} nhà cung cấp`,
-          }}
-        />
-      </div>
-      
-      {/* Chi tiết nhà cung cấp modal */}
+          <Form
+            form={form}
+            layout="vertical"
+            className="mt-4"
+          >
+            <Form.Item
+              name="TenNhaCungCap"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Tên nhà cung cấp
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập tên nhà cung cấp' },
+                { min: 2, message: 'Tên nhà cung cấp phải có ít nhất 2 ký tự' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập tên nhà cung cấp"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="SoDT"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Số điện thoại
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập số điện thoại' },
+                { pattern: /^[0-9]{10}$/, message: 'Số điện thoại không hợp lệ' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập số điện thoại"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="Email"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Email
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập email' },
+                { type: 'email', message: 'Email không hợp lệ' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập email"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="DiaChi"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Địa chỉ
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập địa chỉ' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập địa chỉ"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="LoaiHinhCungCap"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Loại hình cung cấp
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập loại hình cung cấp' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập loại hình cung cấp"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
+
+      {/* Add Modal */}
+      {canAdd && (
+        <Modal
+          title={
+            <div className="text-xl font-semibold text-gray-800 border-b pb-4">
+              Thêm nhà cung cấp mới
+            </div>
+          }
+          open={addModalVisible}
+          onCancel={() => setAddModalVisible(false)}
+          maskClosable={false}
+          keyboard={false}
+          closable={false}
+          width={500}
+          className="custom-modal"
+          bodyStyle={{ padding: '24px' }}
+          footer={[
+            <div key="footer" className="flex justify-end gap-2 border-t pt-4">
+              <Button 
+                key="cancel" 
+                onClick={() => {
+                  setAddModalVisible(false);
+                  addForm.resetFields();
+                }}
+                className="px-6"
+              >
+                Đóng
+              </Button>
+              <Button 
+                key="submit" 
+                type="primary" 
+                onClick={handleAddSubmit}
+                loading={loading}
+                className="px-6 bg-blue-600 hover:bg-blue-700"
+              >
+                Thêm
+              </Button>
+            </div>
+          ]}
+        >
+          <Form
+            form={addForm}
+            layout="vertical"
+            className="mt-4"
+          >
+            <Form.Item
+              name="TenNhaCungCap"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Tên nhà cung cấp
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập tên nhà cung cấp' },
+                { min: 2, message: 'Tên nhà cung cấp phải có ít nhất 2 ký tự' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập tên nhà cung cấp"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="SoDT"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Số điện thoại
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập số điện thoại' },
+                { pattern: /^[0-9]{10}$/, message: 'Số điện thoại không hợp lệ' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập số điện thoại"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="Email"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Email
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập email' },
+                { type: 'email', message: 'Email không hợp lệ' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập email"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="DiaChi"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Địa chỉ
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập địa chỉ' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập địa chỉ"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+            <Form.Item
+              name="LoaiHinhCungCap"
+              label={
+                <span className="text-gray-700 font-medium">
+                  Loại hình cung cấp
+                </span>
+              }
+              rules={[
+                { required: true, message: 'Vui lòng nhập loại hình cung cấp' }
+              ]}
+            >
+              <Input 
+                placeholder="Nhập loại hình cung cấp"
+                className="hover:border-blue-400 focus:border-blue-400"
+                size="large"
+              />
+            </Form.Item>
+          </Form>
+        </Modal>
+      )}
+
       <Modal
         title="Chi tiết nhà cung cấp"
         open={detailVisible}
@@ -303,188 +704,15 @@ const QuanLyNhaCungCap = () => {
       >
         {currentRecord && (
           <div>
-            {currentRecord.MaNhaCungCap && (
-              <p><strong>Mã nhà cung cấp:</strong> {currentRecord.MaNhaCungCap}</p>
-            )}
-            {currentRecord.TenNhaCungCap && (
-              <p><strong>Tên nhà cung cấp:</strong> {currentRecord.TenNhaCungCap}</p>
-            )}
-            {currentRecord.SoDT && (
-              <p><strong>Số điện thoại:</strong> {currentRecord.SoDT}</p>
-            )}
-            {currentRecord.Email && (
-              <p><strong>Email:</strong> {currentRecord.Email}</p>
-            )}
-            {currentRecord.DiaChi && (
-              <p><strong>Địa chỉ:</strong> {currentRecord.DiaChi}</p>
-            )}
-            {currentRecord.LoaiHinhCungCap && (
-              <p><strong>Loại hình cung cấp:</strong> {currentRecord.LoaiHinhCungCap}</p>
-            )}
+            {Object.entries(currentRecord).map(([key, value]) => (
+              <p key={key}>
+                <strong>{key}:</strong> {value}
+              </p>
+            ))}
           </div>
         )}
       </Modal>
-      
-      {/* Sửa nhà cung cấp modal */}
-      <Modal
-        title="Sửa nhà cung cấp"
-        open={editVisible}
-        onCancel={() => setEditVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setEditVisible(false)}>
-            Đóng
-          </Button>,
-          <Button key="save" type="primary" onClick={handleSaveEdit}>
-            Lưu
-          </Button>
-        ]}
-      >
-        {editRecord && (
-          <div className="space-y-4">
-            <div>
-              <strong>Mã nhà cung cấp:</strong>
-              <Input 
-                value={editRecord.MaNhaCungCap} 
-                className="mt-1" 
-                disabled 
-                style={{ backgroundColor: '#f5f5f5' }}
-              />
-            </div>
-            <div>
-              <strong>Tên nhà cung cấp:</strong>
-              <Input 
-                value={editForm.TenNhaCungCap}
-                onChange={(e) => setEditForm({ ...editForm, TenNhaCungCap: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <strong>Số điện thoại:</strong>
-              <Input 
-                value={editForm.SoDT}
-                onChange={(e) => setEditForm({ ...editForm, SoDT: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <strong>Email:</strong>
-              <Input 
-                value={editForm.Email}
-                onChange={(e) => setEditForm({ ...editForm, Email: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <strong>Địa chỉ:</strong>
-              <Input 
-                value={editForm.DiaChi}
-                onChange={(e) => setEditForm({ ...editForm, DiaChi: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <strong>Loại hình cung cấp:</strong>
-              <Input 
-                value={editForm.LoaiHinhCungCap}
-                onChange={(e) => setEditForm({ ...editForm, LoaiHinhCungCap: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Add Modal */}
-      <Modal
-        title={
-          <div className="text-xl font-semibold text-gray-800 border-b pb-4">
-            Thêm nhà cung cấp mới
-          </div>
-        }
-        open={addModalVisible}
-        onCancel={() => setAddModalVisible(false)}
-        maskClosable={false}
-        keyboard={false}
-        closable={false}
-        width={600}
-        className="custom-modal"
-        styles={{
-          body: { padding: '24px' }
-        }}
-        footer={[
-          <div key="footer" className="flex justify-end gap-2 border-t pt-4">
-            <Button 
-              key="cancel" 
-              onClick={() => {
-                setAddModalVisible(false);
-                addForm.resetFields();
-              }}
-              className="px-6"
-            >
-              Đóng
-            </Button>
-            <Button 
-              key="submit" 
-              type="primary" 
-              onClick={handleAddSubmit}
-              loading={loading}
-              className="px-6 bg-blue-600 hover:bg-blue-700"
-            >
-              Thêm
-            </Button>
-          </div>
-        ]}
-      >
-        <Form
-          form={addForm}
-          layout="vertical"
-          className="mt-4"
-        >
-          <Form.Item
-            name="TenNhaCungCap"
-            label="Tên nhà cung cấp"
-            rules={[{ required: true, message: 'Vui lòng nhập tên nhà cung cấp' }]}
-          >
-            <Input placeholder="Nhập tên nhà cung cấp" />
-          </Form.Item>
-
-          <Form.Item
-            name="SoDT"
-            label="Số điện thoại"
-            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
-          >
-            <Input placeholder="Nhập số điện thoại" />
-          </Form.Item>
-
-          <Form.Item
-            name="Email"
-            label="Email"
-            rules={[
-              { required: true, message: 'Vui lòng nhập email' },
-              { type: 'email', message: 'Email không hợp lệ' }
-            ]}
-          >
-            <Input placeholder="Nhập email" />
-          </Form.Item>
-
-          <Form.Item
-            name="DiaChi"
-            label="Địa chỉ"
-            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
-          >
-            <Input placeholder="Nhập địa chỉ" />
-          </Form.Item>
-
-          <Form.Item
-            name="LoaiHinhCungCap"
-            label="Loại hình cung cấp"
-            rules={[{ required: true, message: 'Vui lòng nhập loại hình cung cấp' }]}
-          >
-            <Input placeholder="Nhập loại hình cung cấp" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+    </>
   );
 };
 

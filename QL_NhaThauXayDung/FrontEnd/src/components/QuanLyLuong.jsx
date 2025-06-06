@@ -33,7 +33,16 @@ const QuanLyLuong = () => {
 
   const fetchNhanVien = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`);
+      const response = await axios.get(
+        `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`,
+        {
+          withCredentials: true,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       if (response.data.status === 'success') {
         setNhanVienOptions(response.data.data);
       } else {

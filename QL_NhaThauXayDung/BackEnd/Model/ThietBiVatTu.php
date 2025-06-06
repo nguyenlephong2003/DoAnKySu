@@ -6,10 +6,8 @@ class ThietBiVatTu {
     // Table columns
     public $MaThietBiVatTu;
     public $TenThietBiVatTu;
-    public $SoLuongTon;
     public $TrangThai;
     public $MaLoaiThietBiVatTu;
-    public $MaNhaCungCap;
 
     // Constructor
     public function __construct($db) {
@@ -19,10 +17,8 @@ class ThietBiVatTu {
     // Create new ThietBiVatTu entry
     public function create() {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (MaThietBiVatTu, TenThietBiVatTu, SoLuongTon, TrangThai, 
-                   MaLoaiThietBiVatTu, MaNhaCungCap) 
-                  VALUES (:maThietBiVatTu, :tenThietBiVatTu, :soLuongTon, :trangThai, 
-                          :maLoaiThietBiVatTu, :maNhaCungCap)";
+                  (MaThietBiVatTu, TenThietBiVatTu, TrangThai, MaLoaiThietBiVatTu) 
+                  VALUES (:maThietBiVatTu, :tenThietBiVatTu, :trangThai, :maLoaiThietBiVatTu)";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -30,17 +26,13 @@ class ThietBiVatTu {
         // Clean and bind data
         $this->MaThietBiVatTu = htmlspecialchars(strip_tags($this->MaThietBiVatTu));
         $this->TenThietBiVatTu = htmlspecialchars(strip_tags($this->TenThietBiVatTu));
-        $this->SoLuongTon = filter_var($this->SoLuongTon, FILTER_VALIDATE_FLOAT);
         $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
         $this->MaLoaiThietBiVatTu = filter_var($this->MaLoaiThietBiVatTu, FILTER_VALIDATE_INT);
-        $this->MaNhaCungCap = htmlspecialchars(strip_tags($this->MaNhaCungCap));
 
         $stmt->bindParam(":maThietBiVatTu", $this->MaThietBiVatTu);
         $stmt->bindParam(":tenThietBiVatTu", $this->TenThietBiVatTu);
-        $stmt->bindParam(":soLuongTon", $this->SoLuongTon);
         $stmt->bindParam(":trangThai", $this->TrangThai);
         $stmt->bindParam(":maLoaiThietBiVatTu", $this->MaLoaiThietBiVatTu);
-        $stmt->bindParam(":maNhaCungCap", $this->MaNhaCungCap);
 
         // Execute query
         if($stmt->execute()) {
@@ -52,19 +44,14 @@ class ThietBiVatTu {
 
     // Read all ThietBiVatTu entries
     public function read() {
-        $query = "SELECT tbvt.*, 
-                         lvt.TenLoai as TenLoaiThietBiVatTu, 
-                         lvt.DonViTinh,
-                         ncc.TenNhaCungCap
-                  FROM " . $this->table_name . " tbvt
-                  LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
-                  LEFT JOIN NhaCungCap ncc ON tbvt.MaNhaCungCap = ncc.MaNhaCungCap
-                  ORDER BY tbvt.MaThietBiVatTu";
+        $query = "SELECT t.*, l.TenLoai as TenLoaiThietBiVatTu, l.DonViTinh,
+                 COALESCE(SUM(c.SoLuongTon), 0) as TongSoLuongTon
+                 FROM " . $this->table_name . " t
+                 LEFT JOIN LoaiThietBiVatTu l ON t.MaLoaiThietBiVatTu = l.MaLoaiThietBiVatTu
+                 LEFT JOIN CungUng c ON t.MaThietBiVatTu = c.MaThietBiVatTu
+                 GROUP BY t.MaThietBiVatTu";
 
-        // Prepare statement
         $stmt = $this->conn->prepare($query);
-
-        // Execute query
         $stmt->execute();
 
         return $stmt;
@@ -74,11 +61,9 @@ class ThietBiVatTu {
     public function readSingle() {
         $query = "SELECT tbvt.*, 
                          lvt.TenLoai as TenLoaiThietBiVatTu, 
-                         lvt.DonViTinh,
-                         ncc.TenNhaCungCap
+                         lvt.DonViTinh
                   FROM " . $this->table_name . " tbvt
                   LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
-                  LEFT JOIN NhaCungCap ncc ON tbvt.MaNhaCungCap = ncc.MaNhaCungCap
                   WHERE tbvt.MaThietBiVatTu = ? 
                   LIMIT 0,1";
 
@@ -97,89 +82,113 @@ class ThietBiVatTu {
         // Set properties
         $this->MaThietBiVatTu = $row['MaThietBiVatTu'];
         $this->TenThietBiVatTu = $row['TenThietBiVatTu'];
-        $this->SoLuongTon = $row['SoLuongTon'];
         $this->TrangThai = $row['TrangThai'];
         $this->MaLoaiThietBiVatTu = $row['MaLoaiThietBiVatTu'];
-        $this->MaNhaCungCap = $row['MaNhaCungCap'];
 
         // Return additional information
         return [
             'TenLoaiThietBiVatTu' => $row['TenLoaiThietBiVatTu'],
-            'DonViTinh' => $row['DonViTinh'],
-            'TenNhaCungCap' => $row['TenNhaCungCap']
+            'DonViTinh' => $row['DonViTinh']
         ];
     }
 
     // Update ThietBiVatTu entry
     public function update() {
-        $query = "UPDATE " . $this->table_name . " 
-                  SET TenThietBiVatTu = :tenThietBiVatTu, 
-                      SoLuongTon = :soLuongTon, 
-                      TrangThai = :trangThai, 
-                      MaLoaiThietBiVatTu = :maLoaiThietBiVatTu, 
-                      MaNhaCungCap = :maNhaCungCap 
-                  WHERE MaThietBiVatTu = :maThietBiVatTu";
+        try {
+            $query = "UPDATE " . $this->table_name . " 
+                      SET TenThietBiVatTu = :tenThietBiVatTu, 
+                          TrangThai = :trangThai, 
+                          MaLoaiThietBiVatTu = :maLoaiThietBiVatTu
+                      WHERE MaThietBiVatTu = :maThietBiVatTu";
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            // Prepare statement
+            $stmt = $this->conn->prepare($query);
 
-        // Clean and bind data
-        $this->TenThietBiVatTu = htmlspecialchars(strip_tags($this->TenThietBiVatTu));
-        $this->SoLuongTon = filter_var($this->SoLuongTon, FILTER_VALIDATE_FLOAT);
-        $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
-        $this->MaLoaiThietBiVatTu = filter_var($this->MaLoaiThietBiVatTu, FILTER_VALIDATE_INT);
-        $this->MaNhaCungCap = htmlspecialchars(strip_tags($this->MaNhaCungCap));
-        $this->MaThietBiVatTu = htmlspecialchars(strip_tags($this->MaThietBiVatTu));
+            // Clean and bind data
+            $this->TenThietBiVatTu = htmlspecialchars(strip_tags($this->TenThietBiVatTu));
+            $this->TrangThai = htmlspecialchars(strip_tags($this->TrangThai));
+            $this->MaLoaiThietBiVatTu = filter_var($this->MaLoaiThietBiVatTu, FILTER_VALIDATE_INT);
+            $this->MaThietBiVatTu = htmlspecialchars(strip_tags($this->MaThietBiVatTu));
 
-        $stmt->bindParam(":tenThietBiVatTu", $this->TenThietBiVatTu);
-        $stmt->bindParam(":soLuongTon", $this->SoLuongTon);
-        $stmt->bindParam(":trangThai", $this->TrangThai);
-        $stmt->bindParam(":maLoaiThietBiVatTu", $this->MaLoaiThietBiVatTu);
-        $stmt->bindParam(":maNhaCungCap", $this->MaNhaCungCap);
-        $stmt->bindParam(":maThietBiVatTu", $this->MaThietBiVatTu);
+            // Validate data
+            if (empty($this->TenThietBiVatTu)) {
+                error_log("Invalid TenThietBiVatTu value: empty");
+                return false;
+            }
 
-        // Execute query
-        if($stmt->execute()) {
-            return true;
+            if (empty($this->TrangThai)) {
+                error_log("Invalid TrangThai value: empty");
+                return false;
+            }
+
+            if ($this->MaLoaiThietBiVatTu === false) {
+                error_log("Invalid MaLoaiThietBiVatTu value: " . $this->MaLoaiThietBiVatTu);
+                return false;
+            }
+
+            if (empty($this->MaThietBiVatTu)) {
+                error_log("Invalid MaThietBiVatTu value: empty");
+                return false;
+            }
+
+            $stmt->bindParam(":tenThietBiVatTu", $this->TenThietBiVatTu);
+            $stmt->bindParam(":trangThai", $this->TrangThai);
+            $stmt->bindParam(":maLoaiThietBiVatTu", $this->MaLoaiThietBiVatTu);
+            $stmt->bindParam(":maThietBiVatTu", $this->MaThietBiVatTu);
+
+            // Execute query
+            if($stmt->execute()) {
+                return true;
+            }
+
+            error_log("Failed to execute update query for MaThietBiVatTu: " . $this->MaThietBiVatTu);
+            return false;
+        } catch (PDOException $e) {
+            error_log("PDO Error in ThietBiVatTu::update: " . $e->getMessage());
+            return false;
+        } catch (Exception $e) {
+            error_log("Error in ThietBiVatTu::update: " . $e->getMessage());
+            return false;
         }
-
-        return false;
     }
 
     // Delete ThietBiVatTu entry
     public function delete() {
-        $query = "DELETE FROM " . $this->table_name . " 
-                  WHERE MaThietBiVatTu = ?";
+        try {
+            // Begin transaction
+            $this->conn->beginTransaction();
 
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
+            // First delete related records from CungUng table
+            $query1 = "DELETE FROM CungUng WHERE MaThietBiVatTu = ?";
+            $stmt1 = $this->conn->prepare($query1);
+            $stmt1->bindParam(1, $this->MaThietBiVatTu);
+            $stmt1->execute();
 
-        // Clean data
-        $this->MaThietBiVatTu = htmlspecialchars(strip_tags($this->MaThietBiVatTu));
+            // Then delete from ThietBiVatTu table
+            $query2 = "DELETE FROM " . $this->table_name . " WHERE MaThietBiVatTu = ?";
+            $stmt2 = $this->conn->prepare($query2);
+            $stmt2->bindParam(1, $this->MaThietBiVatTu);
+            $stmt2->execute();
 
-        // Bind ID
-        $stmt->bindParam(1, $this->MaThietBiVatTu);
-
-        // Execute query
-        if($stmt->execute()) {
+            // Commit transaction
+            $this->conn->commit();
             return true;
+        } catch (Exception $e) {
+            // Rollback transaction on error
+            $this->conn->rollBack();
+            throw $e;
         }
-
-        return false;
     }
 
     // Search ThietBiVatTu entries
     public function search($keywords) {
         $query = "SELECT tbvt.*, 
                          lvt.TenLoai as TenLoaiThietBiVatTu, 
-                         lvt.DonViTinh,
-                         ncc.TenNhaCungCap
+                         lvt.DonViTinh
                   FROM " . $this->table_name . " tbvt
                   LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
-                  LEFT JOIN NhaCungCap ncc ON tbvt.MaNhaCungCap = ncc.MaNhaCungCap
                   WHERE tbvt.TenThietBiVatTu LIKE ? 
-                     OR lvt.TenLoai LIKE ? 
-                     OR ncc.TenNhaCungCap LIKE ?";
+                     OR lvt.TenLoai LIKE ?";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
@@ -191,7 +200,6 @@ class ThietBiVatTu {
         // Bind keywords
         $stmt->bindParam(1, $keywords);
         $stmt->bindParam(2, $keywords);
-        $stmt->bindParam(3, $keywords);
 
         // Execute query
         $stmt->execute();
@@ -221,54 +229,27 @@ class ThietBiVatTu {
         return $stmt;
     }
 
-    // Get low stock equipment
-    public function getLowStockEquipment($threshold = 10) {
-        $query = "SELECT tbvt.*, 
-                         lvt.TenLoai as TenLoaiThietBiVatTu, 
-                         lvt.DonViTinh
-                  FROM " . $this->table_name . " tbvt
-                  LEFT JOIN LoaiThietBiVatTu lvt ON tbvt.MaLoaiThietBiVatTu = lvt.MaLoaiThietBiVatTu
-                  WHERE tbvt.SoLuongTon <= ?
-                  ORDER BY tbvt.SoLuongTon";
+    // Get suppliers for this equipment
+    public function getSuppliers() {
+        $query = "SELECT cu.*, 
+                         ncc.TenNhaCungCap,
+                         ncc.SoDT,
+                         ncc.Email
+                  FROM CungUng cu
+                  JOIN NhaCungCap ncc ON cu.MaNhaCungCap = ncc.MaNhaCungCap
+                  WHERE cu.MaThietBiVatTu = ?
+                  ORDER BY cu.DonGia";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
 
-        // Bind threshold
-        $stmt->bindParam(1, $threshold, PDO::PARAM_INT);
+        // Bind equipment ID
+        $stmt->bindParam(1, $this->MaThietBiVatTu);
 
         // Execute query
         $stmt->execute();
 
         return $stmt;
-    }
-
-    // Update equipment quantity
-    public function updateQuantity($quantity, $type = 'add') {
-        $query = $type === 'add' 
-            ? "UPDATE " . $this->table_name . " 
-               SET SoLuongTon = SoLuongTon + :quantity 
-               WHERE MaThietBiVatTu = :maThietBiVatTu"
-            : "UPDATE " . $this->table_name . " 
-               SET SoLuongTon = SoLuongTon - :quantity 
-               WHERE MaThietBiVatTu = :maThietBiVatTu";
-
-        // Prepare statement
-        $stmt = $this->conn->prepare($query);
-
-        // Clean and bind data
-        $quantity = filter_var($quantity, FILTER_VALIDATE_FLOAT);
-        $this->MaThietBiVatTu = htmlspecialchars(strip_tags($this->MaThietBiVatTu));
-
-        $stmt->bindParam(":quantity", $quantity);
-        $stmt->bindParam(":maThietBiVatTu", $this->MaThietBiVatTu);
-
-        // Execute query
-        if($stmt->execute()) {
-            return true;
-        }
-
-        return false;
     }
 }
 ?>

@@ -28,9 +28,11 @@ const QuanLyLoaiCongTrinh = () => {
                 user?.TenLoaiNhanVien === 'Kế toán';
   
   const canEdit = user?.TenLoaiNhanVien === 'Admin' || 
-                 user?.TenLoaiNhanVien === 'Giám đốc';
+                 user?.TenLoaiNhanVien === 'Giám đốc' ||
+                 user?.TenLoaiNhanVien === 'Kế toán';
   
-  const canDelete = user?.TenLoaiNhanVien === 'Admin';
+  const canDelete = user?.TenLoaiNhanVien === 'Admin' ||
+                   user?.TenLoaiNhanVien === 'Kế toán';
 
   useEffect(() => {
     fetchData();

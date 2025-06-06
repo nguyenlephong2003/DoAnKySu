@@ -18,12 +18,12 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-W
 header("Access-Control-Allow-Credentials: true");
 
 require_once __DIR__ . '/../../Config/Database.php';
-require_once __DIR__ . '/../../Model/PhieuNhap.php';
+require_once __DIR__ . '/../../Model/CungUng.php';
 require_once __DIR__ . '/../../Config/VerifyToken.php';
 
 $database = new Database();
 $db = $database->getConn();
-$phieunhap = new PhieuNhap($db);
+$cungUng = new CungUng($db);
 $verifyToken = new VerifyToken();
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -49,11 +49,12 @@ if (!$tokenValidation['valid']) {
     exit;
 }
 
+// Tiếp tục xử lý nếu token hợp lệ
 switch ($method) {
     case 'GET':
-        if ($action === "GET") {
+        if ($action === "GET" || $action === "GET_ALL") {
             try {
-                $stmt = $phieunhap->getAll();
+                $stmt = $cungUng->read();
                 $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 echo json_encode([
                     'status' => 'success',
@@ -67,22 +68,13 @@ switch ($method) {
                 http_response_code(500);
             }
         } elseif ($action === "getById") {
-            $phieunhap->MaPhieuNhap = isset($_GET['MaPhieuNhap']) ? $_GET['MaPhieuNhap'] : null;
-            if ($phieunhap->MaPhieuNhap) {
+            $cungUng->MaCungUng = isset($_GET['MaCungUng']) ? $_GET['MaCungUng'] : null;
+            if ($cungUng->MaCungUng) {
                 try {
-                    $result = $phieunhap->readSingle();
+                    $result = $cungUng->readSingle();
                     echo json_encode([
                         'status' => 'success',
-                        'data' => [
-                            'MaPhieuNhap' => $phieunhap->MaPhieuNhap,
-                            'NgayNhap' => $phieunhap->NgayNhap,
-                            'TongTien' => $phieunhap->TongTien,
-                            'TrangThai' => $phieunhap->TrangThai,
-                            'MaNhaCungCap' => $phieunhap->MaNhaCungCap,
-                            'MaNhanVien' => $phieunhap->MaNhanVien,
-                            'TenNhaCungCap' => $result['TenNhaCungCap'],
-                            'TenNhanVien' => $result['TenNhanVien']
-                        ]
+                        'data' => $result
                     ]);
                 } catch (Exception $e) {
                     echo json_encode([
@@ -94,16 +86,15 @@ switch ($method) {
             } else {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => "Thiếu MaPhieuNhap"
+                    'message' => "Thiếu MaCungUng"
                 ]);
                 http_response_code(400);
             }
-        } elseif ($action === "getByDateRange") {
-            $startDate = isset($_GET['startDate']) ? $_GET['startDate'] : null;
-            $endDate = isset($_GET['endDate']) ? $_GET['endDate'] : null;
-            if ($startDate && $endDate) {
+        } elseif ($action === "getByEquipment") {
+            $maThietBiVatTu = isset($_GET['MaThietBiVatTu']) ? $_GET['MaThietBiVatTu'] : null;
+            if ($maThietBiVatTu) {
                 try {
-                    $stmt = $phieunhap->getImportReceiptsByDateRange($startDate, $endDate);
+                    $stmt = $cungUng->getByEquipment($maThietBiVatTu);
                     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     echo json_encode([
                         'status' => 'success',
@@ -119,15 +110,15 @@ switch ($method) {
             } else {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => "Thiếu thông tin ngày"
+                    'message' => "Thiếu MaThietBiVatTu"
                 ]);
                 http_response_code(400);
             }
-        } elseif ($action === "getByStatus") {
-            $trangThai = isset($_GET['trangThai']) ? $_GET['trangThai'] : null;
-            if ($trangThai) {
+        } elseif ($action === "getBySupplier") {
+            $maNhaCungCap = isset($_GET['MaNhaCungCap']) ? $_GET['MaNhaCungCap'] : null;
+            if ($maNhaCungCap) {
                 try {
-                    $stmt = $phieunhap->getImportReceiptsByStatus($trangThai);
+                    $stmt = $cungUng->getBySupplier($maNhaCungCap);
                     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     echo json_encode([
                         'status' => 'success',
@@ -143,7 +134,47 @@ switch ($method) {
             } else {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => "Thiếu trạng thái"
+                    'message' => "Thiếu MaNhaCungCap"
+                ]);
+                http_response_code(400);
+            }
+        } elseif ($action === "getLowStock") {
+            $threshold = isset($_GET['threshold']) ? $_GET['threshold'] : 10;
+            try {
+                $stmt = $cungUng->getLowStockSupplies($threshold);
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode([
+                    'status' => 'success',
+                    'data' => $result
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage()
+                ]);
+                http_response_code(500);
+            }
+        } elseif ($action === "getUnlinkedSuppliers") {
+            $maThietBiVatTu = isset($_GET['MaThietBiVatTu']) ? $_GET['MaThietBiVatTu'] : null;
+            if ($maThietBiVatTu) {
+                try {
+                    $stmt = $cungUng->getUnlinkedSuppliers($maThietBiVatTu);
+                    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode([
+                        'status' => 'success',
+                        'data' => $result
+                    ]);
+                } catch (Exception $e) {
+                    echo json_encode([
+                        'status' => 'error',
+                        'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage()
+                    ]);
+                    http_response_code(500);
+                }
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => "Thiếu MaThietBiVatTu"
                 ]);
                 http_response_code(400);
             }
@@ -159,7 +190,7 @@ switch ($method) {
     case 'POST':
         if ($action === "POST") {
             $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaPhieuNhap, $data->NgayNhap, $data->TrangThai, $data->MaNhaCungCap, $data->MaNhanVien)) {
+            if (!isset($data->MaThietBiVatTu, $data->MaNhaCungCap, $data->SoLuongTon)) {
                 echo json_encode([
                     'status' => 'error',
                     'message' => "Dữ liệu không đầy đủ"
@@ -167,21 +198,21 @@ switch ($method) {
                 http_response_code(400);
                 exit;
             }
-            $phieunhap->MaPhieuNhap = $data->MaPhieuNhap;
-            $phieunhap->NgayNhap = $data->NgayNhap;
-            $phieunhap->TrangThai = $data->TrangThai;
-            $phieunhap->MaNhaCungCap = $data->MaNhaCungCap;
-            $phieunhap->MaNhanVien = $data->MaNhanVien;
+            $cungUng->MaThietBiVatTu = $data->MaThietBiVatTu;
+            $cungUng->MaNhaCungCap = $data->MaNhaCungCap;
+            $cungUng->SoLuongTon = $data->SoLuongTon;
+            $cungUng->DonGia = isset($data->DonGia) ? $data->DonGia : 0;
+
             try {
-                if ($phieunhap->create()) {
+                if ($cungUng->create()) {
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Phiếu nhập đã được thêm thành công"
+                        'message' => "Thông tin cung ứng đã được thêm thành công"
                     ]);
                 } else {
                     echo json_encode([
                         'status' => 'error',
-                        'message' => "Thêm phiếu nhập thất bại"
+                        'message' => "Thêm thông tin cung ứng thất bại"
                     ]);
                     http_response_code(500);
                 }
@@ -204,29 +235,28 @@ switch ($method) {
     case 'PUT':
         if ($action === "PUT") {
             $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaPhieuNhap, $data->NgayNhap, $data->TrangThai, $data->MaNhaCungCap, $data->MaNhanVien)) {
+            if (!isset($data->MaCungUng, $data->SoLuongTon)) {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => "Dữ liệu không đầy đủ hoặc không hợp lệ"
+                    'message' => "Dữ liệu không đầy đủ"
                 ]);
                 http_response_code(400);
                 exit;
             }
-            $phieunhap->MaPhieuNhap = $data->MaPhieuNhap;
-            $phieunhap->NgayNhap = $data->NgayNhap;
-            $phieunhap->TrangThai = $data->TrangThai;
-            $phieunhap->MaNhaCungCap = $data->MaNhaCungCap;
-            $phieunhap->MaNhanVien = $data->MaNhanVien;
+            $cungUng->MaCungUng = $data->MaCungUng;
+            $cungUng->SoLuongTon = $data->SoLuongTon;
+            $cungUng->DonGia = isset($data->DonGia) ? $data->DonGia : null;
+
             try {
-                if ($phieunhap->update()) {
+                if ($cungUng->update()) {
                     echo json_encode([
                         'status' => 'success',
-                        'message' => "Phiếu nhập đã được cập nhật"
+                        'message' => "Thông tin cung ứng đã được cập nhật"
                     ]);
                 } else {
                     echo json_encode([
                         'status' => 'error',
-                        'message' => "Cập nhật phiếu nhập thất bại"
+                        'message' => "Cập nhật thông tin cung ứng thất bại"
                     ]);
                     http_response_code(500);
                 }
@@ -234,6 +264,37 @@ switch ($method) {
                 echo json_encode([
                     'status' => 'error',
                     'message' => 'Lỗi khi cập nhật dữ liệu: ' . $e->getMessage()
+                ]);
+                http_response_code(500);
+            }
+        } elseif ($action === "updateQuantity") {
+            $data = json_decode(file_get_contents("php://input"));
+            if (!isset($data->MaCungUng, $data->quantity, $data->type)) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => "Dữ liệu không đầy đủ"
+                ]);
+                http_response_code(400);
+                exit;
+            }
+            $cungUng->MaCungUng = $data->MaCungUng;
+            try {
+                if ($cungUng->updateQuantity($data->quantity, $data->type)) {
+                    echo json_encode([
+                        'status' => 'success',
+                        'message' => "Số lượng đã được cập nhật"
+                    ]);
+                } else {
+                    echo json_encode([
+                        'status' => 'error',
+                        'message' => "Cập nhật số lượng thất bại"
+                    ]);
+                    http_response_code(500);
+                }
+            } catch (Exception $e) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Lỗi khi cập nhật số lượng: ' . $e->getMessage()
                 ]);
                 http_response_code(500);
             }
@@ -248,35 +309,66 @@ switch ($method) {
 
     case 'DELETE':
         if ($action === "DELETE") {
-            $data = json_decode(file_get_contents("php://input"));
-            if (!isset($data->MaPhieuNhap)) {
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => "Thiếu MaPhieuNhap"
-                ]);
-                http_response_code(400);
-                exit;
-            }
-            $phieunhap->MaPhieuNhap = $data->MaPhieuNhap;
-            try {
-                if ($phieunhap->delete()) {
-                    echo json_encode([
-                        'status' => 'success',
-                        'message' => "Phiếu nhập đã được xóa"
-                    ]);
-                } else {
+            $cungUng->MaCungUng = isset($_GET['MaCungUng']) ? $_GET['MaCungUng'] : null;
+            if ($cungUng->MaCungUng) {
+                try {
+                    if ($cungUng->delete()) {
+                        echo json_encode([
+                            'status' => 'success',
+                            'message' => "Thông tin cung ứng đã được xóa"
+                        ]);
+                    } else {
+                        echo json_encode([
+                            'status' => 'error',
+                            'message' => "Xóa thông tin cung ứng thất bại"
+                        ]);
+                        http_response_code(500);
+                    }
+                } catch (Exception $e) {
                     echo json_encode([
                         'status' => 'error',
-                        'message' => "Xóa phiếu nhập thất bại"
+                        'message' => 'Lỗi khi xóa dữ liệu: ' . $e->getMessage()
                     ]);
                     http_response_code(500);
                 }
-            } catch (Exception $e) {
+            } else {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'Lỗi khi xóa dữ liệu: ' . $e->getMessage()
+                    'message' => "Thiếu MaCungUng"
                 ]);
-                http_response_code(500);
+                http_response_code(400);
+            }
+        } elseif ($action === "deleteByEquipmentAndSupplier") {
+            $maThietBiVatTu = isset($_GET['MaThietBiVatTu']) ? $_GET['MaThietBiVatTu'] : null;
+            $maNhaCungCap = isset($_GET['MaNhaCungCap']) ? $_GET['MaNhaCungCap'] : null;
+            
+            if ($maThietBiVatTu && $maNhaCungCap) {
+                try {
+                    if ($cungUng->deleteByEquipmentAndSupplier($maThietBiVatTu, $maNhaCungCap)) {
+                        echo json_encode([
+                            'status' => 'success',
+                            'message' => "Thông tin cung ứng đã được xóa"
+                        ]);
+                    } else {
+                        echo json_encode([
+                            'status' => 'error',
+                            'message' => "Xóa thông tin cung ứng thất bại"
+                        ]);
+                        http_response_code(500);
+                    }
+                } catch (Exception $e) {
+                    echo json_encode([
+                        'status' => 'error',
+                        'message' => 'Lỗi khi xóa dữ liệu: ' . $e->getMessage()
+                    ]);
+                    http_response_code(500);
+                }
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => "Thiếu MaThietBiVatTu hoặc MaNhaCungCap"
+                ]);
+                http_response_code(400);
             }
         } else {
             echo json_encode([
@@ -294,4 +386,5 @@ switch ($method) {
         ]);
         http_response_code(405);
         break;
-} 
+}
+?> 

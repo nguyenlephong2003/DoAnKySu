@@ -110,22 +110,29 @@ const LapDeXuatMua = () => {
   const handleSubmit = async (values) => {
     try {
       setLoading(true);
+      // Kiểm tra trường NgayGiaoDuKien không được null
+      if (!values.NgayGiaoDuKien) {
+        message.error('Vui lòng chọn ngày giao dự kiến');
+        setLoading(false);
+        return;
+      }
       // Tạo mã đề xuất tự động
       const maDeXuat = generateAutoMaPhieuNhap();
       // Format dữ liệu đề xuất
       const deXuatData = {
         MaDeXuat: maDeXuat,
         NgayLap: values.NgayLap.format('YYYY-MM-DD'),
-        NgayGiaoDuKien: values.NgayGiaoDuKien ? values.NgayGiaoDuKien.format('YYYY-MM-DD') : null,
+        NgayGiaoDuKien: values.NgayGiaoDuKien.format('YYYY-MM-DD'),
         MaNhanVien: values.MaNhanVien,
         LoaiDeXuat: 'Mua thiết bị vật tư',
         TrangThai: values.TrangThai,
         GhiChu: values.GhiChu || null
       };
+      console.log('Sending deXuatData:', deXuatData); // Debug
 
       // Gửi tạo đề xuất
       const response = await axios.post(
-        `${BASE_URL}DeXuat_API/DeXuat_API.php`,
+        `${BASE_URL}DeXuat_API/DeXuat_API.php?action=POST`,
         deXuatData,
         {
           withCredentials: true,
@@ -140,7 +147,7 @@ const LapDeXuatMua = () => {
         // Gửi từng chi tiết đề xuất
         const chiTietPromises = values.ChiTietPhieuNhap.map(item => {
           return axios.post(
-            `${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php`,
+            `${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php?action=POST`,
             {
               MaDeXuat: maDeXuat,
               MaThietBiVatTu: item.MaThietBiVatTu,
@@ -194,7 +201,7 @@ const LapDeXuatMua = () => {
                 icon={<PlusOutlined />}
                 disabled={!(form.getFieldValue('MaNhaCungCap'))}
               >
-                Thêm chi tiết
+                Thêm vật tư
               </Button>
             </div>
             {fields.map(({ key, name, ...restField }) => (

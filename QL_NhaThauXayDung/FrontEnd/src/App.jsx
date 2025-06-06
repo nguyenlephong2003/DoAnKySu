@@ -21,7 +21,6 @@ import DuyetBaoGia from "./components/DuyetBaoGia.jsx";
 import HopDong from "./components/HopDong.jsx";// Component bảo vệ route với kiểm tra token hết hạn
 import QuanLyLuong from "./components/QuanLyLuong.jsx";
 import QuanLyTienDo from "./components/QuanLyTienDo.jsx";
-import QuanLyNhaCungCap from "./components/QuanLyNhaCungCap.jsx";
 import TaoDeXuat from "./components/TaoDeXuat.jsx";
 import DuyetDeXuat from "./components/DuyetDeXuat.jsx";
 import BASE_URL from "./Config.js";  // Thêm dòng này
@@ -166,7 +165,7 @@ function App() {
           <Route path="lapphieukiemtra" element={<div>Lập phiếu kiểm tra</div>} />
           <Route path="danhsachphieukiemtra" element={<div>Danh sách phiếu kiểm tra</div>} />
           <Route path="danhsachphieunhap" element={<div>Danh sách phiếu nhập</div>} />
-          <Route path="quanlynhacungcap" element={<QuanLyNhaCungCap />} />
+          <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
         </Route>
         <Route
           path="/nhanvientuvan"
