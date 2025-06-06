@@ -35,7 +35,7 @@ const DuyetDeXuat = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}DeXuat_API/DeXuat_API.php?action=GET_ALL`);
+      const response = await axios.get(`${BASE_URL}DeXuat_API/DeXuat_API.php?action=GET_ALL`, { withCredentials: true });
       if (response.data.data) {
         setDeXuatList(response.data.data);
         setPagination(prev => ({ ...prev, total: response.data.data.length }));
@@ -84,7 +84,7 @@ const DuyetDeXuat = () => {
     setDetailModalVisible(true);
     setChiTietLoading(true);
     try {
-      const response = await axios.get(`${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php?action=GET_BY_DEXUAT&MaDeXuat=${record.MaDeXuat}`);
+      const response = await axios.get(`${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php?action=GET_BY_DEXUAT&MaDeXuat=${record.MaDeXuat}`, { withCredentials: true });
       if (response.data.data) {
         setChiTietList(response.data.data);
       } else {
@@ -127,7 +127,7 @@ const DuyetDeXuat = () => {
         MaDeXuat: selectedDeXuat.MaDeXuat,
         TrangThai: currentAction === 'duyet' ? 'Đã duyệt' : 'Từ chối',
         GhiChu: values.GhiChu || null
-      });
+      }, { withCredentials: true });
       if (updateRes.data.status !== 'success') {
         message.error(updateRes.data.message || 'Cập nhật trạng thái thất bại');
         return;
@@ -135,7 +135,7 @@ const DuyetDeXuat = () => {
       // 2. Nếu duyệt, tạo phiếu nhập và chi tiết phiếu nhập
       if (currentAction === 'duyet') {
         // Lấy lại chi tiết đề xuất
-        const chiTietRes = await axios.get(`${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php?action=GET_BY_DEXUAT&MaDeXuat=${selectedDeXuat.MaDeXuat}`);
+        const chiTietRes = await axios.get(`${BASE_URL}DeXuat_API/ChiTietDeXuat_API.php?action=GET_BY_DEXUAT&MaDeXuat=${selectedDeXuat.MaDeXuat}`, { withCredentials: true });
         const chiTietList = chiTietRes.data.data || [];
         if (chiTietList.length === 0) {
           message.error('Không có chi tiết đề xuất để tạo phiếu nhập');
@@ -155,7 +155,7 @@ const DuyetDeXuat = () => {
           TrangThai: 'Chưa giao',
           MaNhaCungCap: maNhaCungCap,
           MaNhanVien: selectedDeXuat.MaNhanVien
-        });
+        }, { withCredentials: true });
         if (phieuNhapRes.data.status !== 'success') {
           message.error(phieuNhapRes.data.message || 'Tạo phiếu nhập thất bại');
           return;
@@ -168,7 +168,7 @@ const DuyetDeXuat = () => {
             MaThietBiVatTu: ct.MaThietBiVatTu,
             SoLuong: ct.SoLuong,
             DonGia: ct.DonGia
-          });
+          }, { withCredentials: true });
           tongTien += parseFloat(ct.SoLuong) * parseFloat(ct.DonGia);
         }
         // Cập nhật tổng tiền phiếu nhập
@@ -179,7 +179,7 @@ const DuyetDeXuat = () => {
           TrangThai: 'Chưa giao',
           MaNhaCungCap: maNhaCungCap,
           MaNhanVien: selectedDeXuat.MaNhanVien
-        });
+        }, { withCredentials: true });
       }
       message.success(currentAction === 'duyet' ? 'Duyệt đề xuất thành công!' : 'Từ chối đề xuất thành công!');
       setNoteModalVisible(false);
@@ -195,7 +195,7 @@ const DuyetDeXuat = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-3xl font-bold text-center mb-6">Duyệt đề xuất</h1>
+        <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">Duyệt đề xuất</h1>
         {/* Search and Filter Section */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-4">

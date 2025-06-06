@@ -130,18 +130,8 @@ class TaiKhoan {
             $stmt->bindParam(':maNhanVien', $maNhanVien);
             $stmt->execute();
 
-            // Update password if provided
-            if (!empty($matKhau)) {
-                $hashedPassword = md5($matKhau);
-                $stmt = $this->conn->prepare("
-                    UPDATE TaiKhoan
-                    SET MatKhau = :matKhau
-                    WHERE MaTaiKhoan = :maTaiKhoan
-                ");
-                $stmt->bindParam(':matKhau', $hashedPassword);
-                $stmt->bindParam(':maTaiKhoan', $maTaiKhoan);
-                $stmt->execute();
-            }
+            // Không cập nhật mật khẩu nữa
+            // if (!empty($matKhau)) { ... }
 
             return ["status" => "success", "message" => "Account updated successfully"];
         } catch (PDOException $e) {

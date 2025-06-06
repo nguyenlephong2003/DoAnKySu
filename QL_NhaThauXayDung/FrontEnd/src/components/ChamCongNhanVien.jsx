@@ -5,7 +5,6 @@ import {
   Input,
   Tag,
   Spin,
-  message,
   Pagination,
   Modal,
   Form,
@@ -17,6 +16,7 @@ import {
   Typography,
   Divider,
   Space,
+  message,
 } from "antd";
 import {
   SearchOutlined,
@@ -78,7 +78,6 @@ const ChamCongNhanVien = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      message.error("Lỗi khi kết nối đến server");
     } finally {
       setLoading(false);
     }
@@ -100,7 +99,6 @@ const ChamCongNhanVien = () => {
       }
     } catch (error) {
       console.error("Error fetching employees:", error);
-      message.error("Lỗi khi kết nối đến server");
     }
   };
 
@@ -191,42 +189,21 @@ const ChamCongNhanVien = () => {
 
       // Xử lý response từ API
       const responseData = response.data;
-      
-      if (responseData.status === "success") {
-        message.success({
-          content: responseData.message,
-          duration: 3,
-          style: {
-            marginTop: '20vh',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }
-        });
-        setModalVisible(false);
-        form.resetFields();
-        fetchData();
-      } else if (responseData.status === "error") {
-        message.error({
-          content: responseData.message,
-          duration: 3,
-          style: {
-            marginTop: '20vh',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }
-        });
+
+      // Chỉ hiện thông báo khi có status và message
+      if (responseData && responseData.status && responseData.message) {
+        if (responseData.status === "success") {
+          message.success(responseData.message);
+          setModalVisible(false);
+          form.resetFields();
+          fetchData();
+        } else if (responseData.status === "error") {
+          message.error(responseData.message);
+        }
       }
     } catch (error) {
+      // Không hiện popup cho lỗi kết nối hoặc lỗi khác
       console.error("Error creating attendance:", error);
-      message.error({
-        content: "Lỗi kết nối server, vui lòng thử lại",
-        duration: 3,
-        style: {
-          marginTop: '20vh',
-          fontSize: '16px',
-          fontWeight: 'bold'
-        }
-      });
     } finally {
       setLoading(false);
     }
@@ -261,6 +238,11 @@ const ChamCongNhanVien = () => {
 
   const handleBatchChamCong = () => {
     batchForm.resetFields();
+    batchForm.setFieldsValue({
+      LoaiChamCong: 'Ngày thường',
+      GioVao: '08:00',
+      GioRa: '17:00'
+    });
     setBatchModalVisible(true);
   };
 
@@ -289,13 +271,12 @@ const ChamCongNhanVien = () => {
           }
         );
       }));
-      message.success("Chấm công hàng loạt thành công");
       setBatchModalVisible(false);
       setSelectedRowKeys([]);
       setSelectedRows([]);
       fetchData();
     } catch (error) {
-      message.error("Lỗi khi chấm công hàng loạt");
+      console.error("Error batch attendance:", error);
     } finally {
       setLoading(false);
     }
@@ -553,17 +534,21 @@ const ChamCongNhanVien = () => {
                   title: "Số ngày làm",
                   dataIndex: "SoNgayLam",
                   key: "SoNgayLam",
+                  align: "center",
                 },
                 {
-                  title: "Kỳ lương",
-                  dataIndex: "KyLuong",
-                  key: "KyLuong",
-                  render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+                  title: "Giờ vào",
+                  dataIndex: "GioVao",
+                  key: "GioVao",
+                  align: "center",
+                  render: (text) => text ? text.substring(0, 5) : '-',
                 },
                 {
-                  title: "Giờ làm",
-                  key: "GioLam",
-                  render: (_, record) => `${record.GioVao} - ${record.GioRa}`,
+                  title: "Giờ ra",
+                  dataIndex: "GioRa",
+                  key: "GioRa",
+                  align: "center",
+                  render: (text) => text ? text.substring(0, 5) : '-',
                 },
                 {
                   title: "Trạng thái",
@@ -579,6 +564,28 @@ const ChamCongNhanVien = () => {
               pagination={false}
               bordered
               size="small"
+              rowKey="MaChamCong"
+              expandable={{
+                expandedRowRender: (record) =>
+                  record.KyLuongArray && record.KyLuongArray.length > 0 ? (
+                    <div style={{ padding: '8px 16px' }}>
+                      <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>Danh sách ngày chấm công:</div>
+                      <ul style={{ margin: 0, paddingLeft: 16 }}>
+                        {record.KyLuongArray.map((dateStr, idx) => (
+                          <li key={idx}>
+                            {dayjs(dateStr).format('DD/MM/YYYY')} 
+                            <span style={{ marginLeft: '8px', color: '#666' }}>
+                              ({record.GioVao?.substring(0, 5)} - {record.GioRa?.substring(0, 5)})
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <span>Không có ngày chấm công</span>
+                  ),
+                rowExpandable: (record) => record.KyLuongArray && record.KyLuongArray.length > 0,
+              }}
             />
           </>
         )}
@@ -612,14 +619,14 @@ const ChamCongNhanVien = () => {
             label="Giờ vào"
             rules={[{ required: true, message: "Vui lòng nhập giờ vào" }]}
           >
-            <Input type="time" defaultValue="08:00" />
+            <Input type="time" />
           </Form.Item>
           <Form.Item
             name="GioRa"
             label="Giờ ra"
             rules={[{ required: true, message: "Vui lòng nhập giờ ra" }]}
           >
-            <Input type="time" defaultValue="17:00" />
+            <Input type="time" />
           </Form.Item>
           <Form.Item className="mb-0 text-right">
             <Button

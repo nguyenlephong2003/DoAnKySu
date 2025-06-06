@@ -131,7 +131,6 @@ switch ($method) {
         if ($action === "PUT") {
            $data = json_decode(file_get_contents("php://input"), true);
         $maTaiKhoan = isset($data['MaTaiKhoan']) ? trim($data['MaTaiKhoan']) : '';
-        $matKhau = isset($data['MatKhau']) ? trim($data['MatKhau']) : '';
         $loaiNhanVien = isset($data['LoaiNhanVien']) ? trim($data['LoaiNhanVien']) : '';
 
         if (empty($maTaiKhoan) || empty($loaiNhanVien)) {
@@ -140,7 +139,7 @@ switch ($method) {
         }
 
         try {
-            $result = $taikhoan->updateAccount($maTaiKhoan, $matKhau, $loaiNhanVien);
+            $result = $taikhoan->updateAccount($maTaiKhoan, null, $loaiNhanVien);
             echo json_encode($result);
         } catch (Exception $e) {
             echo json_encode(["status" => "error", "message" => $e->getMessage()]);
