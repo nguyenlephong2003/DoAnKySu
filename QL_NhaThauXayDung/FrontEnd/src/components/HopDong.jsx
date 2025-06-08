@@ -767,6 +767,133 @@ const HopDong = () => {
             />
           </Form.Item>
 
+          <Form.Item
+            name="FileHopDong"
+            label="File hợp đồng"
+          >
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {!editForm.getFieldValue('FileHopDong') && (
+                <Upload
+                  accept=".pdf,.doc,.docx"
+                  showUploadList={false}
+                  beforeUpload={(file) => {
+                    const isPDF = file.type === 'application/pdf';
+                    const isDOC = file.type === 'application/msword';
+                    const isDOCX = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                    
+                    if (!isPDF && !isDOC && !isDOCX) {
+                      message.error('Chỉ chấp nhận file PDF hoặc DOC/DOCX!');
+                      return false;
+                    }
+                    
+                    const isLt10M = file.size / 1024 / 1024 < 10;
+                    if (!isLt10M) {
+                      message.error('File phải nhỏ hơn 10MB!');
+                      return false;
+                    }
+
+                    // Lấy mã hợp đồng từ form
+                    const maHopDong = editForm.getFieldValue('MaHopDong');
+                    if (!maHopDong) {
+                      message.error('Không tìm thấy mã hợp đồng!');
+                      return false;
+                    }
+
+                    // Lấy phần mở rộng của file gốc
+                    const fileExtension = file.name.split('.').pop();
+                    
+                    // Tạo file mới với tên là mã hợp đồng
+                    const newFile = new File([file], `${maHopDong}.${fileExtension}`, {
+                      type: file.type
+                    });
+
+                    // Upload file to Firebase
+                    uploadFileAndGetURL(newFile).then(url => {
+                      editForm.setFieldsValue({ FileHopDong: url });
+                      message.success('Tải file lên thành công');
+                    }).catch(error => {
+                      console.error('Error uploading file:', error);
+                      message.error('Lỗi khi tải file lên');
+                    });
+
+                    return false; // Prevent default upload behavior
+                  }}
+                >
+                  <Button icon={<UploadOutlined />}>Tải file lên</Button>
+                </Upload>
+              )}
+              <Button
+                type="primary"
+                icon={<EyeOutlined />}
+                onClick={() => {
+                  const fileUrl = editForm.getFieldValue('FileHopDong');
+                  if (fileUrl) {
+                    const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+                    Modal.info({
+                      title: 'Xem file hợp đồng',
+                      width: '60%',
+                      content: (
+                        <iframe
+                          src={googleDocsUrl}
+                          style={{ width: '100%', height: '60vh', border: 'none' }}
+                          title="File Viewer"
+                        />
+                      ),
+                      onOk() {},
+                    });
+                  } else {
+                    message.warning('Chưa có file hợp đồng');
+                  }
+                }}
+              >
+                Xem hợp đồng
+              </Button>
+              {editForm.getFieldValue('FileHopDong') && (
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => {
+                    Modal.confirm({
+                      title: 'Xác nhận xóa file',
+                      content: 'Bạn có chắc chắn muốn xóa file hợp đồng này không?',
+                      okText: 'Xóa',
+                      okType: 'danger',
+                      cancelText: 'Hủy',
+                      onOk: async () => {
+                        try {
+                          const fileUrl = editForm.getFieldValue('FileHopDong');
+                          // Decode URL và lấy phần path sau domain
+                          const decodedUrl = decodeURIComponent(fileUrl);
+                          const urlParts = decodedUrl.split('/o/');
+                          if (urlParts.length < 2) {
+                            throw new Error('Invalid file URL');
+                          }
+                          // Lấy path từ URL và loại bỏ các tham số query
+                          const filePath = urlParts[1].split('?')[0];
+                          
+                          // Tạo reference đến file trong Firebase Storage
+                          const fileRef = ref(storage, filePath);
+                          
+                          // Xóa file từ Firebase Storage
+                          await deleteObject(fileRef);
+                          
+                          // Xóa URL trong form
+                          editForm.setFieldsValue({ FileHopDong: '' });
+                          message.success('Đã xóa file hợp đồng');
+                        } catch (error) {
+                          console.error('Error deleting file:', error);
+                          message.error('Lỗi khi xóa file hợp đồng');
+                        }
+                      }
+                    });
+                  }}
+                >
+                  Xóa file
+                </Button>
+              )}
+            </div>
+          </Form.Item>
+
           <Form.Item className="mb-0 text-right">
             <Button
               onClick={() => {
