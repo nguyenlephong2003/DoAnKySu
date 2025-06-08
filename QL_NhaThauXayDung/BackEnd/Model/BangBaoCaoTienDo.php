@@ -108,20 +108,18 @@ class BangBaoCaoTienDo {
 
     // Get progress reports for a specific project
     public function getProjectProgressReports($maCongTrinh) {
-        $query = "SELECT * FROM " . $this->table_name . "
-                  WHERE MaCongTrinh = ?
-                  ORDER BY NgayBaoCao DESC";
+        $query = "SELECT b.MaTienDo, b.MaCongTrinh, b.NgayBaoCao, b.TienDo, b.MoTa, 
+                        b.HinhAnh, b.TrangThai, c.TenCongTrinh
+                 FROM bangbaocaotiendo b
+                 LEFT JOIN congtrinh c ON b.MaCongTrinh = c.MaCongTrinh
+                 WHERE b.MaCongTrinh = :maCongTrinh
+                 ORDER BY b.NgayBaoCao DESC";
 
-        // Prepare statementp
         $stmt = $this->conn->prepare($query);
-
-        // Bind project ID
-        $stmt->bindParam(1, $maCongTrinh);
-
-        // Execute query
+        $stmt->bindParam(':maCongTrinh', $maCongTrinh);
         $stmt->execute();
 
-        return $stmt;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     // Update BangBaoCaoTienDo entry
@@ -194,17 +192,20 @@ class BangBaoCaoTienDo {
     // Get overall project progress
     public function getOverallProjectProgress($maCongTrinh) {
         $query = "SELECT 
-                    MAX(TiLeHoanThanh) as TongTienDo,
-                    MAX(ThoiGianHoanThanhThucTe) as NgayHoanThanh,
-                    COUNT(*) as SoBaoCao
+                    TiLeHoanThanh as TongTienDo,
+                    ThoiGianHoanThanhThucTe as NgayHoanThanh,
+                    (SELECT COUNT(*) FROM " . $this->table_name . " WHERE MaCongTrinh = ?) as SoBaoCao
                   FROM " . $this->table_name . "
-                  WHERE MaCongTrinh = ?";
+                  WHERE MaCongTrinh = ?
+                  ORDER BY NgayBaoCao DESC
+                  LIMIT 1";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
 
         // Bind project ID
         $stmt->bindParam(1, $maCongTrinh);
+        $stmt->bindParam(2, $maCongTrinh);
 
         // Execute query
         $stmt->execute();
@@ -239,7 +240,7 @@ class BangBaoCaoTienDo {
                          ct.NgayDuKienHoanThanh
                   FROM " . $this->table_name . " btd
                   LEFT JOIN CongTrinh ct ON btd.MaCongTrinh = ct.MaCongTrinh
-                  ORDER BY btd.NgayBaoCao DESC";
+                  ORDER BY btd.MaCongTrinh, btd.NgayBaoCao DESC";
 
         // Prepare statement
         $stmt = $this->conn->prepare($query);
