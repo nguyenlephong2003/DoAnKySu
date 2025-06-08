@@ -57,7 +57,8 @@ CREATE TABLE `HopDong` (
   `FileHopDong` text,
   `TrangThai` varchar(255),
   `GhiChu` varchar(255),
-  `MaNhanVien` varchar(20)
+  `MaNhanVien` varchar(20),
+  `MaKhachHang` varchar(20)
 );
 
 CREATE TABLE `KhachHang` (
@@ -81,7 +82,7 @@ CREATE TABLE `CongTrinh` (
   `TenCongTrinh` varchar(255),
   `Dientich` float,
   `FileThietKe` text,
-  `MaKhachHang` varchar(20),
+  `DiaChi` varchar(255),
   `MaHopDong` varchar(20),
   `MaLoaiCongTrinh` int,
   `NgayDuKienHoanThanh` datetime
@@ -90,7 +91,7 @@ CREATE TABLE `CongTrinh` (
 CREATE TABLE `ChiTietBaoGia` (
   `MaChiTietBaoGia` int AUTO_INCREMENT PRIMARY KEY,
   `MaBaoGia` varchar(20),
-  `MaCongTrinh` varchar(20),
+  `MaHangMuc` int,
   `GiaBaoGia` float,
   `NoiDung` varchar(250)
 );
@@ -219,6 +220,14 @@ CREATE TABLE `ChiTietPhieuKiemTraThietBi` (
   FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
 );
 
+CREATE TABLE `HangMuc` (
+  `MaHangMuc` int AUTO_INCREMENT PRIMARY KEY,
+  `TenHangMuc` varchar(255),
+  `DonViTinh` varchar(20),
+  `CongTho` float,
+  `GiaTien` float
+);
+
 ALTER TABLE `NhanVien` 
 ADD CONSTRAINT `fk_LoaiNhanVien` 
 FOREIGN KEY (`MaLoaiNhanVien`) REFERENCES `LoaiNhanVien` (`MaLoaiNhanVien`);
@@ -235,13 +244,13 @@ ALTER TABLE `HopDong`
 ADD CONSTRAINT `fk_NhanVien_HopDong` 
 FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`);
 
+ALTER TABLE `HopDong` 
+ADD CONSTRAINT `fk_HopDong_KhachHang` 
+FOREIGN KEY (`MaKhachHang`) REFERENCES `KhachHang` (`MaKhachHang`);
+
 ALTER TABLE `BangBaoGia` 
 ADD CONSTRAINT `fk_BangBaoGia_LoaiBaoGia` 
 FOREIGN KEY (`MaLoai`) REFERENCES `LoaiBaoGia` (`MaLoai`);
-
-ALTER TABLE `CongTrinh` 
-ADD CONSTRAINT `fk_CongTrinh_KhachHang` 
-FOREIGN KEY (`MaKhachHang`) REFERENCES `KhachHang` (`MaKhachHang`);
 
 ALTER TABLE `CongTrinh` 
 ADD CONSTRAINT `fk_CongTrinh_HopDong` 
@@ -252,12 +261,12 @@ ADD CONSTRAINT `fk_CongTrinh_LoaiCongTrinh`
 FOREIGN KEY (`MaLoaiCongTrinh`) REFERENCES `LoaiCongTrinh` (`MaLoaiCongTrinh`);
 
 ALTER TABLE `ChiTietBaoGia` 
-ADD CONSTRAINT `fk_ChiTietBaoGia_CongTrinh` 
-FOREIGN KEY (`MaCongTrinh`) REFERENCES `CongTrinh` (`MaCongTrinh`);
-
-ALTER TABLE `ChiTietBaoGia` 
 ADD CONSTRAINT `fk_ChiTietBaoGia_BaoGia` 
 FOREIGN KEY (`MaBaoGia`) REFERENCES `BangBaoGia` (`MaBaoGia`);
+
+ALTER TABLE `ChiTietBaoGia` 
+ADD CONSTRAINT `fk_ChiTietBaoGia_HangMuc` 
+FOREIGN KEY (`MaHangMuc`) REFERENCES `HangMuc` (`MaHangMuc`);
 
 ALTER TABLE `BangPhanCong` 
 ADD CONSTRAINT `fk_BangPhanCong_NhanVien` 

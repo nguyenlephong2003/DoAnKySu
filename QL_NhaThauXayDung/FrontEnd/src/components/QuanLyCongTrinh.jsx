@@ -631,6 +631,9 @@ const QuanLyCongTrinh = () => {
               }
               loading={hopDongLoading}
               notFoundContent={hopDongLoading ? "Đang tải dữ liệu..." : "Không tìm thấy hợp đồng"}
+              optionLabelProp="value"
+              autoFocus={false}
+              suffixIcon={null}
             >
               {hopDongList.map(hd => (
                 <Select.Option
