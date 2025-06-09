@@ -109,7 +109,8 @@ class ChamCongModel {
                     
                  FROM CongTrinh c
                  LEFT JOIN LoaiCongTrinh lct ON c.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
-                 LEFT JOIN KhachHang kh ON c.MaKhachHang = kh.MaKhachHang
+                 LEFT JOIN HopDong hd ON c.MaHopDong = hd.MaHopDong
+                 LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
                  LEFT JOIN BangPhanCong pc ON c.MaCongTrinh = pc.MaCongTrinh
                  LEFT JOIN NhanVien nv ON pc.MaNhanVien = nv.MaNhanVien
                  LEFT JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien

@@ -216,13 +216,13 @@ class CongTrinh {
     // Lấy tất cả công trình
     public function readAll() {
         $query = "SELECT ct.MaCongTrinh, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, 
-                         ct.MaKhachHang, ct.MaHopDong, ct.MaLoaiCongTrinh, ct.NgayDuKienHoanThanh,
+                         ct.MaHopDong, ct.MaLoaiCongTrinh, ct.NgayDuKienHoanThanh,
                          lct.TenLoaiCongTrinh, kh.TenKhachHang, kh.SoDT as SoDTKhachHang,
                          hd.NgayKy as NgayKyHopDong, hd.TongTien as TongTienHopDong
                   FROM " . $this->table_name . " ct
                   LEFT JOIN LoaiCongTrinh lct ON ct.MaLoaiCongTrinh = lct.MaLoaiCongTrinh
-                  LEFT JOIN KhachHang kh ON ct.MaKhachHang = kh.MaKhachHang
                   LEFT JOIN HopDong hd ON ct.MaHopDong = hd.MaHopDong
+                  LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
                   ORDER BY ct.MaCongTrinh DESC";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();

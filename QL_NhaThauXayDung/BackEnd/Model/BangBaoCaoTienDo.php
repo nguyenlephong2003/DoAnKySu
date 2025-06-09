@@ -236,10 +236,12 @@ class BangBaoCaoTienDo {
     // Get all progress reports with construction details
     public function readAll() {
         $query = "SELECT btd.*, ct.TenCongTrinh, ct.Dientich, ct.FileThietKe, 
-                         ct.MaKhachHang, ct.MaHopDong, ct.MaLoaiCongTrinh, 
-                         ct.NgayDuKienHoanThanh
+                         ct.MaHopDong, ct.MaLoaiCongTrinh, ct.NgayDuKienHoanThanh,
+                         hd.MaKhachHang, kh.TenKhachHang, kh.SoDT as SoDTKhachHang
                   FROM " . $this->table_name . " btd
                   LEFT JOIN CongTrinh ct ON btd.MaCongTrinh = ct.MaCongTrinh
+                  LEFT JOIN HopDong hd ON ct.MaHopDong = hd.MaHopDong
+                  LEFT JOIN KhachHang kh ON hd.MaKhachHang = kh.MaKhachHang
                   ORDER BY btd.MaCongTrinh, btd.NgayBaoCao DESC";
 
         // Prepare statement

@@ -67,8 +67,6 @@ const QuanLyChamCong = () => {
   const [gioRa, setGioRa] = useState({});
 
   useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
-    setCurrentUser(userInfo);
     fetchData();
     fetchNhanVien();
     fetchCongTrinh();
@@ -77,13 +75,10 @@ const QuanLyChamCong = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}ChamCong_API/ChamCong.php?action=GET`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true // Enable sending cookies
         }
       );
 
@@ -118,13 +113,10 @@ const QuanLyChamCong = () => {
 
   const fetchNhanVien = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}ChamCong_API/ChamCong.php?action=GET_NHAN_VIEN_THEO_LOAI`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true // Enable sending cookies
         }
       );
       if (response.data.data) {
@@ -138,13 +130,10 @@ const QuanLyChamCong = () => {
 
   const fetchCongTrinh = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(
         `${BASE_URL}QuanLyCongTrinh_API/CongTrinh_API.php?action=GET`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true // Enable sending cookies
         }
       );
       if (response.data.data) {
@@ -198,8 +187,6 @@ const QuanLyChamCong = () => {
   const handleCreateChamCong = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-
       const chamCongData = {
         MaCongTrinh: values.MaCongTrinh,
         MaNhanVien: values.MaNhanVien,
@@ -209,11 +196,11 @@ const QuanLyChamCong = () => {
       };
 
       const response = await axios.post(
-        `${BASE_URL}ChamCong_API/ChamCong.php?action=POST`,
+        `${BASE_URL}ChamCong_API/ChamCong.php?action=POST_BANG_PHAN_CONG`,
         chamCongData,
         {
+          withCredentials: true, // Enable sending cookies
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -251,76 +238,50 @@ const QuanLyChamCong = () => {
   };
 
   const handleDelete = async (maChamCong) => {
-    Modal.confirm({
-      title: "Xác nhận xóa",
-      icon: <ExclamationCircleOutlined />,
-      content: "Bạn có chắc chắn muốn xóa bản ghi chấm công này không?",
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          setLoading(true);
-          const token = localStorage.getItem("token");
-
-          const response = await axios.delete(
-            `${BASE_URL}ChamCong_API/ChamCong.php?action=DELETE&id=${maChamCong}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (response.data.message === "Xóa bản ghi chấm công thành công.") {
-            setDetailModalVisible(false);
-            await fetchData();
-            message.success("Xóa bản ghi chấm công thành công");
-          } else {
-            message.error(response.data.message || "Xóa bản ghi chấm công thất bại");
-          }
-        } catch (error) {
-          console.error("Error deleting attendance:", error);
-          message.error("Lỗi khi xóa bản ghi chấm công");
-        } finally {
-          setLoading(false);
+    try {
+      const response = await axios.delete(
+        `${BASE_URL}ChamCong_API/ChamCong.php?action=DELETE&maChamCong=${maChamCong}`,
+        {
+          withCredentials: true // Enable sending cookies
         }
-      },
-    });
+      );
+
+      if (response.data.status === "success") {
+        message.success("Xóa thành công");
+        fetchData();
+      } else {
+        message.error(response.data.message || "Xóa thất bại");
+      }
+    } catch (error) {
+      console.error("Error deleting:", error);
+      message.error("Lỗi khi xóa");
+    }
   };
 
   const handleEditSubmit = async (values) => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-
       const response = await axios.put(
         `${BASE_URL}ChamCong_API/ChamCong.php?action=PUT`,
+        values,
         {
-          ...values,
-          NgayThamGia: values.NgayThamGia.format("YYYY-MM-DD"),
-          NgayKetThuc: values.NgayKetThuc?.format("YYYY-MM-DD"),
-        },
-        {
+          withCredentials: true, // Enable sending cookies
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
       );
 
-      if (response.data.message === "Cập nhật bản ghi chấm công thành công.") {
+      if (response.data.status === "success") {
+        message.success("Cập nhật thành công");
         setEditModalVisible(false);
-        setDetailModalVisible(false);
-        editForm.resetFields();
-        await fetchData();
-        message.success("Cập nhật bản ghi chấm công thành công");
+        fetchData();
       } else {
-        message.error(response.data.message || "Cập nhật bản ghi chấm công thất bại");
+        message.error(response.data.message || "Cập nhật thất bại");
       }
     } catch (error) {
-      console.error("Error updating attendance:", error);
-      message.error("Lỗi khi cập nhật bản ghi chấm công");
+      console.error("Error updating:", error);
+      message.error("Lỗi khi cập nhật");
     } finally {
       setLoading(false);
     }
