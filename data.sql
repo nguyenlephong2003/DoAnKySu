@@ -234,10 +234,17 @@ INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, TrangThai, GioVao, Gio
 ('CC100129', 1, '2025-06-06', 'Chưa thanh toán', '08:00:00', '17:00:00', 'Ngày lễ', 'TV002'),
 ('CC100130', 1, '2025-06-07', 'Chưa thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TV002');
 
-INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien, TrangThai, GhiChu) VALUES
-('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001', 'GD001', 'Đã Duyệt', 'Khách hàng đã ký hợp đồng.'),
-('HD002', '2023-02-20', 'Hợp đồng thiết kế và thi công biệt thự', 3500000000, 'HD002', 'GD001', 'Chờ Duyệt', 'Đang chờ giám đốc xem xét.'),
-('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003', 'TV001', 'Từ Chối', 'Không đạt yêu cầu về ngân sách.');
+INSERT INTO HangMuc (TenHangMuc, DonViTinh, CongTho, GiaTien) VALUES
+('Lót gạch', 'm²', 0.5, 250000),
+('Đổ bê tông', 'm³', 1.0, 1800000),
+('Xây tường', 'm²', 0.8, 350000),
+('Trát tường', 'm²', 0.3, 120000),
+('Sơn tường', 'm²', 0.2, 80000),
+('Lắp đặt điện', 'm²', 0.4, 150000),
+('Lắp đặt nước', 'm²', 0.4, 180000),
+('Lắp đặt cửa', 'cái', 0.5, 2500000),
+('Lắp đặt thiết bị vệ sinh', 'bộ', 1.0, 3500000),
+('Hoàn thiện nội thất', 'm²', 0.6, 450000);
 
 -- Bảng KhachHang (Customers)
 INSERT INTO KhachHang (MaKhachHang, TenKhachHang, SoDT, CCCD, Email) VALUES
@@ -245,22 +252,32 @@ INSERT INTO KhachHang (MaKhachHang, TenKhachHang, SoDT, CCCD, Email) VALUES
 ('KH002', 'Nguyễn Thị Hàng', '0923456000', '079234000000', 'khach2@gmail.com'),
 ('KH003', 'Lê Văn Người', '0934567000', '079345000000', 'khach3@gmail.com');
 
+-- Bảng HopDong (Contracts)
+INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, TrangThai, GhiChu, MaNhanVien, MaKhachHang) VALUES
+('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001.pdf', 'Đã duyệt', 'Khách hàng đã ký hợp đồng', 'GD001', 'KH001'),
+('HD002', '2023-02-20', 'Hợp đồng thiết kế và thi công biệt thự', 3500000000, 'HD002.pdf', 'Chờ duyệt', 'Đang chờ giám đốc xem xét', 'GD001', 'KH002'),
+('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003.pdf', 'Từ chối', 'Không đạt yêu cầu về ngân sách', 'TV001', 'KH003');
+
+-- Bảng CongTrinh (Construction Projects)
+INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, DiaChi, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
+('CT001', 'Nhà phố Quận 7', 120, 'TK001.pdf', '123 Đường Nguyễn Thị Thập, Quận 7, TP.HCM', 'HD001', 1, '2023-07-15'),
+('CT002', 'Biệt thự Thủ Đức', 350, 'TK002.pdf', '456 Đường Võ Văn Ngân, Thủ Đức, TP.HCM', 'HD002', 2, '2023-12-20'),
+('CT003', 'Căn hộ Quận 2', 85, 'TK003.pdf', '789 Đường Nguyễn Duy Trinh, Quận 2, TP.HCM', 'HD003', 3, '2023-06-10');
+
 -- Bảng BangBaoGia (Quotations)
 INSERT INTO BangBaoGia (MaBaoGia, TenBaoGia, TrangThai, MaLoai) VALUES
 ('BG001', 'Báo giá xây dựng nhà phố', 'Đã duyệt', 1),
 ('BG002', 'Báo giá thiết kế nội thất biệt thự', 'Đã duyệt', 2),
 ('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 3);
 
--- Bảng CongTrinh (Construction Projects)
-INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, MaKhachHang, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
-('CT001', 'Nhà phố Quận 7', 120, 'TK001', 'KH001', 'HD001', 1, '2023-07-15'),
-('CT002', 'Biệt thự Thủ Đức', 350, 'TK002', 'KH002', 'HD002', 2, '2023-12-20'),
-('CT003', 'Căn hộ Quận 2', 85, 'TK003', 'KH003', 'HD003', 3, '2023-06-10');
-
-INSERT INTO ChiTietBaoGia (MaChiTietBaoGia, MaBaoGia, MaCongTrinh, GiaBaoGia, NoiDung) VALUES 
-(1, 'BG001', 'CT001', 25000000, 'Lót gạch'),
-(2, 'BG001', 'CT002', 18000000, 'Đổ Bê tông'),
-(3, 'BG002', 'CT003', 21000000, 'Xây nhà vệ sinh');
+-- Bảng ChiTietBaoGia (Quotation Details)
+INSERT INTO ChiTietBaoGia (MaBaoGia, MaHangMuc, GiaBaoGia, NoiDung) VALUES 
+('BG001', 1, 25000000, 'Lót gạch phòng khách và phòng ngủ'),
+('BG001', 2, 18000000, 'Đổ bê tông móng và sàn'),
+('BG002', 3, 21000000, 'Xây tường bao và vách ngăn'),
+('BG002', 4, 15000000, 'Trát tường toàn bộ công trình'),
+('BG003', 5, 12000000, 'Sơn tường nội thất'),
+('BG003', 6, 18000000, 'Lắp đặt hệ thống điện');
 
 -- Bảng BangBaoCaoTienDo (Progress Reports)
 INSERT INTO BangBaoCaoTienDo (MaTienDo, ThoiGianHoanThanhThucTe, CongViec, NoiDungCongViec, NgayBaoCao, TrangThai, TiLeHoanThanh, HinhAnhTienDo, MaCongTrinh) VALUES

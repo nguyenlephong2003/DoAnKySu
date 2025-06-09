@@ -511,6 +511,38 @@ switch ($action) {
         }
         break;
 
+    case 'POST_BANG_PHAN_CONG':
+        try {
+            // Lấy dữ liệu từ request body
+            $data = json_decode(file_get_contents("php://input"), true);
+
+            // Kiểm tra các trường bắt buộc
+            if (!isset($data['MaCongTrinh']) || !isset($data['MaNhanVien']) || !isset($data['NgayThamGia'])) {
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Thiếu thông tin bắt buộc"
+                ]);
+                exit();
+            }
+
+            // Tạo phân công mới
+            $result = $chamCongModel->createBangPhanCong(
+                $data['MaCongTrinh'],
+                $data['MaNhanVien'],
+                $data['NgayThamGia'],
+                $data['NgayKetThuc'] ?? null,
+                $data['SoNgayThamGia'] ?? null
+            );
+
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi tạo phân công: " . $e->getMessage()
+            ]);
+        }
+        break;
+
     case 'POST_BANG_CHAM_CONG':
         try {
             // Lấy dữ liệu từ request body

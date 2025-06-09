@@ -244,154 +244,225 @@ const QuanLyTienDo = () => {
     setDetailModalVisible(true);
   };
 
+  const handleFileChange = async (info) => {
+    // Chỉ lưu file vào state, không upload ngay
+    const files = info.fileList.map(f => f.originFileObj || f);
+    if (files && files.length > 0) {
+        setUploadedFile(files);
+        // Cập nhật form với fileList để hiển thị preview
+        form.setFieldsValue({
+            HinhAnhTienDo: info.fileList
+        });
+    } else {
+        setUploadedFile(null);
+        form.setFieldsValue({
+            HinhAnhTienDo: []
+        });
+    }
+  };
+
+  // Thêm hàm xử lý trước khi upload
+  const beforeUpload = (file) => {
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+        message.error('Bạn chỉ có thể upload file ảnh!');
+        return false;
+    }
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    if (!isLt5M) {
+        message.error('Ảnh phải nhỏ hơn 5MB!');
+        return false;
+    }
+    return false; // Return false để ngăn upload tự động
+  };
+
   const handleCreateBaoCao = async (values) => {
     try {
-      setLoading(true);
-      // Tạo mã báo cáo theo format: BC + YYYYMMDDHHmmss
-      const baoCaoCode = "BC" + dayjs().format("YYYYMMDDHHmmss");
-      setCurrentBaoCaoCode(baoCaoCode);
+        setLoading(true);
+        // Tạo mã báo cáo theo format: BC + YYYYMMDDHHmmss
+        const baoCaoCode = "BC" + dayjs().format("YYYYMMDDHHmmss");
+        setCurrentBaoCaoCode(baoCaoCode);
 
-      // Nếu HinhAnhTienDo là mảng, stringify để backend nhận được chuỗi
-      const hinhAnh = Array.isArray(values.HinhAnhTienDo) ? JSON.stringify(values.HinhAnhTienDo) : values.HinhAnhTienDo;
-      const baoCaoData = {
-        MaTienDo: baoCaoCode,
-        ThoiGianHoanThanhThucTe:
-          values.ThoiGianHoanThanhThucTe?.format("YYYY-MM-DD"),
-        CongViec: values.CongViec,
-        NoiDungCongViec: values.NoiDungCongViec,
-        NgayBaoCao: values.NgayBaoCao.format("YYYY-MM-DD"),
-        TrangThai: values.TrangThai === 1 ? 1 : 0,
-        TiLeHoanThanh: values.TiLeHoanThanh,
-        HinhAnhTienDo: hinhAnh,
-        MaCongTrinh: values.MaCongTrinh,
-      };
-
-      const response = await axios.post(
-        `${BASE_URL}TienDo_API/BaoCaoTienDo_API.php?action=POST`,
-        baoCaoData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
+        // Upload ảnh lên Firebase
+        let uploadedImageUrls = [];
+        if (uploadedFile && uploadedFile.length > 0) {
+            try {
+                const uploadPromises = uploadedFile.map((file, index) => {
+                    const ext = file.name.split('.').pop();
+                    const fileName = `${baoCaoCode}_${index + 1}.${ext}`;
+                    return uploadFileAndGetURL(file, "img", fileName);
+                });
+                uploadedImageUrls = await Promise.all(uploadPromises);
+            } catch (error) {
+                console.error("Error uploading images:", error);
+                message.error("Lỗi khi upload ảnh");
+                return;
+            }
+        } else {
+            message.error("Vui lòng chọn ít nhất một ảnh");
+            return;
         }
-      );
 
-      if (response.data.message === "Tạo báo cáo tiến độ thành công.") {
-        message.success("Tạo báo cáo tiến độ thành công");
-        setModalVisible(false);
-        form.resetFields();
-        setUploadedFile(null);
-        fetchData();
-      } else {
-        message.error(response.data.message || "Tạo báo cáo tiến độ thất bại");
-      }
+        // Chuẩn bị dữ liệu để lưu vào DB
+        const baoCaoData = {
+            MaTienDo: baoCaoCode,
+            ThoiGianHoanThanhThucTe: values.ThoiGianHoanThanhThucTe?.format("YYYY-MM-DD"),
+            CongViec: values.CongViec,
+            NoiDungCongViec: values.NoiDungCongViec,
+            NgayBaoCao: values.NgayBaoCao.format("YYYY-MM-DD"),
+            TrangThai: values.TrangThai === 1 ? 1 : 0,
+            TiLeHoanThanh: values.TiLeHoanThanh,
+            HinhAnhTienDo: JSON.stringify(uploadedImageUrls),
+            MaCongTrinh: values.MaCongTrinh,
+        };
+
+        // Lưu vào DB
+        const response = await axios.post(
+            `${BASE_URL}TienDo_API/BaoCaoTienDo_API.php?action=POST`,
+            baoCaoData,
+            {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        if (response.data.message === "Tạo báo cáo tiến độ thành công.") {
+            message.success("Tạo báo cáo tiến độ thành công");
+            setModalVisible(false);
+            form.resetFields();
+            setUploadedFile(null);
+            setCurrentBaoCaoCode(null);
+            fetchData();
+        } else {
+            // Nếu lưu DB thất bại, xóa ảnh đã upload
+            try {
+                for (const url of uploadedImageUrls) {
+                    const filePath = url.split('/o/')[1]?.split('?')[0];
+                    if (filePath) {
+                        const decodedPath = decodeURIComponent(filePath);
+                        const fileRef = ref(storage, decodedPath);
+                        await deleteObject(fileRef);
+                    }
+                }
+            } catch (error) {
+                console.error("Error deleting uploaded images:", error);
+            }
+            message.error(response.data.message || "Tạo báo cáo tiến độ thất bại");
+        }
     } catch (error) {
-      console.error("Error creating progress report:", error);
-      message.error("Lỗi khi tạo báo cáo tiến độ");
+        console.error("Error creating progress report:", error);
+        message.error("Lỗi khi tạo báo cáo tiến độ");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
-  const handleFileChange = async (info) => {
-    const files = info.fileList.map(f => f.originFileObj || f);
-    if (files && files.length > 0) {
-      setImageUploading(true);
-      try {
-        const baoCaoCode = currentBaoCaoCode || "BC" + dayjs().format("YYYYMMDDHHmmss");
-        // Upload từng file với tên là MaTienDo
-        const uploadPromises = files.map((file) => {
-          const ext = file.name.split('.').pop();
-          const fileName = `${baoCaoCode}.${ext}`;
-          return uploadFileAndGetURL(file, "img", fileName);
-        });
-        const urls = await Promise.all(uploadPromises);
-        form.setFieldsValue({ HinhAnhTienDo: urls }); // Lưu mảng link
-        setUploadedFile(files);
-        message.success("Tất cả ảnh đã được upload thành công");
-      } catch (error) {
-        message.error("Upload failed");
-      } finally {
-        setImageUploading(false);
-      }
-    }
-  };
-
-  const handleEditFileChange = async (info) => {
-    // Xử lý xóa ảnh cũ
-    const removedFiles = info.fileList.filter(file => file.status === 'removed');
-    for (const file of removedFiles) {
-      if (file.url) {
-        try {
-          // Lấy đường dẫn file từ URL
-          const filePath = file.url.split('/o/')[1]?.split('?')[0];
-          if (filePath) {
-            const decodedPath = decodeURIComponent(filePath);
-            const fileRef = ref(storage, decodedPath);
-            await deleteObject(fileRef);
-            console.log('Đã xóa ảnh cũ:', decodedPath);
-          }
-        } catch (error) {
-          console.error('Lỗi khi xóa ảnh cũ:', error);
+  // Thêm hàm mới để xử lý upload ảnh khi sửa
+  const handleEditImageUpload = async (files, maTienDo) => {
+    try {
+        setImageUploading(true);
+        
+        // Xóa tất cả ảnh cũ có cùng mã tiến độ
+        const oldFiles = editForm.getFieldValue('HinhAnhTienDo') || [];
+        if (Array.isArray(oldFiles)) {
+            for (const file of oldFiles) {
+                if (file && file.url) {
+                    try {
+                        const filePath = file.url.split('/o/')[1]?.split('?')[0];
+                        if (filePath) {
+                            const decodedPath = decodeURIComponent(filePath);
+                            const fileRef = ref(storage, decodedPath);
+                            await deleteObject(fileRef);
+                            console.log('Đã xóa ảnh cũ:', decodedPath);
+                        }
+                    } catch (error) {
+                        console.error('Lỗi khi xóa ảnh cũ:', error);
+                    }
+                }
+            }
         }
-      }
-    }
 
-    const files = info.fileList.map(f => f.originFileObj || f);
-    if (files && files.length > 0) {
-      setImageUploading(true);
-      try {
-        const baoCaoCode = selectedBaoCao?.MaTienDo;
-        // Upload từng file với tên là MaTienDo
-        const uploadPromises = files.map((file) => {
-          const ext = file.name.split('.').pop();
-          const fileName = `${baoCaoCode}.${ext}`;
-          return uploadFileAndGetURL(file, "img", fileName);
+        // Upload ảnh mới
+        const uploadPromises = files.map((file, index) => {
+            const ext = file.name.split('.').pop();
+            const fileName = `${maTienDo}_${index + 1}.${ext}`;
+            return uploadFileAndGetURL(file, "img", fileName);
         });
-        const urls = await Promise.all(uploadPromises);
-        editForm.setFieldsValue({ HinhAnhTienDo: urls }); // Lưu mảng link
+
+        const newUrls = await Promise.all(uploadPromises);
+        
+        // Tạo danh sách file mới với key duy nhất
+        const newFileList = newUrls.map((url, index) => ({
+            uid: `${maTienDo}_${index + 1}`,
+            name: `image-${index + 1}`,
+            status: 'done',
+            url: url,
+            thumbUrl: url,
+            type: 'image/jpeg'
+        }));
+
+        // Cập nhật form
+        editForm.setFieldsValue({ HinhAnhTienDo: newFileList });
         message.success("Tất cả ảnh đã được upload thành công");
-      } catch (error) {
-        message.error("Upload failed");
-      } finally {
+        return newUrls;
+    } catch (error) {
+        console.error('Lỗi khi upload ảnh:', error);
+        message.error("Upload ảnh thất bại");
+        throw error;
+    } finally {
         setImageUploading(false);
-      }
-    } else {
-      // Nếu không còn ảnh nào, set giá trị rỗng
-      editForm.setFieldsValue({ HinhAnhTienDo: [] });
     }
-  };
+};
+
+  // Sửa lại hàm handleEditFileChange
+  const handleEditFileChange = async (info) => {
+    try {
+        const newFiles = info.fileList.filter(file => file.originFileObj);
+        if (newFiles.length > 0) {
+            const maTienDo = editForm.getFieldValue('MaTienDo');
+            await handleEditImageUpload(newFiles, maTienDo);
+        } else {
+            // Nếu không có ảnh mới, chỉ cập nhật danh sách ảnh hiện tại
+            const currentFiles = info.fileList.filter(file => file.status !== 'removed');
+            editForm.setFieldsValue({ HinhAnhTienDo: currentFiles });
+        }
+    } catch (error) {
+        console.error('Lỗi khi xử lý thay đổi ảnh:', error);
+        message.error("Có lỗi xảy ra khi xử lý ảnh");
+    }
+};
 
   const handleEdit = (record) => {
-    // Sử dụng MaCongTrinh từ selectedBaoCao đang hiển thị
     setSelectedBaoCao(selectedBaoCao);
     let images = [];
     try {
-      // Parse images from HinhAnhTienDo
-      if (record.HinhAnhTienDo) {
-        if (typeof record.HinhAnhTienDo === 'string') {
-          if (record.HinhAnhTienDo.trim().startsWith("[")) {
-            images = JSON.parse(record.HinhAnhTienDo);
-          } else {
-            images = [record.HinhAnhTienDo];
-          }
-        } else if (Array.isArray(record.HinhAnhTienDo)) {
-          images = record.HinhAnhTienDo;
+        // Parse images from HinhAnhTienDo
+        if (record.HinhAnhTienDo) {
+            if (typeof record.HinhAnhTienDo === 'string') {
+                if (record.HinhAnhTienDo.trim().startsWith("[")) {
+                    images = JSON.parse(record.HinhAnhTienDo);
+                } else {
+                    images = [record.HinhAnhTienDo];
+                }
+            } else if (Array.isArray(record.HinhAnhTienDo)) {
+                images = record.HinhAnhTienDo;
+            }
         }
-      }
     } catch (error) {
-      console.error("Error parsing images:", error);
-      images = [record.HinhAnhTienDo];
+        console.error("Error parsing images:", error);
+        images = [record.HinhAnhTienDo];
     }
 
     // Convert images to fileList format for Upload component
     const fileList = images.map((url, index) => ({
-      uid: `-${index}`,
-      name: `image-${index}`,
-      status: 'done',
-      url: url.startsWith('http') ? url : `${BASE_URL}img/${url}`,
-      thumbUrl: url.startsWith('http') ? url : `${BASE_URL}img/${url}`,
+        uid: `${record.MaTienDo}_${index}`,
+        name: `image-${index + 1}`,
+        status: 'done',
+        url: url,
+        thumbUrl: url,
+        type: 'image/jpeg'
     }));
 
     // Reset form trước khi set giá trị mới
@@ -399,17 +470,17 @@ const QuanLyTienDo = () => {
     
     // Set giá trị cho form
     editForm.setFieldsValue({
-      MaTienDo: record.MaTienDo,
-      MaCongTrinh: selectedBaoCao.MaCongTrinh, // Sử dụng MaCongTrinh từ selectedBaoCao
-      CongViec: record.CongViec,
-      NoiDungCongViec: record.NoiDungCongViec,
-      NgayBaoCao: dayjs(record.NgayBaoCao),
-      ThoiGianHoanThanhThucTe: record.ThoiGianHoanThanhThucTe
-        ? dayjs(record.ThoiGianHoanThanhThucTe)
-        : null,
-      TrangThai: record.TrangThai,
-      TiLeHoanThanh: record.TiLeHoanThanh,
-      HinhAnhTienDo: fileList,
+        MaTienDo: record.MaTienDo,
+        MaCongTrinh: selectedBaoCao.MaCongTrinh,
+        CongViec: record.CongViec,
+        NoiDungCongViec: record.NoiDungCongViec,
+        NgayBaoCao: dayjs(record.NgayBaoCao),
+        ThoiGianHoanThanhThucTe: record.ThoiGianHoanThanhThucTe
+            ? dayjs(record.ThoiGianHoanThanhThucTe)
+            : null,
+        TrangThai: record.TrangThai,
+        TiLeHoanThanh: record.TiLeHoanThanh,
+        HinhAnhTienDo: fileList,
     });
 
     setEditModalVisible(true);
@@ -491,70 +562,53 @@ const QuanLyTienDo = () => {
     });
   };
 
+  // Sửa lại hàm handleEditSubmit
   const handleEditSubmit = async (values) => {
     try {
-      setLoading(true);
+        setLoading(true);
+        const maTienDo = values.MaTienDo;
 
-      // Xử lý hình ảnh trước khi gửi
-      let hinhAnhTienDo = values.HinhAnhTienDo;
-      if (Array.isArray(hinhAnhTienDo)) {
-        // Nếu là fileList từ Upload component
-        hinhAnhTienDo = hinhAnhTienDo.map(file => {
-          if (file.url) {
-            return file.url;
-          }
-          return file;
-        });
-      }
-      // Chuyển thành chuỗi JSON nếu là mảng
-      if (Array.isArray(hinhAnhTienDo)) {
-        hinhAnhTienDo = JSON.stringify(hinhAnhTienDo);
-      }
+        // Chuẩn bị dữ liệu để lưu vào DB
+        const baoCaoData = {
+            MaTienDo: maTienDo,
+            MaCongTrinh: values.MaCongTrinh,
+            CongViec: values.CongViec,
+            NoiDungCongViec: values.NoiDungCongViec,
+            NgayBaoCao: values.NgayBaoCao.format("YYYY-MM-DD"),
+            ThoiGianHoanThanhThucTe: values.ThoiGianHoanThanhThucTe ? values.ThoiGianHoanThanhThucTe.format("YYYY-MM-DD") : null,
+            TrangThai: values.TrangThai === 1 ? 1 : 0,
+            TiLeHoanThanh: values.TiLeHoanThanh,
+            HinhAnhTienDo: JSON.stringify(values.HinhAnhTienDo.map(file => file.url))
+        };
 
-      const formData = {
-        MaTienDo: values.MaTienDo,
-        MaCongTrinh: values.MaCongTrinh,
-        CongViec: values.CongViec,
-        NoiDungCongViec: values.NoiDungCongViec,
-        NgayBaoCao: values.NgayBaoCao.format("YYYY-MM-DD"),
-        ThoiGianHoanThanhThucTe: values.ThoiGianHoanThanhThucTe ? values.ThoiGianHoanThanhThucTe.format("YYYY-MM-DD") : null,
-        TrangThai: values.TrangThai === 1 ? 1 : 0,
-        TiLeHoanThanh: values.TiLeHoanThanh,
-        HinhAnhTienDo: hinhAnhTienDo
-      };
-
-      const response = await axios.put(
-        `${BASE_URL}TienDo_API/BaoCaoTienDo_API.php?action=PUT`,
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (response.data.message === "Cập nhật báo cáo tiến độ thành công.") {
-        setEditModalVisible(false);
-        setDetailModalVisible(false);
-        editForm.resetFields();
-        await fetchData();
-        message.success("Cập nhật báo cáo tiến độ thành công");
-      } else {
-        message.error(
-          response.data.message || "Cập nhật báo cáo tiến độ thất bại"
+        // Lưu vào DB
+        const response = await axios.put(
+            `${BASE_URL}TienDo_API/BaoCaoTienDo_API.php?action=PUT`,
+            baoCaoData,
+            {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
         );
-      }
+
+        if (response.data.message === "Cập nhật báo cáo tiến độ thành công.") {
+            setEditModalVisible(false);
+            setDetailModalVisible(false);
+            editForm.resetFields();
+            await fetchData();
+            message.success("Cập nhật báo cáo tiến độ thành công");
+        } else {
+            message.error(response.data.message || "Cập nhật báo cáo tiến độ thất bại");
+        }
     } catch (error) {
-      console.error("Error updating progress report:", error);
-      if (error.response) {
-        console.error("Error response:", error.response.data);
-      }
-      message.error("Lỗi khi cập nhật báo cáo tiến độ");
+        console.error("Error updating progress report:", error);
+        message.error("Lỗi khi cập nhật báo cáo tiến độ");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   return (
     <div className="container mx-auto p-6">
@@ -738,7 +792,7 @@ const QuanLyTienDo = () => {
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                           {imageUrls.map((url, index) => (
                             <img
-                              key={index}
+                              key={`${url}_${index}`}
                               src={url}
                               alt={`Hình ảnh ${index + 1}`}
                               style={{
@@ -904,13 +958,25 @@ const QuanLyTienDo = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item name="HinhAnhTienDo" label="Hình ảnh tiến độ">
+          <Form.Item 
+            name="HinhAnhTienDo" 
+            label="Hình ảnh tiến độ"
+            rules={[{ required: true, message: 'Vui lòng chọn ít nhất một ảnh' }]}
+          >
             <Upload
               name="file"
               listType="picture"
               multiple
-              beforeUpload={() => false}
+              beforeUpload={beforeUpload}
               onChange={handleFileChange}
+              maxCount={5}
+              onRemove={(file) => {
+                const currentFileList = form.getFieldValue('HinhAnhTienDo') || [];
+                const newFileList = currentFileList.filter(item => item.uid !== file.uid);
+                form.setFieldsValue({ HinhAnhTienDo: newFileList });
+                setUploadedFile(prev => prev?.filter(f => f.uid !== file.uid) || null);
+                return true;
+              }}
             >
               <Button icon={<UploadOutlined />}>Chọn hình ảnh</Button>
             </Upload>
@@ -1035,14 +1101,39 @@ const QuanLyTienDo = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item name="HinhAnhTienDo" label="Hình ảnh tiến độ">
+          <Form.Item 
+            name="HinhAnhTienDo" 
+            label="Hình ảnh tiến độ"
+            rules={[{ required: true, message: 'Vui lòng chọn ít nhất một ảnh' }]}
+          >
             <Upload
               name="file"
               listType="picture"
               multiple
-              beforeUpload={() => false}
+              beforeUpload={beforeUpload}
               onChange={handleEditFileChange}
-              fileList={editForm.getFieldValue('HinhAnhTienDo')}
+              maxCount={5}
+              onRemove={async (file) => {
+                try {
+                    if (file.url) {
+                        const filePath = file.url.split('/o/')[1]?.split('?')[0];
+                        if (filePath) {
+                            const decodedPath = decodeURIComponent(filePath);
+                            const fileRef = ref(storage, decodedPath);
+                            await deleteObject(fileRef);
+                            console.log('Đã xóa ảnh:', decodedPath);
+                        }
+                    }
+                    const currentFileList = editForm.getFieldValue('HinhAnhTienDo') || [];
+                    const newFileList = currentFileList.filter(item => item.uid !== file.uid);
+                    editForm.setFieldsValue({ HinhAnhTienDo: newFileList });
+                    return true;
+                } catch (error) {
+                    console.error('Lỗi khi xóa ảnh:', error);
+                    message.error('Không thể xóa ảnh. Vui lòng thử lại.');
+                    return false;
+                }
+              }}
             >
               <Button icon={<UploadOutlined />}>Chọn hình ảnh</Button>
             </Upload>
