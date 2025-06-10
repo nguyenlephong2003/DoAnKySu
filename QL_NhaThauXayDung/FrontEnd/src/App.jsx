@@ -28,6 +28,8 @@ import Backup_Restore from "./components/Backup_Restore.jsx";
 import QuanLyChamCong from "./components/QuanLyChamCong.jsx";
 import ChamCongNhanVien from "./components/ChamCongNhanVien.jsx";
 import { AuthProvider } from './Config/AuthContext';
+import TinhLuongNhanVien from "./components/TinhLuongNhanVien.jsx";
+import TinhLuongTho from "./components/TinhLuongTho.jsx";
 
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -116,7 +118,8 @@ function App() {
           }
         >
           <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
-          <Route path="quanlyluong" element={<QuanLyLuong/>} />
+          <Route path="quanlyluongnhanvien" element={<TinhLuongNhanVien/>} />
+          <Route path="quanlyluongtho" element={<TinhLuongTho/>} />
           <Route path="thanhtoan" element={<h1>Thanh toán</h1>} />
           <Route path="quanlygiaingan" element={<h1>Quản lý giải ngân</h1>} />
         </Route>

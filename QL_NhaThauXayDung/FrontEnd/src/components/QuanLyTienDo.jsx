@@ -77,6 +77,7 @@ const QuanLyTienDo = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedConstruction, setSelectedConstruction] = useState("all");
   const [imageUploading, setImageUploading] = useState(false);
+  const [imagesToDelete, setImagesToDelete] = useState([]);
 
   useEffect(() => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -251,12 +252,14 @@ const QuanLyTienDo = () => {
         setUploadedFile(files);
         // Cập nhật form với fileList để hiển thị preview
         form.setFieldsValue({
-            HinhAnhTienDo: info.fileList
+            HinhAnhTienDo: info.fileList,
+            MaTienDo: currentBaoCaoCode
         });
     } else {
         setUploadedFile(null);
         form.setFieldsValue({
-            HinhAnhTienDo: []
+            HinhAnhTienDo: [],
+            MaTienDo: currentBaoCaoCode
         });
     }
   };
@@ -276,12 +279,32 @@ const QuanLyTienDo = () => {
     return false; // Return false để ngăn upload tự động
   };
 
+  // Thêm hàm tạo mã báo cáo
+  const generateBaoCaoCode = () => {
+    return "BC" + dayjs().format("YYYYMMDDHHmmss");
+  };
+
+  // Sửa lại phần mở modal thêm mới
+  const showCreateModal = () => {
+    const newBaoCaoCode = generateBaoCaoCode();
+    console.log("Generated new MaTienDo:", newBaoCaoCode); // Debug log
+    setCurrentBaoCaoCode(newBaoCaoCode);
+    // Reset form và set giá trị MaTienDo
+    form.resetFields();
+    form.setFieldsValue({ MaTienDo: newBaoCaoCode });
+    setModalVisible(true);
+  };
+
   const handleCreateBaoCao = async (values) => {
     try {
         setLoading(true);
-        // Tạo mã báo cáo theo format: BC + YYYYMMDDHHmmss
-        const baoCaoCode = "BC" + dayjs().format("YYYYMMDDHHmmss");
-        setCurrentBaoCaoCode(baoCaoCode);
+        // Sử dụng currentBaoCaoCode từ state
+        if (!currentBaoCaoCode) {
+            message.error("Không tìm thấy mã báo cáo");
+            return;
+        }
+
+        console.log("Using MaTienDo for upload:", currentBaoCaoCode); // Debug log
 
         // Upload ảnh lên Firebase
         let uploadedImageUrls = [];
@@ -289,10 +312,13 @@ const QuanLyTienDo = () => {
             try {
                 const uploadPromises = uploadedFile.map((file, index) => {
                     const ext = file.name.split('.').pop();
-                    const fileName = `${baoCaoCode}_${index + 1}.${ext}`;
+                    // Sử dụng currentBaoCaoCode làm tên file
+                    const fileName = `${currentBaoCaoCode}_${index + 1}.${ext}`;
+                    console.log("Uploading file with name:", fileName); // Debug log
                     return uploadFileAndGetURL(file, "img", fileName);
                 });
                 uploadedImageUrls = await Promise.all(uploadPromises);
+                console.log("Uploaded URLs:", uploadedImageUrls); // Debug log
             } catch (error) {
                 console.error("Error uploading images:", error);
                 message.error("Lỗi khi upload ảnh");
@@ -305,7 +331,7 @@ const QuanLyTienDo = () => {
 
         // Chuẩn bị dữ liệu để lưu vào DB
         const baoCaoData = {
-            MaTienDo: baoCaoCode,
+            MaTienDo: currentBaoCaoCode,
             ThoiGianHoanThanhThucTe: values.ThoiGianHoanThanhThucTe?.format("YYYY-MM-DD"),
             CongViec: values.CongViec,
             NoiDungCongViec: values.NoiDungCongViec,
@@ -315,6 +341,8 @@ const QuanLyTienDo = () => {
             HinhAnhTienDo: JSON.stringify(uploadedImageUrls),
             MaCongTrinh: values.MaCongTrinh,
         };
+
+        console.log("Saving to DB with data:", baoCaoData); // Debug log
 
         // Lưu vào DB
         const response = await axios.post(
@@ -357,9 +385,9 @@ const QuanLyTienDo = () => {
     } finally {
         setLoading(false);
     }
-};
+  };
 
-  // Thêm hàm mới để xử lý upload ảnh khi sửa
+  // Sửa lại hàm handleEditImageUpload
   const handleEditImageUpload = async (files, maTienDo) => {
     try {
         setImageUploading(true);
@@ -384,19 +412,20 @@ const QuanLyTienDo = () => {
             }
         }
 
-        // Upload ảnh mới
+        // Upload ảnh mới với tên file là MaTienDo + số thứ tự
         const uploadPromises = files.map((file, index) => {
             const ext = file.name.split('.').pop();
+            // Thêm số thứ tự vào tên file
             const fileName = `${maTienDo}_${index + 1}.${ext}`;
             return uploadFileAndGetURL(file, "img", fileName);
         });
 
         const newUrls = await Promise.all(uploadPromises);
         
-        // Tạo danh sách file mới với key duy nhất
+        // Tạo danh sách file mới với số thứ tự
         const newFileList = newUrls.map((url, index) => ({
             uid: `${maTienDo}_${index + 1}`,
-            name: `image-${index + 1}`,
+            name: `${maTienDo}_${index + 1}`,
             status: 'done',
             url: url,
             thumbUrl: url,
@@ -414,7 +443,7 @@ const QuanLyTienDo = () => {
     } finally {
         setImageUploading(false);
     }
-};
+  };
 
   // Sửa lại hàm handleEditFileChange
   const handleEditFileChange = async (info) => {
@@ -422,7 +451,26 @@ const QuanLyTienDo = () => {
         const newFiles = info.fileList.filter(file => file.originFileObj);
         if (newFiles.length > 0) {
             const maTienDo = editForm.getFieldValue('MaTienDo');
-            await handleEditImageUpload(newFiles, maTienDo);
+            const uploadedUrls = await handleEditImageUpload(newFiles, maTienDo);
+            
+            // Lấy danh sách ảnh cũ
+            const oldFiles = editForm.getFieldValue('HinhAnhTienDo') || [];
+            const oldUrls = oldFiles.filter(file => file.uid.toString().startsWith('-')).map(file => file.url);
+            
+            // Kết hợp ảnh cũ và ảnh mới
+            const combinedUrls = [...oldUrls, ...uploadedUrls];
+            
+            // Tạo fileList mới
+            const newFileList = combinedUrls.map((url, index) => ({
+                uid: `-${index}`,
+                name: `image-${index + 1}`,
+                status: 'done',
+                url: url,
+                thumbUrl: url,
+                type: 'image/jpeg'
+            }));
+
+            editForm.setFieldsValue({ HinhAnhTienDo: newFileList });
         } else {
             // Nếu không có ảnh mới, chỉ cập nhật danh sách ảnh hiện tại
             const currentFiles = info.fileList.filter(file => file.status !== 'removed');
@@ -432,7 +480,7 @@ const QuanLyTienDo = () => {
         console.error('Lỗi khi xử lý thay đổi ảnh:', error);
         message.error("Có lỗi xảy ra khi xử lý ảnh");
     }
-};
+  };
 
   const handleEdit = (record) => {
     setSelectedBaoCao(selectedBaoCao);
@@ -441,9 +489,9 @@ const QuanLyTienDo = () => {
         // Parse images from HinhAnhTienDo
         if (record.HinhAnhTienDo) {
             if (typeof record.HinhAnhTienDo === 'string') {
-                if (record.HinhAnhTienDo.trim().startsWith("[")) {
+                try {
                     images = JSON.parse(record.HinhAnhTienDo);
-                } else {
+                } catch (e) {
                     images = [record.HinhAnhTienDo];
                 }
             } else if (Array.isArray(record.HinhAnhTienDo)) {
@@ -452,12 +500,12 @@ const QuanLyTienDo = () => {
         }
     } catch (error) {
         console.error("Error parsing images:", error);
-        images = [record.HinhAnhTienDo];
+        images = [];
     }
 
     // Convert images to fileList format for Upload component
     const fileList = images.map((url, index) => ({
-        uid: `${record.MaTienDo}_${index}`,
+        uid: `-${index}`,
         name: `image-${index + 1}`,
         status: 'done',
         url: url,
@@ -568,6 +616,26 @@ const QuanLyTienDo = () => {
         setLoading(true);
         const maTienDo = values.MaTienDo;
 
+        // Xóa các ảnh đã chọn xóa
+        for (const imageUrl of imagesToDelete) {
+            try {
+                const filePath = imageUrl.split('/o/')[1]?.split('?')[0];
+                if (filePath) {
+                    const decodedPath = decodeURIComponent(filePath);
+                    const fileRef = ref(storage, decodedPath);
+                    await deleteObject(fileRef);
+                    console.log('Đã xóa ảnh:', decodedPath);
+                }
+            } catch (error) {
+                console.error('Lỗi khi xóa ảnh:', error);
+                message.error('Không thể xóa một số ảnh. Vui lòng thử lại.');
+                return;
+            }
+        }
+
+        // Lấy danh sách URL ảnh từ fileList
+        const imageUrls = values.HinhAnhTienDo.map(file => file.url);
+
         // Chuẩn bị dữ liệu để lưu vào DB
         const baoCaoData = {
             MaTienDo: maTienDo,
@@ -578,7 +646,7 @@ const QuanLyTienDo = () => {
             ThoiGianHoanThanhThucTe: values.ThoiGianHoanThanhThucTe ? values.ThoiGianHoanThanhThucTe.format("YYYY-MM-DD") : null,
             TrangThai: values.TrangThai === 1 ? 1 : 0,
             TiLeHoanThanh: values.TiLeHoanThanh,
-            HinhAnhTienDo: JSON.stringify(values.HinhAnhTienDo.map(file => file.url))
+            HinhAnhTienDo: JSON.stringify(imageUrls)
         };
 
         // Lưu vào DB
@@ -597,6 +665,7 @@ const QuanLyTienDo = () => {
             setEditModalVisible(false);
             setDetailModalVisible(false);
             editForm.resetFields();
+            setImagesToDelete([]); // Reset danh sách ảnh cần xóa
             await fetchData();
             message.success("Cập nhật báo cáo tiến độ thành công");
         } else {
@@ -608,7 +677,7 @@ const QuanLyTienDo = () => {
     } finally {
         setLoading(false);
     }
-};
+  };
 
   return (
     <div className="container mx-auto p-6">
@@ -658,9 +727,7 @@ const QuanLyTienDo = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => {
-              setModalVisible(true);
-            }}
+            onClick={showCreateModal}
           >
             Tạo báo cáo mới
           </Button>
@@ -874,11 +941,16 @@ const QuanLyTienDo = () => {
           setModalVisible(false);
           form.resetFields();
           setUploadedFile(null);
+          setCurrentBaoCaoCode(null);
         }}
         footer={null}
         width={600}
       >
         <Form form={form} layout="vertical" onFinish={handleCreateBaoCao}>
+          <Form.Item name="MaTienDo" hidden>
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="MaCongTrinh"
             label="Công trình"
@@ -988,6 +1060,7 @@ const QuanLyTienDo = () => {
                 setModalVisible(false);
                 form.resetFields();
                 setUploadedFile(null);
+                setCurrentBaoCaoCode(null);
               }}
               className="mr-2"
             >
@@ -1113,26 +1186,28 @@ const QuanLyTienDo = () => {
               beforeUpload={beforeUpload}
               onChange={handleEditFileChange}
               maxCount={5}
-              onRemove={async (file) => {
-                try {
-                    if (file.url) {
-                        const filePath = file.url.split('/o/')[1]?.split('?')[0];
-                        if (filePath) {
-                            const decodedPath = decodeURIComponent(filePath);
-                            const fileRef = ref(storage, decodedPath);
-                            await deleteObject(fileRef);
-                            console.log('Đã xóa ảnh:', decodedPath);
-                        }
+              fileList={editForm.getFieldValue('HinhAnhTienDo')}
+              onRemove={(file) => {
+                Modal.confirm({
+                  title: 'Xác nhận xóa',
+                  content: 'Bạn có chắc chắn muốn xóa ảnh này không?',
+                  okText: 'Xóa',
+                  okType: 'danger',
+                  cancelText: 'Hủy',
+                  onOk: () => {
+                    // Nếu là ảnh cũ (có uid âm), thêm vào danh sách ảnh cần xóa
+                    if (file.uid.toString().startsWith('-') && file.url) {
+                      setImagesToDelete(prev => [...prev, file.url]);
                     }
                     const currentFileList = editForm.getFieldValue('HinhAnhTienDo') || [];
                     const newFileList = currentFileList.filter(item => item.uid !== file.uid);
                     editForm.setFieldsValue({ HinhAnhTienDo: newFileList });
                     return true;
-                } catch (error) {
-                    console.error('Lỗi khi xóa ảnh:', error);
-                    message.error('Không thể xóa ảnh. Vui lòng thử lại.');
+                  },
+                  onCancel: () => {
                     return false;
-                }
+                  }
+                });
               }}
             >
               <Button icon={<UploadOutlined />}>Chọn hình ảnh</Button>
