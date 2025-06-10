@@ -449,6 +449,245 @@ switch ($action) {
         }
         break;
 
+    case 'GET_BY_MONTH':
+        try {
+            // Get parameters
+            $maNhanVien = isset($_GET['maNhanVien']) ? $_GET['maNhanVien'] : die();
+            $thang = isset($_GET['thang']) ? $_GET['thang'] : date('m');
+            $nam = isset($_GET['nam']) ? $_GET['nam'] : date('Y');
+
+            // Get cham cong records for employee by month
+            $stmt = $chamCongModel->getBangChamCongTheoThang($maNhanVien, $thang, $nam);
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                $tongSoNgayLam = 0;
+                $tongSoNgayNghi = 0;
+                $tongSoNgayDiMuon = 0;
+                $tongSoNgayVeSom = 0;
+
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $item = [
+                        "MaChamCong" => $row['MaChamCong'],
+                        "MaNhanVien" => $row['MaNhanVien'],
+                        "TenNhanVien" => $row['TenNhanVien'],
+                        "LoaiNhanVien" => $row['LoaiNhanVien'],
+                        "SoNgayLam" => $row['SoNgayLam'],
+                        "KyLuong" => $row['KyLuong'],
+                        "TrangThai" => $row['TrangThai'],
+                        "GioVao" => $row['GioVao'],
+                        "GioRa" => $row['GioRa'],
+                        "LoaiChamCong" => $row['LoaiChamCong']
+                    ];
+                    $result[] = $item;
+
+                    // Tính tổng các loại ngày
+                    if ($row['LoaiChamCong'] === 'Đi làm') {
+                        $tongSoNgayLam += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Nghỉ') {
+                        $tongSoNgayNghi += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Đi muộn') {
+                        $tongSoNgayDiMuon += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Về sớm') {
+                        $tongSoNgayVeSom += $row['SoNgayLam'];
+                    }
+                }
+
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "TongSoNgayLam" => $tongSoNgayLam,
+                        "TongSoNgayNghi" => $tongSoNgayNghi,
+                        "TongSoNgayDiMuon" => $tongSoNgayDiMuon,
+                        "TongSoNgayVeSom" => $tongSoNgayVeSom,
+                        "DanhSachChamCong" => $result
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "TongSoNgayLam" => 0,
+                        "TongSoNgayNghi" => 0,
+                        "TongSoNgayDiMuon" => 0,
+                        "TongSoNgayVeSom" => 0,
+                        "DanhSachChamCong" => []
+                    ]
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy thông tin chấm công theo tháng: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'GET_THO_BY_MONTH':
+        try {
+            // Get parameters
+            $thang = isset($_GET['thang']) ? $_GET['thang'] : date('m');
+            $nam = isset($_GET['nam']) ? $_GET['nam'] : date('Y');
+
+            // Get cham cong records for workers by month
+            $stmt = $chamCongModel->getBangChamCongThoTheoThang($thang, $nam);
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                $groupedData = [];
+
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $maNhanVien = $row['MaNhanVien'];
+                    
+                    if (!isset($groupedData[$maNhanVien])) {
+                        $groupedData[$maNhanVien] = [
+                            "MaNhanVien" => $row['MaNhanVien'],
+                            "TenNhanVien" => $row['TenNhanVien'],
+                            "LoaiNhanVien" => $row['LoaiNhanVien'],
+                            "TongSoNgayLam" => 0,
+                            "TongSoNgayNghi" => 0,
+                            "TongSoNgayDiMuon" => 0,
+                            "TongSoNgayVeSom" => 0,
+                            "DanhSachChamCong" => []
+                        ];
+                    }
+
+                    $item = [
+                        "MaChamCong" => $row['MaChamCong'],
+                        "SoNgayLam" => $row['SoNgayLam'],
+                        "KyLuong" => $row['KyLuong'],
+                        "TrangThai" => $row['TrangThai'],
+                        "GioVao" => $row['GioVao'],
+                        "GioRa" => $row['GioRa'],
+                        "LoaiChamCong" => $row['LoaiChamCong']
+                    ];
+
+                    $groupedData[$maNhanVien]["DanhSachChamCong"][] = $item;
+
+                    // Tính tổng các loại ngày
+                    if ($row['LoaiChamCong'] === 'Đi làm') {
+                        $groupedData[$maNhanVien]["TongSoNgayLam"] += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Nghỉ') {
+                        $groupedData[$maNhanVien]["TongSoNgayNghi"] += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Đi muộn') {
+                        $groupedData[$maNhanVien]["TongSoNgayDiMuon"] += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Về sớm') {
+                        $groupedData[$maNhanVien]["TongSoNgayVeSom"] += $row['SoNgayLam'];
+                    }
+                }
+
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "DanhSachNhanVien" => array_values($groupedData)
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "DanhSachNhanVien" => []
+                    ]
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy thông tin chấm công của thợ theo tháng: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'GET_NHAN_VIEN_BY_MONTH':
+        try {
+            // Get parameters
+            $thang = isset($_GET['thang']) ? $_GET['thang'] : date('m');
+            $nam = isset($_GET['nam']) ? $_GET['nam'] : date('Y');
+
+            // Get cham cong records for non-workers by month
+            $stmt = $chamCongModel->getBangChamCongNhanVienTheoThang($thang, $nam);
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                $groupedData = [];
+
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $maNhanVien = $row['MaNhanVien'];
+                    
+                    if (!isset($groupedData[$maNhanVien])) {
+                        $groupedData[$maNhanVien] = [
+                            "MaNhanVien" => $row['MaNhanVien'],
+                            "TenNhanVien" => $row['TenNhanVien'],
+                            "LoaiNhanVien" => $row['LoaiNhanVien'],
+                            "TongSoNgayLam" => 0,
+                            "TongSoNgayNghi" => 0,
+                            "TongSoNgayDiMuon" => 0,
+                            "TongSoNgayVeSom" => 0,
+                            "DanhSachChamCong" => []
+                        ];
+                    }
+
+                    $item = [
+                        "MaChamCong" => $row['MaChamCong'],
+                        "SoNgayLam" => $row['SoNgayLam'],
+                        "KyLuong" => $row['KyLuong'],
+                        "TrangThai" => $row['TrangThai'],
+                        "GioVao" => $row['GioVao'],
+                        "GioRa" => $row['GioRa'],
+                        "LoaiChamCong" => $row['LoaiChamCong']
+                    ];
+
+                    $groupedData[$maNhanVien]["DanhSachChamCong"][] = $item;
+
+                    // Tính tổng các loại ngày
+                    if ($row['LoaiChamCong'] === 'Đi làm') {
+                        $groupedData[$maNhanVien]["TongSoNgayLam"] += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Nghỉ') {
+                        $groupedData[$maNhanVien]["TongSoNgayNghi"] += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Đi muộn') {
+                        $groupedData[$maNhanVien]["TongSoNgayDiMuon"] += $row['SoNgayLam'];
+                    } else if ($row['LoaiChamCong'] === 'Về sớm') {
+                        $groupedData[$maNhanVien]["TongSoNgayVeSom"] += $row['SoNgayLam'];
+                    }
+                }
+
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "DanhSachNhanVien" => array_values($groupedData)
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "DanhSachNhanVien" => []
+                    ]
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy thông tin chấm công của nhân viên theo tháng: " . $e->getMessage()
+            ]);
+        }
+        break;
+
     case 'POST':
         try {
             // Lấy dữ liệu từ request body
