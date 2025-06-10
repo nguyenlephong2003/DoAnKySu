@@ -49,6 +49,14 @@ CREATE TABLE `TaiKhoan` (
   `SessionID` varchar(255) NULL
 );
 
+CREATE TABLE `PhuLuc`(
+	`MaPhuLuc` varchar(20) PRIMARY KEY,
+	`NgayLap` DateTime,
+	`FilePhuLuc` varchar(255),
+	`MaHopDong` varchar(20)
+	)
+
+
 CREATE TABLE `HopDong` (
   `MaHopDong` varchar(20) PRIMARY KEY,
   `NgayKy` Date,
@@ -244,9 +252,10 @@ ALTER TABLE `HopDong`
 ADD CONSTRAINT `fk_NhanVien_HopDong` 
 FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`);
 
-ALTER TABLE `HopDong` 
-ADD CONSTRAINT `fk_HopDong_KhachHang` 
-FOREIGN KEY (`MaKhachHang`) REFERENCES `KhachHang` (`MaKhachHang`);
+ALTER TABLE `PhuLuc` 
+ADD CONSTRAINT `fk_PhuLuc_HopDong` 
+FOREIGN KEY (`MaHopDong`) REFERENCES `HopDong`(`MaHopDong`);
+
 
 ALTER TABLE `BangBaoGia` 
 ADD CONSTRAINT `fk_BangBaoGia_LoaiBaoGia` 
