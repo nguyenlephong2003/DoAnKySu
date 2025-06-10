@@ -252,6 +252,10 @@ ALTER TABLE `HopDong`
 ADD CONSTRAINT `fk_NhanVien_HopDong` 
 FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`);
 
+ALTER TABLE `HopDong` 
+ADD CONSTRAINT `fk_HopDong_KhachHang` 
+FOREIGN KEY (`MaKhachHang`) REFERENCES `KhachHang` (`MaKhachHang`);
+
 ALTER TABLE `PhuLuc` 
 ADD CONSTRAINT `fk_PhuLuc_HopDong` 
 FOREIGN KEY (`MaHopDong`) REFERENCES `HopDong`(`MaHopDong`);
