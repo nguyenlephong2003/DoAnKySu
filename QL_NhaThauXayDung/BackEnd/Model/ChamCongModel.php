@@ -492,5 +492,99 @@ class ChamCongModel {
 
         return $stmt;
     }
+
+    // Lấy danh sách bảng chấm công của nhân viên theo từng tháng
+    public function getBangChamCongTheoThang($maNhanVien, $thang, $nam) {
+        $query = "SELECT 
+                    cc.MaChamCong,
+                    cc.SoNgayLam,
+                    cc.KyLuong,
+                    cc.TrangThai,
+                    cc.GioVao,
+                    cc.GioRa,
+                    cc.LoaiChamCong,
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    lnv.TenLoai as LoaiNhanVien,
+                    MONTH(cc.KyLuong) as Thang,
+                    YEAR(cc.KyLuong) as Nam
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE cc.MaNhanVien = :maNhanVien
+                 AND MONTH(cc.KyLuong) = :thang
+                 AND YEAR(cc.KyLuong) = :nam
+                 ORDER BY cc.KyLuong ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":maNhanVien", $maNhanVien);
+        $stmt->bindParam(":thang", $thang);
+        $stmt->bindParam(":nam", $nam);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy danh sách bảng chấm công của thợ (thợ chính và thợ phụ) theo từng tháng
+    public function getBangChamCongThoTheoThang($thang, $nam) {
+        $query = "SELECT 
+                    cc.MaChamCong,
+                    cc.SoNgayLam,
+                    cc.KyLuong,
+                    cc.TrangThai,
+                    cc.GioVao,
+                    cc.GioRa,
+                    cc.LoaiChamCong,
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    lnv.TenLoai as LoaiNhanVien,
+                    MONTH(cc.KyLuong) as Thang,
+                    YEAR(cc.KyLuong) as Nam
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE lnv.TenLoai IN ('Thợ chính', 'Thợ phụ')
+                 AND MONTH(cc.KyLuong) = :thang
+                 AND YEAR(cc.KyLuong) = :nam
+                 ORDER BY nv.TenNhanVien ASC, cc.KyLuong ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":thang", $thang);
+        $stmt->bindParam(":nam", $nam);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    // Lấy danh sách bảng chấm công của nhân viên không phải thợ theo từng tháng
+    public function getBangChamCongNhanVienTheoThang($thang, $nam) {
+        $query = "SELECT 
+                    cc.MaChamCong,
+                    cc.SoNgayLam,
+                    cc.KyLuong,
+                    cc.TrangThai,
+                    cc.GioVao,
+                    cc.GioRa,
+                    cc.LoaiChamCong,
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    lnv.TenLoai as LoaiNhanVien,
+                    MONTH(cc.KyLuong) as Thang,
+                    YEAR(cc.KyLuong) as Nam
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE lnv.TenLoai NOT IN ('Thợ chính', 'Thợ phụ')
+                 AND MONTH(cc.KyLuong) = :thang
+                 AND YEAR(cc.KyLuong) = :nam
+                 ORDER BY nv.TenNhanVien ASC, cc.KyLuong ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":thang", $thang);
+        $stmt->bindParam(":nam", $nam);
+        $stmt->execute();
+
+        return $stmt;
+    }
 }
 ?> 

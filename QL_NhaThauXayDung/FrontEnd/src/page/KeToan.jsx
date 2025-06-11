@@ -42,10 +42,16 @@ const PageKeToan = ({ children }) => {
       path: "/ketoan/quanlydanhmuc",
     },
     {
-      id: "quanlyluong",
-      label: "Quản lý lương",
+      id: "quanlyluongnhanvien",
+      label: "Quản lý lương nhân viên",
       icon: <FaClipboardList />,
-      path: "/ketoan/quanlyluong",
+      path: "/ketoan/quanlyluongnhanvien",
+    },
+    {
+      id: "quanlyluongtho",
+      label: "Quản lý lương thợ",
+      icon: <FaClipboardList />,
+      path: "/ketoan/quanlyluongtho",
     },
     {
       id: "thanhtoan",

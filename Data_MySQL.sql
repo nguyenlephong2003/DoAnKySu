@@ -67,11 +67,18 @@ INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, MaNhanVien) VALUES
 ('CC002', 20, 5, 'TC002'),
 ('CC003', 21, 5, 'TP001');
 
+
 -- Bảng HopDong (Contracts)
 INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, MaNhanVien) VALUES
 ('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001', 'GD001'),
 ('HD002', '2023-02-20', 'Hợp đồng thiết kế và thi công biệt thự', 3500000000, 'HD002', 'GD001'),
 ('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003', 'TV001');
+
+INSERT INTO `PhuLuc` (`MaPhuLuc`, `NgayLap`, `FilePhuLuc`, `MaHopDong`) VALUES
+('PL001', '2024-01-10 09:00:00', 'phuluc_hopdong_001.pdf', 'HD001'),
+('PL002', '2024-02-15 14:30:00', 'phuluc_hopdong_002.pdf', 'HD002'),
+('PL003', '2024-03-20 08:15:00', 'phuluc_hopdong_003.pdf', 'HD001'),
+('PL004', '2024-04-05 13:45:00', 'phuluc_hopdong_004.pdf', 'HD003')
 
 -- Bảng KhachHang (Customers)
 INSERT INTO KhachHang (MaKhachHang, TenKhachHang, SoDT, CCCD, Email) VALUES

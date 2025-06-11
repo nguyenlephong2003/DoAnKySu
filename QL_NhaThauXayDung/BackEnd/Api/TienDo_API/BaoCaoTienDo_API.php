@@ -256,8 +256,15 @@ switch ($action) {
                 exit;
             }
 
-            // Tạo mã báo cáo mới
-            $data->MaTienDo = "BC" . date("YmdHis");
+            // Kiểm tra MaTienDo đã được gửi
+            if (empty($data->MaTienDo)) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => "Mã tiến độ không được để trống"
+                ]);
+                http_response_code(400);
+                exit;
+            }
 
             // Gán dữ liệu cho đối tượng
             $baoCaoTienDo->MaTienDo = $data->MaTienDo;
