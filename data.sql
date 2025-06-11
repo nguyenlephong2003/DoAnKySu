@@ -83,7 +83,13 @@ INSERT INTO LoaiBaoGia (TenLoai) VALUES
 INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh) VALUES
 ('Xi măng', 'Bao'),
 ('Gạch', 'Viên'),
-('Cát', 'M³');
+('Cát', 'm³'),
+('Đá', 'm³'),
+('Bê tông', 'm³'),
+('Tôn', 'Tấm'),
+('Ngói', 'Viên'),
+('Sơn', 'Thùng'),
+('Ống nhựa', 'm');
 
 -- Bảng BangChamCong (Timesheet)
 DELETE FROM BangChamCong WHERE DATE(KyLuong) = '2025-06-05';
@@ -298,10 +304,10 @@ INSERT INTO BangPhanCong (MaBangPhanCong, MaCongTrinh, MaNhanVien, NgayThamGia, 
 (5, 'CT001', 'TP002', '2025-01-01', 8);
 
 -- Bảng ThietBiVatTu (Equipment/Materials)
-INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, TrangThai, MaLoaiThietBiVatTu) VALUES
-('TBVT001', 'Xi măng Hà Tiên', 'Sẵn sàng', 1),
-('TBVT002', 'Gạch ống Tuynel', 'Sẵn sàng', 2),
-('TBVT003', 'Cát xây dựng', 'Sẵn sàng', 3);
+INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, MaLoaiThietBiVatTu) VALUES
+('TBVT001', 'Xi măng Hà Tiên', 1),
+('TBVT002', 'Gạch ống Tuynel', 2),
+('TBVT003', 'Cát xây dựng', 3);
 
 -- Bảng CungUng (Supply)
 INSERT INTO CungUng (MaThietBiVatTu, MaNhaCungCap, SoLuongTon, DonGia) VALUES

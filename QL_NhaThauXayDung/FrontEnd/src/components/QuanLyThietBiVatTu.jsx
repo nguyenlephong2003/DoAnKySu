@@ -257,7 +257,6 @@ const QuanLyThietBiVatTu = () => {
     setEditFormData({
       MaThietBiVatTu: record.MaThietBiVatTu,
       TenThietBiVatTu: record.TenThietBiVatTu,
-      TrangThai: record.TrangThai,
       MaLoaiThietBiVatTu: record.MaLoaiThietBiVatTu
     });
     setEditModalVisible(true);
@@ -404,7 +403,6 @@ const QuanLyThietBiVatTu = () => {
     { title: 'Tên thiết bị vật tư', dataIndex: 'TenThietBiVatTu', key: 'TenThietBiVatTu', width: 200, align: 'center' },
     { title: 'Loại thiết bị vật tư', dataIndex: 'TenLoaiThietBiVatTu', key: 'TenLoaiThietBiVatTu', width: 180, align: 'center' },
     { title: 'Số lượng tồn', dataIndex: 'TongSoLuongTon', key: 'TongSoLuongTon', width: 120, align: 'center' },
-    { title: 'Trạng thái', dataIndex: 'TrangThai', key: 'TrangThai', width: 120, align: 'center' },
     {
       title: 'Thao tác',
       key: 'action',
@@ -537,17 +535,6 @@ const QuanLyThietBiVatTu = () => {
               label="Loại thiết bị vật tư"
             >
               <Input disabled style={{ borderRadius: '6px' }} />
-            </Form.Item>
-
-            <Form.Item
-              name="TrangThai"
-              label="Trạng thái"
-              rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-            >
-              <Select placeholder="Chọn trạng thái" style={{ borderRadius: '6px' }}>
-                <Select.Option value="Hoạt động">Hoạt động</Select.Option>
-                <Select.Option value="Không hoạt động">Không hoạt động</Select.Option>
-              </Select>
             </Form.Item>
           </div>
 
@@ -769,26 +756,6 @@ const QuanLyThietBiVatTu = () => {
               </Select>
             </Form.Item>
           </div>
-
-          <Form.Item
-            name="TrangThai"
-            label={
-              <span className="text-gray-700 font-medium">
-                Trạng thái <span className="text-red-500">*</span>
-              </span>
-            }
-            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-          >
-            <Select
-              placeholder="Chọn trạng thái"
-              options={[
-                { value: 'Còn hàng', label: 'Còn hàng' },
-                { value: 'Hết hàng', label: 'Hết hàng' },
-                { value: 'Sắp hết', label: 'Sắp hết' }
-              ]}
-              className="rounded-lg"
-            />
-          </Form.Item>
 
           <div className="mt-6">
             <div className="flex items-center justify-between mb-4">
