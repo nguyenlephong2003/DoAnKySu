@@ -38,13 +38,23 @@ if (!isset($data->MaNhanVien, $data->MatKhau)) {
     exit;
 }
 
+// Kiểm tra xem nhân viên có tồn tại không
+$nhanVienStmt = $manager->getNhanVienById($data->MaNhanVien);
+$nhanVien = $nhanVienStmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$nhanVien) {
+    echo json_encode(["message" => "Mã nhân viên không tồn tại"]);
+    http_response_code(401);
+    exit;
+}
+
 // Tìm tài khoản của nhân viên
 $taikhoan->MaNhanVien = $data->MaNhanVien;
 $taiKhoanStmt = $taikhoan->getByNhanVien();
 $taiKhoanInfo = $taiKhoanStmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$taiKhoanInfo) {
-    echo json_encode(["message" => "Nhân viên không có tài khoản"]);
+    echo json_encode(["message" => "Nhân viên chưa được cấp tài khoản. Vui lòng liên hệ quản trị viên."]);
     http_response_code(401);
     exit;
 }

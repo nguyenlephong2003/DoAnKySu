@@ -205,7 +205,7 @@ const LapDeXuatMua = () => {
               </Button>
             </div>
             {fields.map(({ key, name, ...restField }) => (
-              <div key={key} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg">
+              <div key={key} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 p-4 border rounded-lg bg-white shadow-sm">
                 <Form.Item
                   {...restField}
                   name={[name, 'MaThietBiVatTu']}
@@ -230,6 +230,12 @@ const LapDeXuatMua = () => {
                       }
                     }}
                     disabled={!(form.getFieldValue('MaNhaCungCap'))}
+                    dropdownStyle={{ backgroundColor: 'white' }}
+                    dropdownRender={menu => (
+                      <div style={{ backgroundColor: 'white' }}>
+                        {menu}
+                      </div>
+                    )}
                   >
                     {filteredThietBiVatTuList.map(tb => (
                       <Select.Option
@@ -237,7 +243,7 @@ const LapDeXuatMua = () => {
                         value={tb.MaThietBiVatTu}
                         label={tb.TenThietBiVatTu}
                       >
-                        <div>
+                        <div className="p-2">
                           <div className="font-medium">{tb.TenThietBiVatTu}</div>
                           <div className="text-gray-500 text-sm">Loại: {tb.TenLoaiThietBiVatTu}</div>
                           <div className="text-gray-500 text-sm">Đơn vị: {tb.DonViTinh}</div>
@@ -297,8 +303,10 @@ const LapDeXuatMua = () => {
   };
 
   return (
-    <div className="">
-      <h1 className="text-2xl font-bold mb-6">Lập đề xuất mua vật tư/thiết bị</h1>
+    <div className="p-10">
+      <h1 className="text-4xl font-extrabold text-center text-gray-800 uppercase tracking-wide border-b-4 border-blue-500 pb-2 mb-6">
+        Lập đề xuất mua vật tư/thiết bị
+      </h1>
       
       <Form
         form={form}
@@ -316,7 +324,7 @@ const LapDeXuatMua = () => {
         }}
       >
         {/* Thông tin cơ bản */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 bg-gray-50 p-6 rounded-lg">
           <Form.Item
             name="MaNhaCungCap"
             label="Nhà cung cấp"
@@ -332,7 +340,6 @@ const LapDeXuatMua = () => {
               }
               onChange={(value) => {
                 fetchThietBiVatTuByNhaCungCap(value);
-                // Reset các trường chi tiết khi thay đổi nhà cung cấp
                 const chiTietPhieuNhap = form.getFieldValue('ChiTietPhieuNhap');
                 if (chiTietPhieuNhap) {
                   const resetChiTiet = chiTietPhieuNhap.map(item => ({
@@ -344,6 +351,12 @@ const LapDeXuatMua = () => {
                   setSelectedUnits({});
                 }
               }}
+              dropdownStyle={{ backgroundColor: 'white' }}
+              dropdownRender={menu => (
+                <div style={{ backgroundColor: 'white' }}>
+                  {menu}
+                </div>
+              )}
             >
               {nhaCungCapList.map(ncc => (
                 <Select.Option
@@ -351,7 +364,7 @@ const LapDeXuatMua = () => {
                   value={ncc.MaNhaCungCap}
                   label={ncc.TenNhaCungCap}
                 >
-                  <div>
+                  <div className="p-2">
                     <div className="font-medium">{ncc.TenNhaCungCap}</div>
                     <div className="text-gray-500 text-sm">SĐT: {ncc.SoDT}</div>
                     {ncc.Email && <div className="text-gray-500 text-sm">Email: {ncc.Email}</div>}
@@ -365,7 +378,7 @@ const LapDeXuatMua = () => {
             name="MaNhanVien"
             label="Nhân viên lập phiếu"
           >
-            <Input disabled />
+            <Input disabled style={{ backgroundColor: '#f5f5f5' }} />
           </Form.Item>
 
           <Form.Item
@@ -377,6 +390,7 @@ const LapDeXuatMua = () => {
               className="w-full"
               format="YYYY-MM-DD"
               disabled
+              style={{ backgroundColor: '#f5f5f5' }}
             />
           </Form.Item>
 
@@ -396,7 +410,7 @@ const LapDeXuatMua = () => {
             name="TrangThai"
             label="Trạng thái"
           >
-            <Input disabled />
+            <Input disabled style={{ backgroundColor: '#f5f5f5' }} />
           </Form.Item>
         </div>
 
@@ -419,7 +433,7 @@ const LapDeXuatMua = () => {
             type="primary"
             htmlType="submit"
             loading={loading}
-            className="px-6"
+            className="px-6 bg-blue-600 hover:bg-blue-700"
           >
             Tạo đề xuất
           </Button>

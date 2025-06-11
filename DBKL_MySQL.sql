@@ -49,13 +49,13 @@ CREATE TABLE `TaiKhoan` (
   `SessionID` varchar(255) NULL
 );
 
-CREATE TABLE `PhuLuc`(
-	`MaPhuLuc` varchar(20) PRIMARY KEY,
-	`NgayLap` DateTime,
-	`FilePhuLuc` varchar(255),
-	`MaHopDong` varchar(20)
-	)
-
+CREATE TABLE `KhachHang` (
+  `MaKhachHang` varchar(20) PRIMARY KEY,
+  `TenKhachHang` varchar(255) not null,
+  `SoDT` varchar(10) not null,
+  `CCCD` varchar(12) not null,
+  `Email` varchar(255)
+);
 
 CREATE TABLE `HopDong` (
   `MaHopDong` varchar(20) PRIMARY KEY,
@@ -69,12 +69,11 @@ CREATE TABLE `HopDong` (
   `MaKhachHang` varchar(20)
 );
 
-CREATE TABLE `KhachHang` (
-  `MaKhachHang` varchar(20) PRIMARY KEY,
-  `TenKhachHang` varchar(255) not null,
-  `SoDT` varchar(10) not null,
-  `CCCD` varchar(12) not null,
-  `Email` varchar(255)
+CREATE TABLE `PhuLuc` (
+  `MaPhuLuc` varchar(20) PRIMARY KEY,
+  `NgayLap` DateTime,
+  `FilePhuLuc` varchar(255),
+  `MaHopDong` varchar(20)
 );
 
 CREATE TABLE `BangBaoGia` (
@@ -83,6 +82,32 @@ CREATE TABLE `BangBaoGia` (
   `TrangThai` varchar(255),
   `GhiChu` varchar(255),
   `MaLoai` int
+);
+
+CREATE TABLE `HangMuc` (
+  `MaHangMuc` int AUTO_INCREMENT PRIMARY KEY,
+  `TenHangMuc` varchar(255),
+  `DonViTinh` varchar(20),
+  `CongTho` float,
+  `GiaTienCacKhoanKhac` float
+);
+
+CREATE TABLE `ThietBiVatTu` (
+  `MaThietBiVatTu` varchar(20) PRIMARY KEY,
+  `TenThietBiVatTu` varchar(255),
+  `MaLoaiThietBiVatTu` int,
+  FOREIGN KEY (`MaLoaiThietBiVatTu`) REFERENCES `LoaiThietBiVatTu` (`MaLoaiThietBiVatTu`)
+);
+
+CREATE TABLE `ChiTietBaoGia` (
+  `MaChiTietBaoGia` int AUTO_INCREMENT PRIMARY KEY,
+  `MaBaoGia` varchar(20),
+  `MaHangMuc` int,
+  `MaThietBiVatTu` varchar(20),
+  `GiaBaoGia` float,
+  `NoiDung` varchar(250),
+  UNIQUE (`MaHangMuc`, `MaThietBiVatTu`),
+  FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
 );
 
 CREATE TABLE `CongTrinh` (
@@ -95,17 +120,6 @@ CREATE TABLE `CongTrinh` (
   `MaBaoGia` varchar(20),
   `MaLoaiCongTrinh` int,
   `NgayDuKienHoanThanh` datetime
-);
-
-CREATE TABLE `ChiTietBaoGia` (
-  `MaChiTietBaoGia` int AUTO_INCREMENT PRIMARY KEY,
-  `MaBaoGia` varchar(20),
-  `MaHangMuc` int,
-  `MaThietBiVatTu` varchar(20),
-  `GiaBaoGia` float,
-  `NoiDung` varchar(250),
-  UNIQUE (`MaHangMuc`, `MaThietBiVatTu`),
-  FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
 );
 
 CREATE TABLE `BangBaoCaoTienDo` (
@@ -137,13 +151,6 @@ CREATE TABLE `NhaCungCap` (
   `Email` varchar(255),
   `DiaChi` varchar(255),
   `LoaiHinhCungCap` varchar(255)
-);
-
-CREATE TABLE `ThietBiVatTu` (
-  `MaThietBiVatTu` varchar(20) PRIMARY KEY,
-  `TenThietBiVatTu` varchar(255),
-  `MaLoaiThietBiVatTu` int,
-  FOREIGN KEY (`MaLoaiThietBiVatTu`) REFERENCES `LoaiThietBiVatTu` (`MaLoaiThietBiVatTu`)
 );
 
 CREATE TABLE `CungUng` (
@@ -231,14 +238,6 @@ CREATE TABLE `ChiTietPhieuKiemTraThietBi` (
   FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`)
 );
 
-CREATE TABLE `HangMuc` (
-  `MaHangMuc` int AUTO_INCREMENT PRIMARY KEY,
-  `TenHangMuc` varchar(255),
-  `DonViTinh` varchar(20),
-  `CongTho` float,
-  `GiaTienCacKhoanKhac` float
-);
-
 ALTER TABLE `NhanVien` 
 ADD CONSTRAINT `fk_LoaiNhanVien` 
 FOREIGN KEY (`MaLoaiNhanVien`) REFERENCES `LoaiNhanVien` (`MaLoaiNhanVien`);
@@ -262,7 +261,6 @@ FOREIGN KEY (`MaKhachHang`) REFERENCES `KhachHang` (`MaKhachHang`);
 ALTER TABLE `PhuLuc` 
 ADD CONSTRAINT `fk_PhuLuc_HopDong` 
 FOREIGN KEY (`MaHopDong`) REFERENCES `HopDong`(`MaHopDong`);
-
 
 ALTER TABLE `BangBaoGia` 
 ADD CONSTRAINT `fk_BangBaoGia_LoaiBaoGia` 

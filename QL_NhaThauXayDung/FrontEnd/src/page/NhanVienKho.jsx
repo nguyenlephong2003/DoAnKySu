@@ -15,6 +15,7 @@ import {
   FaListAlt,
   FaFileInvoice,
   FaTruck,
+  FaClipboard,
 } from "react-icons/fa";
 import { GoBell } from "react-icons/go";
 import { CiUser } from "react-icons/ci";
@@ -44,8 +45,14 @@ const PageNhanVienKho = () => {
       path: "/nhanvienkho/quanlythietbivattu",
     },
     {
+      id: "quanlyphieukiemtra",
+      label: "Quản lý phiếu kiểm tra",
+      icon: <FaClipboard />,
+      path: "/nhanvienkho/quanlyphieukiemtra",
+    },
+    {
       id: "lapphieukiemtra",
-      label: "Lập phiếu kiểm tra",
+      label: "Phiếu kiểm tra",
       icon: <FaClipboardCheck />,
       path: "/nhanvienkho/lapphieukiemtra",
     },
