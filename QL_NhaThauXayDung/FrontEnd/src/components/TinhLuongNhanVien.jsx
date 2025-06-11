@@ -20,6 +20,7 @@ import {
   SearchOutlined,
   InfoCircleOutlined,
   DollarOutlined,
+  HistoryOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import BASE_URL from "../Config";
@@ -33,6 +34,31 @@ const statusColors = {
   "Chưa thanh toán": "orange",
 };
 
+const columnColors = {
+  MaNhanVien: "#f0f5ff",
+  TenNhanVien: "#f0f5ff",
+  LoaiNhanVien: "#f6ffed",
+  TongSoNgayLam: "#fff7e6",
+  TongSoNgayThuong: "#fff7e6",
+  TongSoNgayCuoiTuan: "#fff7e6",
+  TongSoNgayLe: "#fff7e6",
+};
+
+const styles = `
+  .table-row-light {
+    background-color: #ffffff;
+  }
+  .table-row-dark {
+    background-color: #fafafa;
+  }
+  .ant-table-tbody > tr.table-row-light:hover > td {
+    background-color: #e6f7ff !important;
+  }
+  .ant-table-tbody > tr.table-row-dark:hover > td {
+    background-color: #e6f7ff !important;
+  }
+`;
+
 const TinhLuongNhanVien = () => {
   const [chamCongList, setChamCongList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -43,13 +69,22 @@ const TinhLuongNhanVien = () => {
     total: 0,
   });
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [historyModalVisible, setHistoryModalVisible] = useState(false);
   const [selectedNhanVien, setSelectedNhanVien] = useState(null);
   const [selectedThang, setSelectedThang] = useState(dayjs().month() + 1);
   const [selectedNam, setSelectedNam] = useState(dayjs().year());
+  const [historyData, setHistoryData] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, [selectedThang, selectedNam]);
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -62,17 +97,57 @@ const TinhLuongNhanVien = () => {
       );
 
       if (response.data.status === "success") {
-        setChamCongList(response.data.data.DanhSachNhanVien);
-        setPagination((prev) => ({
-          ...prev,
-          total: response.data.data.DanhSachNhanVien.length,
-        }));
+        // Lấy thông tin nhân viên để có lương cơ bản
+        const nhanVienResponse = await axios.get(
+          `${BASE_URL}NguoiDung_API/NhanVien_API.php?action=GET`,
+          {
+            withCredentials: true
+          }
+        );
+
+        if (nhanVienResponse.data.status === "success") {
+          // Map lương cơ bản vào danh sách chấm công
+          const chamCongWithLuong = response.data.data.DanhSachNhanVien.map(chamCong => {
+            const nhanVien = nhanVienResponse.data.data.find(nv => nv.MaNhanVien === chamCong.MaNhanVien);
+            return {
+              ...chamCong,
+              LuongCanBan: nhanVien ? nhanVien.LuongCanBan : 300000 // Fallback to 300,000đ nếu không có lương cơ bản
+            };
+          });
+
+          setChamCongList(chamCongWithLuong);
+          setPagination((prev) => ({
+            ...prev,
+            total: chamCongWithLuong.length,
+          }));
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
       message.error("Lỗi khi kết nối đến server");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchHistoryData = async () => {
+    setHistoryLoading(true);
+    try {
+      const response = await axios.get(
+        `${BASE_URL}ChamCong_API/ChamCong.php?action=GET_LICH_SU_CHAM_CONG&thang=${selectedThang}&nam=${selectedNam}`,
+        {
+          withCredentials: true
+        }
+      );
+
+      if (response.data.status === "success") {
+        setHistoryData(response.data.data.DanhSachNhanVien);
+      }
+    } catch (error) {
+      console.error("Error fetching history data:", error);
+      message.error("Lỗi khi lấy lịch sử chấm công");
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -109,11 +184,11 @@ const TinhLuongNhanVien = () => {
   };
 
   const calculateSalary = (record) => {
-    // Giả sử lương cơ bản là 300,000đ/ngày cho nhân viên
-    const baseSalary = 300000;
+    // Lấy lương cơ bản từ dữ liệu nhân viên
+    const baseSalary = record.LuongCanBan || 300000; // Fallback to 300,000đ nếu không có lương cơ bản
     
     // Tính lương theo ngày thường
-    const normalDaysSalary = record.TongSoNgayLam * baseSalary;
+    const normalDaysSalary = record.TongSoNgayThuong * baseSalary;
     
     // Tính lương ngày cuối tuần (x1.5)
     const weekendDaysSalary = record.TongSoNgayCuoiTuan * baseSalary * 1.5;
@@ -121,24 +196,21 @@ const TinhLuongNhanVien = () => {
     // Tính lương ngày lễ (x2)
     const holidayDaysSalary = record.TongSoNgayLe * baseSalary * 2;
     
-    // Tính phạt đi muộn (trừ 10% lương ngày)
-    const latePenalty = record.TongSoNgayDiMuon * baseSalary * 0.1;
-    
-    // Tính phạt về sớm (trừ 10% lương ngày)
-    const earlyPenalty = record.TongSoNgayVeSom * baseSalary * 0.1;
-    
     // Tổng lương
-    const totalSalary = normalDaysSalary + weekendDaysSalary + holidayDaysSalary - latePenalty - earlyPenalty;
+    const totalSalary = normalDaysSalary + weekendDaysSalary + holidayDaysSalary;
     
     return {
       baseSalary,
       normalDaysSalary,
       weekendDaysSalary,
       holidayDaysSalary,
-      latePenalty,
-      earlyPenalty,
       totalSalary
     };
+  };
+
+  const showHistoryModal = () => {
+    setHistoryModalVisible(true);
+    fetchHistoryData();
   };
 
   return (
@@ -185,6 +257,13 @@ const TinhLuongNhanVien = () => {
               })}
             </Select>
           </div>
+          <Button 
+            type="primary" 
+            icon={<HistoryOutlined />}
+            onClick={showHistoryModal}
+          >
+            Xem lịch sử
+          </Button>
         </div>
 
         {/* Table Section */}
@@ -197,12 +276,22 @@ const TinhLuongNhanVien = () => {
                 dataIndex: "MaNhanVien",
                 key: "MaNhanVien",
                 width: 120,
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.MaNhanVien,
+                  },
+                }),
               },
               {
                 title: "Tên nhân viên",
                 dataIndex: "TenNhanVien",
                 key: "TenNhanVien",
                 width: 200,
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TenNhanVien,
+                  },
+                }),
               },
               {
                 title: "Chức vụ",
@@ -210,6 +299,11 @@ const TinhLuongNhanVien = () => {
                 key: "LoaiNhanVien",
                 width: 120,
                 align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.LoaiNhanVien,
+                  },
+                }),
               },
               {
                 title: "Số ngày làm",
@@ -217,27 +311,48 @@ const TinhLuongNhanVien = () => {
                 key: "TongSoNgayLam",
                 width: 100,
                 align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayLam,
+                    fontWeight: "bold",
+                  },
+                }),
               },
               {
-                title: "Số ngày nghỉ",
-                dataIndex: "TongSoNgayNghi",
-                key: "TongSoNgayNghi",
+                title: "Số ngày thường",
+                dataIndex: "TongSoNgayThuong",
+                key: "TongSoNgayThuong",
+                width: 120,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayThuong,
+                  },
+                }),
+              },
+              {
+                title: "Số ngày cuối tuần",
+                dataIndex: "TongSoNgayCuoiTuan",
+                key: "TongSoNgayCuoiTuan",
+                width: 150,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayCuoiTuan,
+                  },
+                }),
+              },
+              {
+                title: "Số ngày lễ",
+                dataIndex: "TongSoNgayLe",
+                key: "TongSoNgayLe",
                 width: 100,
                 align: "center",
-              },
-              {
-                title: "Số ngày đi muộn",
-                dataIndex: "TongSoNgayDiMuon",
-                key: "TongSoNgayDiMuon",
-                width: 120,
-                align: "center",
-              },
-              {
-                title: "Số ngày về sớm",
-                dataIndex: "TongSoNgayVeSom",
-                key: "TongSoNgayVeSom",
-                width: 120,
-                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayLe,
+                  },
+                }),
               },
               {
                 title: "Thao tác",
@@ -260,6 +375,7 @@ const TinhLuongNhanVien = () => {
             loading={loading}
             bordered
             size="middle"
+            rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
           />
         </div>
 
@@ -278,6 +394,134 @@ const TinhLuongNhanVien = () => {
           />
         </div>
       </div>
+
+      {/* History Modal */}
+      <Modal
+        title={`Lịch sử chấm công - Tháng ${selectedThang}/${selectedNam}`}
+        open={historyModalVisible}
+        onCancel={() => setHistoryModalVisible(false)}
+        footer={[
+          <Button key="back" onClick={() => setHistoryModalVisible(false)}>
+            Đóng
+          </Button>,
+        ]}
+        width={1000}
+      >
+        <Spin spinning={historyLoading}>
+          <Table
+            dataSource={historyData}
+            columns={[
+              {
+                title: "Mã nhân viên",
+                dataIndex: "MaNhanVien",
+                key: "MaNhanVien",
+                width: 120,
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.MaNhanVien,
+                  },
+                }),
+              },
+              {
+                title: "Tên nhân viên",
+                dataIndex: "TenNhanVien",
+                key: "TenNhanVien",
+                width: 200,
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TenNhanVien,
+                  },
+                }),
+              },
+              {
+                title: "Chức vụ",
+                dataIndex: "LoaiNhanVien",
+                key: "LoaiNhanVien",
+                width: 120,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.LoaiNhanVien,
+                  },
+                }),
+              },
+              {
+                title: "Số ngày làm",
+                dataIndex: "TongSoNgayLam",
+                key: "TongSoNgayLam",
+                width: 100,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayLam,
+                    fontWeight: "bold",
+                  },
+                }),
+              },
+              {
+                title: "Số ngày thường",
+                dataIndex: "TongSoNgayThuong",
+                key: "TongSoNgayThuong",
+                width: 120,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayThuong,
+                  },
+                }),
+              },
+              {
+                title: "Số ngày cuối tuần",
+                dataIndex: "TongSoNgayCuoiTuan",
+                key: "TongSoNgayCuoiTuan",
+                width: 150,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayCuoiTuan,
+                  },
+                }),
+              },
+              {
+                title: "Số ngày lễ",
+                dataIndex: "TongSoNgayLe",
+                key: "TongSoNgayLe",
+                width: 100,
+                align: "center",
+                onCell: () => ({
+                  style: {
+                    backgroundColor: columnColors.TongSoNgayLe,
+                  },
+                }),
+              },
+              {
+                title: "Thao tác",
+                key: "action",
+                width: 120,
+                align: "center",
+                render: (_, record) => (
+                  <Button
+                    icon={<InfoCircleOutlined />}
+                    type="primary"
+                    onClick={() => {
+                      setSelectedNhanVien(record);
+                      setDetailModalVisible(true);
+                    }}
+                  >
+                    Chi tiết
+                  </Button>
+                ),
+              },
+            ]}
+            rowKey="MaNhanVien"
+            pagination={false}
+            loading={historyLoading}
+            bordered
+            size="middle"
+            rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
+          />
+        </Spin>
+      </Modal>
 
       {/* Detail Modal */}
       <Modal
@@ -306,6 +550,18 @@ const TinhLuongNhanVien = () => {
               <Descriptions.Item label="Tháng/Năm">
                 {selectedThang}/{selectedNam}
               </Descriptions.Item>
+              <Descriptions.Item label="Tổng số ngày làm">
+                {selectedNhanVien.TongSoNgayLam}
+              </Descriptions.Item>
+              <Descriptions.Item label="Số ngày thường">
+                {selectedNhanVien.TongSoNgayThuong}
+              </Descriptions.Item>
+              <Descriptions.Item label="Số ngày cuối tuần">
+                {selectedNhanVien.TongSoNgayCuoiTuan}
+              </Descriptions.Item>
+              <Descriptions.Item label="Số ngày lễ">
+                {selectedNhanVien.TongSoNgayLe}
+              </Descriptions.Item>
             </Descriptions>
 
             <Divider orientation="left">Chi tiết chấm công</Divider>
@@ -319,24 +575,44 @@ const TinhLuongNhanVien = () => {
                   key: "KyLuong",
                   width: "15%",
                   render: (text) => new Date(text).toLocaleDateString("vi-VN"),
+                  onCell: () => ({
+                    style: {
+                      backgroundColor: "#f0f5ff",
+                    },
+                  }),
                 },
                 {
                   title: "Loại ngày",
                   dataIndex: "LoaiChamCong",
                   key: "LoaiChamCong",
                   width: "15%",
+                  onCell: () => ({
+                    style: {
+                      backgroundColor: "#f6ffed",
+                    },
+                  }),
                 },
                 {
                   title: "Giờ vào",
                   dataIndex: "GioVao",
                   key: "GioVao",
                   width: "15%",
+                  onCell: () => ({
+                    style: {
+                      backgroundColor: "#fff7e6",
+                    },
+                  }),
                 },
                 {
                   title: "Giờ ra",
                   dataIndex: "GioRa",
                   key: "GioRa",
                   width: "15%",
+                  onCell: () => ({
+                    style: {
+                      backgroundColor: "#fff7e6",
+                    },
+                  }),
                 },
                 {
                   title: "Trạng thái",
@@ -348,12 +624,18 @@ const TinhLuongNhanVien = () => {
                       {text}
                     </Tag>
                   ),
+                  onCell: () => ({
+                    style: {
+                      backgroundColor: "#f0f5ff",
+                    },
+                  }),
                 },
               ]}
               rowKey="MaChamCong"
               pagination={false}
               bordered
               size="small"
+              rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
             />
 
             <Divider orientation="left">Tính lương</Divider>
@@ -370,16 +652,6 @@ const TinhLuongNhanVien = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Lương ngày lễ">
                 {calculateSalary(selectedNhanVien).holidayDaysSalary.toLocaleString('vi-VN')}đ
-              </Descriptions.Item>
-              <Descriptions.Item label="Phạt đi muộn">
-                <Text type="danger">
-                  -{calculateSalary(selectedNhanVien).latePenalty.toLocaleString('vi-VN')}đ
-                </Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Phạt về sớm">
-                <Text type="danger">
-                  -{calculateSalary(selectedNhanVien).earlyPenalty.toLocaleString('vi-VN')}đ
-                </Text>
               </Descriptions.Item>
               <Descriptions.Item label="Tổng lương">
                 <Text strong style={{ color: '#1890ff', fontSize: '18px' }}>
