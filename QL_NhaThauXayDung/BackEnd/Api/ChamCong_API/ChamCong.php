@@ -631,9 +631,9 @@ switch ($action) {
                             "TenNhanVien" => $row['TenNhanVien'],
                             "LoaiNhanVien" => $row['LoaiNhanVien'],
                             "TongSoNgayLam" => 0,
-                            "TongSoNgayNghi" => 0,
-                            "TongSoNgayDiMuon" => 0,
-                            "TongSoNgayVeSom" => 0,
+                            "TongSoNgayThuong" => 0,
+                            "TongSoNgayCuoiTuan" => 0,
+                            "TongSoNgayLe" => 0,
                             "DanhSachChamCong" => []
                         ];
                     }
@@ -649,16 +649,19 @@ switch ($action) {
                     ];
 
                     $groupedData[$maNhanVien]["DanhSachChamCong"][] = $item;
+                    $groupedData[$maNhanVien]["TongSoNgayLam"] += $row['SoNgayLam'];
 
-                    // Tính tổng các loại ngày
-                    if ($row['LoaiChamCong'] === 'Đi làm') {
-                        $groupedData[$maNhanVien]["TongSoNgayLam"] += $row['SoNgayLam'];
-                    } else if ($row['LoaiChamCong'] === 'Nghỉ') {
-                        $groupedData[$maNhanVien]["TongSoNgayNghi"] += $row['SoNgayLam'];
-                    } else if ($row['LoaiChamCong'] === 'Đi muộn') {
-                        $groupedData[$maNhanVien]["TongSoNgayDiMuon"] += $row['SoNgayLam'];
-                    } else if ($row['LoaiChamCong'] === 'Về sớm') {
-                        $groupedData[$maNhanVien]["TongSoNgayVeSom"] += $row['SoNgayLam'];
+                    // Tính tổng theo loại chấm công
+                    switch ($row['LoaiChamCong']) {
+                        case 'Ngày thường':
+                            $groupedData[$maNhanVien]["TongSoNgayThuong"] += $row['SoNgayLam'];
+                            break;
+                        case 'Cuối tuần':
+                            $groupedData[$maNhanVien]["TongSoNgayCuoiTuan"] += $row['SoNgayLam'];
+                            break;
+                        case 'Ngày lễ':
+                            $groupedData[$maNhanVien]["TongSoNgayLe"] += $row['SoNgayLam'];
+                            break;
                     }
                 }
 
@@ -684,6 +687,89 @@ switch ($action) {
             echo json_encode([
                 "status" => "error",
                 "message" => "Lỗi khi lấy thông tin chấm công của nhân viên theo tháng: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'GET_LICH_SU_CHAM_CONG':
+        try {
+            // Get parameters
+            $thang = isset($_GET['thang']) ? $_GET['thang'] : date('m');
+            $nam = isset($_GET['nam']) ? $_GET['nam'] : date('Y');
+
+            // Get cham cong records by month
+            $stmt = $chamCongModel->getLichSuChamCongTheoThang($thang, $nam);
+            $num = $stmt->rowCount();
+
+            if ($num > 0) {
+                $result = [];
+                $groupedData = [];
+
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $maNhanVien = $row['MaNhanVien'];
+                    
+                    if (!isset($groupedData[$maNhanVien])) {
+                        $groupedData[$maNhanVien] = [
+                            "MaNhanVien" => $row['MaNhanVien'],
+                            "TenNhanVien" => $row['TenNhanVien'],
+                            "LoaiNhanVien" => $row['LoaiNhanVien'],
+                            "TongSoNgayLam" => 0,
+                            "TongSoNgayThuong" => 0,
+                            "TongSoNgayCuoiTuan" => 0,
+                            "TongSoNgayLe" => 0,
+                            "DanhSachChamCong" => []
+                        ];
+                    }
+
+                    $item = [
+                        "MaChamCong" => $row['MaChamCong'],
+                        "SoNgayLam" => $row['SoNgayLam'],
+                        "KyLuong" => $row['KyLuong'],
+                        "TrangThai" => $row['TrangThai'],
+                        "GioVao" => $row['GioVao'],
+                        "GioRa" => $row['GioRa'],
+                        "LoaiChamCong" => $row['LoaiChamCong']
+                    ];
+
+                    $groupedData[$maNhanVien]["DanhSachChamCong"][] = $item;
+                    $groupedData[$maNhanVien]["TongSoNgayLam"] += $row['SoNgayLam'];
+
+                    // Tính tổng theo loại chấm công
+                    switch ($row['LoaiChamCong']) {
+                        case 'Ngày thường':
+                            $groupedData[$maNhanVien]["TongSoNgayThuong"] += $row['SoNgayLam'];
+                            break;
+                        case 'Cuối tuần':
+                            $groupedData[$maNhanVien]["TongSoNgayCuoiTuan"] += $row['SoNgayLam'];
+                            break;
+                        case 'Ngày lễ':
+                            $groupedData[$maNhanVien]["TongSoNgayLe"] += $row['SoNgayLam'];
+                            break;
+                    }
+                }
+
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "DanhSachNhanVien" => array_values($groupedData)
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "success",
+                    "data" => [
+                        "Thang" => $thang,
+                        "Nam" => $nam,
+                        "DanhSachNhanVien" => []
+                    ]
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy lịch sử chấm công: " . $e->getMessage()
             ]);
         }
         break;

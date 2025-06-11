@@ -586,5 +586,35 @@ class ChamCongModel {
 
         return $stmt;
     }
+
+    // Lấy lịch sử chấm công theo tháng năm
+    public function getLichSuChamCongTheoThang($thang, $nam) {
+        $query = "SELECT 
+                    cc.MaChamCong,
+                    cc.SoNgayLam,
+                    cc.KyLuong,
+                    cc.TrangThai,
+                    cc.GioVao,
+                    cc.GioRa,
+                    cc.LoaiChamCong,
+                    nv.MaNhanVien,
+                    nv.TenNhanVien,
+                    lnv.TenLoai as LoaiNhanVien,
+                    MONTH(cc.KyLuong) as Thang,
+                    YEAR(cc.KyLuong) as Nam
+                 FROM BangChamCong cc
+                 JOIN NhanVien nv ON cc.MaNhanVien = nv.MaNhanVien
+                 JOIN LoaiNhanVien lnv ON nv.MaLoaiNhanVien = lnv.MaLoaiNhanVien
+                 WHERE MONTH(cc.KyLuong) = :thang
+                 AND YEAR(cc.KyLuong) = :nam
+                 ORDER BY nv.TenNhanVien ASC, cc.KyLuong ASC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":thang", $thang);
+        $stmt->bindParam(":nam", $nam);
+        $stmt->execute();
+
+        return $stmt;
+    }
 }
 ?> 
