@@ -92,6 +92,7 @@ CREATE TABLE `CongTrinh` (
   `FileThietKe` text,
   `DiaChi` varchar(255),
   `MaHopDong` varchar(20),
+  `MaBaoGia` varchar(20),
   `MaLoaiCongTrinh` int,
   `NgayDuKienHoanThanh` datetime
 );
@@ -274,6 +275,10 @@ FOREIGN KEY (`MaHopDong`) REFERENCES `HopDong` (`MaHopDong`);
 ALTER TABLE `CongTrinh` 
 ADD CONSTRAINT `fk_CongTrinh_LoaiCongTrinh` 
 FOREIGN KEY (`MaLoaiCongTrinh`) REFERENCES `LoaiCongTrinh` (`MaLoaiCongTrinh`);
+
+ALTER TABLE `CongTrinh` 
+ADD CONSTRAINT `fk_CongTrinh_BangBaoGia` 
+FOREIGN KEY (`MaBaoGia`) REFERENCES `BangBaoGia` (`MaBaoGia`);
 
 ALTER TABLE `ChiTietBaoGia` 
 ADD CONSTRAINT `fk_ChiTietBaoGia_BaoGia` 
