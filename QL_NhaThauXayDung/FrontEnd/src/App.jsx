@@ -30,6 +30,9 @@ import ChamCongNhanVien from "./components/ChamCongNhanVien.jsx";
 import { AuthProvider } from './Config/AuthContext';
 import TinhLuongNhanVien from "./components/TinhLuongNhanVien.jsx";
 import TinhLuongTho from "./components/TinhLuongTho.jsx";
+import QuanLyPhieuKiemTra from "./components/QuanLyPhieuKiemTra.jsx";
+import QuanLyPhieuNhap from "./components/QuanLyPhieuNhap.jsx";
+import BaoCaoThongKe from "./components/BaoCaoThongKe.jsx";
 
 function ProtectedRoute({ children, allowedRole }) {
   const navigate = useNavigate();
@@ -104,10 +107,11 @@ function App() {
         >
           <Route path="duyetdexuat" element={<DuyetDeXuat/>} />
           <Route path="duyetbaogia" element={<DuyetBaoGia />} />
-          <Route path="baocaothongke" element={<h1>Báo cáo thống kê</h1>} />
+          <Route path="baocaothongke" element={<BaoCaoThongKe />} />
           <Route path="duyethopdong" element={<DuyetHopDong />} />
           <Route path="quanlynhanvien" element={<h1>Quản lý nhân viên</h1>} />
           <Route path="quanlyluong" element={<h1>Quản lý lương</h1>} />
+          <Route path="quanlyphieukiemtra" element={<QuanLyPhieuKiemTra />} />
         </Route>
         <Route
           path="/ketoan"
@@ -165,9 +169,9 @@ function App() {
           }
         >
           <Route path="quanlythietbivattu" element={<QuanLyThietBiVatTu />} />
-          <Route path="lapphieukiemtra" element={<div>Lập phiếu kiểm tra</div>} />
+          <Route path="quanlyphieukiemtra" element={<QuanLyPhieuKiemTra />} />
           <Route path="danhsachphieukiemtra" element={<div>Danh sách phiếu kiểm tra</div>} />
-          <Route path="danhsachphieunhap" element={<div>Danh sách phiếu nhập</div>} />
+          <Route path="danhsachphieunhap" element={<QuanLyPhieuNhap />} />
           <Route path="quanlydanhmuc" element={<QuanLyDanhMuc />} />
         </Route>
         <Route

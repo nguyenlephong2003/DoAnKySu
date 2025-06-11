@@ -11,6 +11,7 @@ import {
   FaUserEdit,
   FaSignOutAlt,
   FaListAlt,
+  FaClipboard,
 } from "react-icons/fa";
 
 import { GoBell } from "react-icons/go";
@@ -71,6 +72,12 @@ const PageGiamDoc = () => {
       icon: <FaBox />, 
       path: "/giamdoc/quanlyluong" 
     },
+    {
+      id: "quanlyphieukiemtra",
+      label: "Quản lý phiếu kiểm tra",
+      icon: <FaClipboard />,
+      path: "/giamdoc/quanlyphieukiemtra",
+    }
   ];
 
   const handleClickOutside = (event) => {
