@@ -26,30 +26,6 @@ INSERT INTO NhanVien (MaNhanVien, TenNhanVien, SoDT, CCCD, Email, NgayVao, Luong
 ('TV001', 'Lê Văn Tư Vấn', '0903333444', '079444555666', 'tuvan1@congty.com', '2021-02-10', 5500000, 9),
 ('TV002', 'Nguyễn Thị Tư Vấn', '0904444555', '079555666777', 'tuvan2@congty.com', '2021-04-25', 5500000, 9);
 
--- Bảng NhaCungCap (Suppliers)
-INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDT, Email, DiaChi, LoaiHinhCungCap) VALUES
-('NCC001', 'Công ty TNHH Vật liệu Xây dựng ABC', '0987654321', 'abc@example.com', 'Quận 12, TP.HCM', 'Vật liệu xây dựng'),
-('NCC002', 'Công ty CP Thiết bị Nội thất XYZ', '0976543210', 'xyz@example.com', 'Quận Bình Thạnh, TP.HCM', 'Thiết bị nội thất'),
-('NCC003', 'Cơ sở Sắt thép Hưng Thịnh', '0965432109', 'hungthinh@example.com', 'Quận 9, TP.HCM', 'Sắt thép xây dựng');
-
--- Bảng DeXuat (Proposals)
--- Để trống theo cấu trúc mới
-
--- Bảng ChiTietDeXuat (Proposal Details)
--- Để trống theo cấu trúc mới
-
--- Bảng PhieuNhap (Import Receipts)
--- Để trống theo cấu trúc mới
-
--- Bảng ChiTietPhieuNhap (Import Receipt Details)
--- Để trống theo cấu trúc mới
-
--- Bảng ChiTietThiCong (Construction Details)
-INSERT INTO ChiTietThiCong (MaCongTrinh, MaThietBiVatTu, TrangThai, NgayRoiKho, NgayHoanKho) VALUES
-('CT001', 'TBVT001', 'Đã xuất kho', '2023-01-25', NULL),
-('CT001', 'TBVT002', 'Đã xuất kho', '2023-01-25', NULL),
-('CT002', 'TBVT003', 'Đã xuất kho', '2023-03-05', NULL);
-
 -- Bảng TaiKhoan (Không cần sửa đổi)
 INSERT INTO TaiKhoan (MaTaiKhoan, MatKhau, MaNhanVien) VALUES
 ('TK001', MD5('123'), 'AD001'),
@@ -67,6 +43,12 @@ INSERT INTO TaiKhoan (MaTaiKhoan, MatKhau, MaNhanVien) VALUES
 ('TK013', MD5('123'), 'TV001'),
 ('TK014', MD5('123'), 'TV002');
 
+-- Bảng NhaCungCap (Suppliers)
+INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDT, Email, DiaChi, LoaiHinhCungCap) VALUES
+('NCC001', 'Công ty TNHH Vật liệu Xây dựng ABC', '0987654321', 'abc@example.com', 'Quận 12, TP.HCM', 'Vật liệu xây dựng'),
+('NCC002', 'Công ty CP Thiết bị Nội thất XYZ', '0976543210', 'xyz@example.com', 'Quận Bình Thạnh, TP.HCM', 'Thiết bị nội thất'),
+('NCC003', 'Cơ sở Sắt thép Hưng Thịnh', '0965432109', 'hungthinh@example.com', 'Quận 9, TP.HCM', 'Sắt thép xây dựng');
+
 -- Bảng LoaiCongTrinh (Construction Types)
 INSERT INTO LoaiCongTrinh (TenLoaiCongTrinh) VALUES
 ('Nhà phố'),
@@ -80,16 +62,64 @@ INSERT INTO LoaiBaoGia (TenLoai) VALUES
 ('Trọn gói');
 
 -- Bảng LoaiThietBiVatTu (Equipment/Material Types)
-INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh) VALUES
-('Xi măng', 'Bao'),
-('Gạch', 'Viên'),
-('Cát', 'm³'),
-('Đá', 'm³'),
-('Bê tông', 'm³'),
-('Tôn', 'Tấm'),
-('Ngói', 'Viên'),
-('Sơn', 'Thùng'),
-('Ống nhựa', 'm');
+INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh, LaThietBi) VALUES
+('Xi măng', 'Bao', 0),
+('Gạch', 'Viên', 0),
+('Cát', 'm³', 0),
+('Đá', 'm³', 0),
+('Bê tông', 'm³', 0),
+('Tôn', 'Tấm', 0),
+('Ngói', 'Viên', 0),
+('Sơn', 'Thùng', 0),
+('Ống nhựa', 'm', 0);
+
+-- Bảng BangBaoGia (Quotations)
+INSERT INTO BangBaoGia (MaBaoGia, TenBaoGia, TrangThai, GhiChu, MaLoai) VALUES
+('BG001', 'Báo giá xây dựng nhà phố', 'Đã duyệt', 'Báo giá cho công trình nhà phố 3 tầng', 1),
+('BG002', 'Báo giá thiết kế nội thất biệt thự', 'Đã duyệt', 'Báo giá cho biệt thự 2 tầng', 2),
+('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 'Báo giá cho căn hộ 2 phòng ngủ', 3);
+
+-- Bảng KhachHang (Customers)
+INSERT INTO KhachHang (MaKhachHang, TenKhachHang, SoDT, CCCD, Email) VALUES
+('KH001', 'Trần Văn Khách', '0912345000', '079123000000', 'khach1@gmail.com'),
+('KH002', 'Nguyễn Thị Hàng', '0923456000', '079234000000', 'khach2@gmail.com'),
+('KH003', 'Lê Văn Người', '0934567000', '079345000000', 'khach3@gmail.com');
+
+-- Bảng HopDong (Contracts)
+INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, TrangThai, GhiChu, MaNhanVien, MaKhachHang) VALUES
+('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001.pdf', 'Đã duyệt', 'Khách hàng đã ký hợp đồng', 'GD001', 'KH001'),
+('HD002', '2023-02-20', 'Hợp đồng thiết kế và thi công biệt thự', 3500000000, 'HD002.pdf', 'Chờ duyệt', 'Đang chờ giám đốc xem xét', 'GD001', 'KH002'),
+('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003.pdf', 'Từ chối', 'Không đạt yêu cầu về ngân sách', 'TV001', 'KH003');
+
+-- Bảng CongTrinh (Construction Projects)
+INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, DiaChi, MaHopDong, MaBaoGia, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
+('CT001', 'Nhà phố Quận 7', 120, 'TK001.pdf', '123 Đường Nguyễn Thị Thập, Quận 7, TP.HCM', 'HD001', 'BG001', 1, '2023-07-15'),
+('CT002', 'Biệt thự Thủ Đức', 350, 'TK002.pdf', '456 Đường Võ Văn Ngân, Thủ Đức, TP.HCM', 'HD002', 'BG002', 2, '2023-12-20'),
+('CT003', 'Căn hộ Quận 2', 85, 'TK003.pdf', '789 Đường Nguyễn Duy Trinh, Quận 2, TP.HCM', 'HD003', 'BG003', 3, '2023-06-10');
+
+-- Bảng ThietBiVatTu (Equipment/Materials)
+INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, MaLoaiThietBiVatTu) VALUES
+('TBVT001', 'Xi măng Hà Tiên', 1),
+('TBVT002', 'Gạch ống Tuynel', 2),
+('TBVT003', 'Cát xây dựng', 3);
+
+-- Bảng ChiTietThiCong (Construction Details)
+INSERT INTO ChiTietThiCong (MaCongTrinh, MaThietBiVatTu, TrangThai, NgayRoiKho, NgayHoanKho) VALUES
+('CT001', 'TBVT001', 'Đã xuất kho', '2023-01-25', NULL),
+('CT001', 'TBVT002', 'Đã xuất kho', '2023-01-25', NULL),
+('CT002', 'TBVT003', 'Đã xuất kho', '2023-03-05', NULL);
+
+-- Bảng DeXuat (Proposals)
+-- Để trống theo cấu trúc mới
+
+-- Bảng ChiTietDeXuat (Proposal Details)
+-- Để trống theo cấu trúc mới
+
+-- Bảng PhieuNhap (Import Receipts)
+-- Để trống theo cấu trúc mới
+
+-- Bảng ChiTietPhieuNhap (Import Receipt Details)
+-- Để trống theo cấu trúc mới
 
 -- Bảng BangChamCong (Timesheet)
 DELETE FROM BangChamCong WHERE DATE(KyLuong) = '2025-06-05';
@@ -240,50 +270,24 @@ INSERT INTO BangChamCong (MaChamCong, SoNgayLam, KyLuong, TrangThai, GioVao, Gio
 ('CC100129', 1, '2025-06-06', 'Chưa thanh toán', '08:00:00', '17:00:00', 'Ngày lễ', 'TV002'),
 ('CC100130', 1, '2025-06-07', 'Chưa thanh toán', '08:00:00', '17:00:00', 'Ngày thường', 'TV002');
 
-INSERT INTO HangMuc (TenHangMuc, DonViTinh, CongTho, GiaTien) VALUES
-('Lót gạch', 'm²', 0.5, 250000),
-('Đổ bê tông', 'm³', 1.0, 1800000),
-('Xây tường', 'm²', 0.8, 350000),
-('Trát tường', 'm²', 0.3, 120000),
-('Sơn tường', 'm²', 0.2, 80000),
-('Lắp đặt điện', 'm²', 0.4, 150000),
-('Lắp đặt nước', 'm²', 0.4, 180000),
-('Lắp đặt cửa', 'cái', 0.5, 2500000),
-('Lắp đặt thiết bị vệ sinh', 'bộ', 1.0, 3500000),
-('Hoàn thiện nội thất', 'm²', 0.6, 450000);
-
--- Bảng KhachHang (Customers)
-INSERT INTO KhachHang (MaKhachHang, TenKhachHang, SoDT, CCCD, Email) VALUES
-('KH001', 'Trần Văn Khách', '0912345000', '079123000000', 'khach1@gmail.com'),
-('KH002', 'Nguyễn Thị Hàng', '0923456000', '079234000000', 'khach2@gmail.com'),
-('KH003', 'Lê Văn Người', '0934567000', '079345000000', 'khach3@gmail.com');
-
--- Bảng HopDong (Contracts)
-INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, TrangThai, GhiChu, MaNhanVien, MaKhachHang) VALUES
-('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001.pdf', 'Đã duyệt', 'Khách hàng đã ký hợp đồng', 'GD001', 'KH001'),
-('HD002', '2023-02-20', 'Hợp đồng thiết kế và thi công biệt thự', 3500000000, 'HD002.pdf', 'Chờ duyệt', 'Đang chờ giám đốc xem xét', 'GD001', 'KH002'),
-('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003.pdf', 'Từ chối', 'Không đạt yêu cầu về ngân sách', 'TV001', 'KH003');
-
--- Bảng CongTrinh (Construction Projects)
-INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, DiaChi, MaHopDong, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
-('CT001', 'Nhà phố Quận 7', 120, 'TK001.pdf', '123 Đường Nguyễn Thị Thập, Quận 7, TP.HCM', 'HD001', 1, '2023-07-15'),
-('CT002', 'Biệt thự Thủ Đức', 350, 'TK002.pdf', '456 Đường Võ Văn Ngân, Thủ Đức, TP.HCM', 'HD002', 2, '2023-12-20'),
-('CT003', 'Căn hộ Quận 2', 85, 'TK003.pdf', '789 Đường Nguyễn Duy Trinh, Quận 2, TP.HCM', 'HD003', 3, '2023-06-10');
-
--- Bảng BangBaoGia (Quotations)
-INSERT INTO BangBaoGia (MaBaoGia, TenBaoGia, TrangThai, MaLoai) VALUES
-('BG001', 'Báo giá xây dựng nhà phố', 'Đã duyệt', 1),
-('BG002', 'Báo giá thiết kế nội thất biệt thự', 'Đã duyệt', 2),
-('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 3);
+INSERT INTO HangMuc (TenHangMuc, DonViTinh, CongTho, GiaTienCacKhoanKhac) VALUES
+('Lót gạch', 'm²', 100000, 250000),
+('Đổ bê tông', 'm³', 350000, 1800000),
+('Xây tường', 'm²', 120000, 350000),
+('Trát tường', 'm²', 70000, 120000),
+('Sơn tường', 'm²', 60000, 80000),
+('Lắp đặt điện', 'm²', 100000, 150000),
+('Lắp đặt nước', 'm²', 110000, 180000),
+('Lắp đặt cửa', 'cái', 300000, 2500000);
 
 -- Bảng ChiTietBaoGia (Quotation Details)
-INSERT INTO ChiTietBaoGia (MaBaoGia, MaHangMuc, GiaBaoGia, NoiDung) VALUES 
-('BG001', 1, 25000000, 'Lót gạch phòng khách và phòng ngủ'),
-('BG001', 2, 18000000, 'Đổ bê tông móng và sàn'),
-('BG002', 3, 21000000, 'Xây tường bao và vách ngăn'),
-('BG002', 4, 15000000, 'Trát tường toàn bộ công trình'),
-('BG003', 5, 12000000, 'Sơn tường nội thất'),
-('BG003', 6, 18000000, 'Lắp đặt hệ thống điện');
+INSERT INTO ChiTietBaoGia (MaBaoGia, MaHangMuc, MaThietBiVatTu, GiaBaoGia, NoiDung) VALUES 
+('BG001', 1, 'TBVT001', 25000000, 'Lót gạch phòng khách và phòng ngủ'),
+('BG001', 2, 'TBVT002', 18000000, 'Đổ bê tông móng và sàn'),
+('BG002', 3, 'TBVT003', 21000000, 'Xây tường bao và vách ngăn'),
+('BG002', 4, 'TBVT001', 15000000, 'Trát tường toàn bộ công trình'),
+('BG003', 5, 'TBVT002', 12000000, 'Sơn tường nội thất'),
+('BG003', 6, 'TBVT003', 18000000, 'Lắp đặt hệ thống điện');
 
 -- Bảng BangBaoCaoTienDo (Progress Reports)
 INSERT INTO BangBaoCaoTienDo (MaTienDo, ThoiGianHoanThanhThucTe, CongViec, NoiDungCongViec, NgayBaoCao, TrangThai, TiLeHoanThanh, HinhAnhTienDo, MaCongTrinh) VALUES
@@ -293,42 +297,18 @@ INSERT INTO BangBaoCaoTienDo (MaTienDo, ThoiGianHoanThanhThucTe, CongViec, NoiDu
 
 -- Bảng BangPhanCong (Work Assignments)
 DELETE FROM BangPhanCong;
-INSERT INTO BangPhanCong (MaBangPhanCong, MaCongTrinh, MaNhanVien, NgayThamGia, SoNgayThamGia) VALUES
+INSERT INTO BangPhanCong (MaBangPhanCong, MaCongTrinh, MaNhanVien, NgayThamGia, NgayKetThuc, SoNgayThamGia) VALUES
 -- TC001: Làm CT001 10 ngày và CT002 11 ngày
-(1, 'CT001', 'TC001', '2025-01-01', 10),
-(2, 'CT002', 'TC001', '2025-01-01', 11),
+(1, 'CT001', 'TC001', '2025-01-01', '2025-01-10', 10),
+(2, 'CT002', 'TC001', '2025-01-01', '2025-01-11', 11),
 -- TP001: Làm CT001 15 ngày
-(3, 'CT001', 'TP001', '2025-01-01', 15),
+(3, 'CT001', 'TP001', '2025-01-01', '2025-01-15', 15),
 -- TP002: Làm CT002 12 ngày và CT001 8 ngày
-(4, 'CT002', 'TP002', '2025-01-01', 12),
-(5, 'CT001', 'TP002', '2025-01-01', 8);
-
--- Bảng ThietBiVatTu (Equipment/Materials)
-INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, MaLoaiThietBiVatTu) VALUES
-('TBVT001', 'Xi măng Hà Tiên', 1),
-('TBVT002', 'Gạch ống Tuynel', 2),
-('TBVT003', 'Cát xây dựng', 3);
+(4, 'CT002', 'TP002', '2025-01-01', '2025-01-12', 12),
+(5, 'CT001', 'TP002', '2025-01-01', '2025-01-08', 8);
 
 -- Bảng CungUng (Supply)
-INSERT INTO CungUng (MaThietBiVatTu, MaNhaCungCap, SoLuongTon, DonGia) VALUES
-('TBVT001', 'NCC001', 100, 100000),
-('TBVT002', 'NCC001', 5000, 5000),
-('TBVT003', 'NCC001', 20, 500000);
-
--- Bảng PhieuNhap (Import Receipts)
-INSERT INTO PhieuNhap (MaPhieuNhap, NgayNhap, TongTien, TrangThai, MaNhaCungCap, MaNhanVien) VALUES
-('PN001', '2023-01-10', 50000000, 'Đã thanh toán', 'NCC001', 'K001'),
-('PN002', '2023-02-05', 30000000, 'Đã thanh toán', 'NCC002', 'K001'),
-('PN003', '2023-03-15', 70000000, 'Chưa thanh toán', 'NCC003', 'K002');
-
--- Bảng ChiTietPhieuNhap (Import Receipt Details)
-INSERT INTO ChiTietPhieuNhap (MaPhieuNhap, MaThietBiVatTu, SoLuong, DonGia) VALUES
-('PN001', 'TBVT001', 100, 100000),
-('PN001', 'TBVT002', 5000, 5000),
-('PN002', 'TBVT003', 20, 500000);
-
--- Bảng ChiTietThiCong (Construction Details)
-INSERT INTO ChiTietThiCong (MaCongTrinh, MaThietBiVatTu, TrangThai, NgayRoiKho, NgayHoanKho) VALUES
-('CT001', 'TBVT001', 'Đã xuất kho', '2023-01-25', NULL),
-('CT001', 'TBVT002', 'Đã xuất kho', '2023-01-25', NULL),
-('CT002', 'TBVT003', 'Đã xuất kho', '2023-03-05', NULL); 
+INSERT INTO CungUng (MaThietBiVatTu, MaNhaCungCap, SoLuongTon, DonGia, NgayCapNhat) VALUES
+('TBVT001', 'NCC001', 100, 100000, CURRENT_TIMESTAMP),
+('TBVT002', 'NCC001', 5000, 5000, CURRENT_TIMESTAMP),
+('TBVT003', 'NCC001', 20, 500000, CURRENT_TIMESTAMP);
