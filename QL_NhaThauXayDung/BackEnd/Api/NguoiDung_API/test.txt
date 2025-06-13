@@ -1,10 +1,7 @@
 Next
-Fasthub
-- tìm hiểu và nghiên cứu các liên quan đến mã giới thiệu
-- 402-xử-lý-việc-giảm-giá-không-được-quá-số-tiền-của-đơn-hàng
-10 Jun 2025
-Fasthub
---3-400-áp-dụng-api-mới-của-voucher-cho-mobile
---401-2chỉnh-sửa-ui-nhập-mã-giảm-giá
--- deploy và release version mới ( CH Play, App Store)
-- 402-xử-lý-việc-giảm-giá-không-được-quá-số-tiền-của-đơn-hàng
+chưa có
+13 Jun 2025
+FarmTrace
+--421-2-chỉnh-lại-các-message-thân-thiện-với-người-dùng-hơn
+--422-2-fix-dropdown-không-clear-giá-trị-cũ
+--release phiên bản mới cho IOS, Android
