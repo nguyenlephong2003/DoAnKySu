@@ -6,21 +6,21 @@ use Dotenv\Dotenv;
 class Database
 {
     // Thông tin kết nối local
-    // private $local_host = "localhost";
-    // private $local_db_name = "ql_nhathauxaydung";
-    // private $local_user = "admin";
-    // private $local_password = "123";
-
-    private $local_host = "sql304.ezyro.com";
-    private $local_db_name = "ezyro_39222478_ql_nhathauxaydung";
-    private $local_user = "ezyro_39222478";
-    private $local_password = "p2hgtzbw";
+    private $local_host = "localhost";
+    private $local_db_name = "ql_nhathauxaydung";
+    private $local_user = "admin";
+    private $local_password = "123";
 
     // Thông tin kết nối host
     private $host;
     private $db_name;
     private $user;
     private $password;
+
+    // private $local_host = "sql304.ezyro.com";
+    // private $local_db_name = "ezyro_39222478_ql_nhathauxaydung";
+    // private $local_user = "ezyro_39222478";
+    // private $local_password = "p2hgtzbw";
 
     private $conn;
 
