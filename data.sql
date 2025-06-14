@@ -47,19 +47,40 @@ INSERT INTO TaiKhoan (MaTaiKhoan, MatKhau, MaNhanVien) VALUES
 INSERT INTO NhaCungCap (MaNhaCungCap, TenNhaCungCap, SoDT, Email, DiaChi, LoaiHinhCungCap) VALUES
 ('NCC001', 'Công ty TNHH Vật liệu Xây dựng ABC', '0987654321', 'abc@example.com', 'Quận 12, TP.HCM', 'Vật liệu xây dựng'),
 ('NCC002', 'Công ty CP Thiết bị Nội thất XYZ', '0976543210', 'xyz@example.com', 'Quận Bình Thạnh, TP.HCM', 'Thiết bị nội thất'),
-('NCC003', 'Cơ sở Sắt thép Hưng Thịnh', '0965432109', 'hungthinh@example.com', 'Quận 9, TP.HCM', 'Sắt thép xây dựng');
+('NCC003', 'Cơ sở Sắt thép Hưng Thịnh', '0965432109', 'hungthinh@example.com', 'Quận 9, TP.HCM', 'Sắt thép xây dựng'),
+('NCC004', 'Vật liệu xây dựng Thanh Vân', '0973039431', 'thanhvan@example.com', 'Quận 5, TP.HCM', 'Vật liệu xây dựng'),
+('NCC005', 'Trang trí nội thất Gia Phú', '0387847298', 'giaphu@example.com', 'Quận Thủ Đức, TP.HCM', 'Trang trí nội thất'),
+('NCC006', 'Cơ sở Sắt thép Hưng Phát', '0320492184', 'hungphat@example.com', 'Huyện Bình Chánh, TP.HCM', 'Sắt thép xây dựng'),
+('NCC007', 'Vật liệu xây dựng Thảo Trang', '0790349325', 'thaotrang@example.com', 'Quận Tân Phú, TP.HCM', 'Vật liệu xây dựng'),
+('NCC008', 'Tôn thép Thành Phát', '0802494824', 'thanhphat@example.com', 'Quận 8, TP.HCM', 'Tôn thiết'),
+('NCC009', 'Vật liệu Xây dựng Minh Hiếu', '0839290211', 'minhhieu@example.com', 'Huyện Hóc Môn, TP.HCM', 'Vật liệu xây dựng'),
+('NCC010', 'Cơ sở đồ sắt Thiện Minh Châu', '0732304025', 'thienminhchau@example.com', 'Huyện Củ Chi, TP.HCM', 'Dụng cụ sắt');
 
 -- Bảng LoaiCongTrinh (Construction Types)
 INSERT INTO LoaiCongTrinh (TenLoaiCongTrinh) VALUES
 ('Nhà phố'),
 ('Biệt thự'),
-('Căn hộ');
+('Căn hộ'),
+('Nhà cấp 4'),
+('Hàng rào'),
+('Sân vườn'),
+('Nhà trọ'),
+('Nhà tiền chế'),
+('Hồ nước'),
+('Trường học');
 
 -- Bảng LoaiBaoGia (Quotation Types)
 INSERT INTO LoaiBaoGia (TenLoai) VALUES
 ('Xây dựng cơ bản'),
 ('Nội thất'),
-('Trọn gói');
+('Trọn gói'),
+('Xây móng'),
+('Xây nền'),
+('Tường 20'),
+('Tường 10'),
+('Xây mái'),
+('Dán gạch'),
+('Lộp la phông');
 
 -- Bảng LoaiThietBiVatTu (Equipment/Material Types)
 INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh, LaThietBi) VALUES
@@ -71,31 +92,59 @@ INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh, LaThietBi) VALUES
 ('Tôn', 'Tấm', 0),
 ('Ngói', 'Viên', 0),
 ('Sơn', 'Thùng', 0),
-('Ống nhựa', 'm', 0);
+('Ống nhựa', 'm', 0),
+('Sắt', 'kg', 0);
 
 -- Bảng BangBaoGia (Quotations)
 INSERT INTO BangBaoGia (MaBaoGia, TenBaoGia, TrangThai, GhiChu, MaLoai) VALUES
 ('BG001', 'Báo giá xây dựng nhà phố', 'Đã duyệt', 'Báo giá cho công trình nhà phố 3 tầng', 1),
 ('BG002', 'Báo giá thiết kế nội thất biệt thự', 'Đã duyệt', 'Báo giá cho biệt thự 2 tầng', 2),
-('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 'Báo giá cho căn hộ 2 phòng ngủ', 3);
+('BG003', 'Báo giá trọn gói căn hộ', 'Chờ duyệt', 'Báo giá cho căn hộ 2 phòng ngủ', 3),
+('BG004', 'Báo giá xây phòng trọ tường 20', 'Chờ duyệt', 'Báo giá cho tường 20', 6),
+('BG005', 'Báo giá xây hàng rào', 'Đã duyệt', 'Báo giá khu hàng rào B40', 7),
+('BG006', 'Báo giá dán gạch cho nhà trọ', 'Chờ duyệt', 'Dán gạch bông loại 1 cho nhà trọ', 9),
+('BG007', 'Báo giá lộp lao phông nhà cấp 4', 'Chờ duyệt', 'Báo giá lộp la phông bằng thạch cao', 10),
+('BG008', 'Báo giá xây mái nhà cấp 4', 'Đã duyệt', 'Báo giá cho nhà cấp 4 sử dụng dàn sắt', 8),
+('BG009', 'Báo giá dàn móng công ty', 'Chờ duyệt', 'Báo giá dàn móng ép cọc bê tông', 4),
+('BG010', 'Báo giá xây nền nhà cấp 4', 'Đã duyệt', 'Báo giá nền nhà cấp 4 diện tích 0.02 ha', 5)
+;
 
 -- Bảng KhachHang (Customers)
 INSERT INTO KhachHang (MaKhachHang, TenKhachHang, SoDT, CCCD, Email) VALUES
 ('KH001', 'Trần Văn Khách', '0912345000', '079123000000', 'khach1@gmail.com'),
 ('KH002', 'Nguyễn Thị Hàng', '0923456000', '079234000000', 'khach2@gmail.com'),
-('KH003', 'Lê Văn Người', '0934567000', '079345000000', 'khach3@gmail.com');
+('KH003', 'Lê Văn Người', '0934567000', '079345000000', 'khach3@gmail.com'),
+('KH004', 'Nguyễn Thanh Bình', '0389194520', '079095822934', 'binhbt@gmail.com'),
+('KH005', 'Trương Hảo Minh', '0938530404', '079203569421', 'minhht@gmail.com'),
+('KH006', 'Phạm Chí Cường', '0308494343', '079099534343', 'cuongpc@gmail.com'),
+('KH007', 'Hồ Thanh Hải', '0702545498', '079203948411', 'haiht@gmail.com'),
+('KH008', 'Cao Trường Vinh', '0389302313', '079912109222', 'vinhct@gmail.com'),
+('KH009', 'Nguyễn Hoàng Thảo', '0991675413', '079067029391', 'thaonh@gmail.com'),
+('KH010', 'Lê Thành Nhân', '0945924107', '079895357203', 'nhanlt@gmail.com');
 
 -- Bảng HopDong (Contracts)
 INSERT INTO HopDong (MaHopDong, NgayKy, MoTa, TongTien, FileHopDong, TrangThai, GhiChu, MaNhanVien, MaKhachHang) VALUES
 ('HD001', '2023-01-15', 'Hợp đồng xây dựng nhà phố 3 tầng', 1500000000, 'HD001.pdf', 'Đã duyệt', 'Khách hàng đã ký hợp đồng', 'GD001', 'KH001'),
 ('HD002', '2023-02-20', 'Hợp đồng thiết kế và thi công biệt thự', 3500000000, 'HD002.pdf', 'Chờ duyệt', 'Đang chờ giám đốc xem xét', 'GD001', 'KH002'),
-('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003.pdf', 'Từ chối', 'Không đạt yêu cầu về ngân sách', 'TV001', 'KH003');
+('HD003', '2023-03-10', 'Hợp đồng cải tạo căn hộ', 800000000, 'HD003.pdf', 'Từ chối', 'Không đạt yêu cầu về ngân sách', 'TV001', 'KH003'),
+('HD004', '2024-06-10', 'Hợp đồng xây nhà cấp 4', 20000000000, 'HD004.pdf', 'Đã duyệt', 'Chuẩn bị chọn ngày khởi công', 'TV001', 'KH004'),
+('HD005', '2024-04-12', 'Hợp đồng xây nhà trọ', 600000000, 'HD005.pdf', 'Từ chối', 'Khách hàng yêu cầu chỉnh sửa hợp đồng', 'TV002', 'KH004'),
+('HD006', '2024-04-20', 'Hợp đồng xây hàng rào vườn 2 ha', 80000000, 'HD006.pdf', 'Đã Duyệt', 'Chuẩn bị thiết bị xây', 'TV002', 'KH006'),
+('HD007', '2024-05-24', 'Hợp đồng xây trường học', 30000000000, 'HD007.pdf', 'Từ chối', 'Không đạt yêu cầu về pháp lý', 'TV001', 'KH007'),
+('HD008', '2024-06-19', 'Hợp đồng xây dựng nhà cấp 4', 300000000, 'HD008.pdf', 'Đã Duyệt', 'Không có', 'TV002', 'KH008'),
+('HD009', '2025-03-20', 'Hợp đồng xây móng căn hộ', 200000000, 'HD009.pdf', 'Từ chối', 'Không đủ ngân sách', 'TV002', 'KH009'),
+('HD010', '2024-03-30', 'Hợp đồng dán gạch dãy trọ', 1000000000, 'HD010.pdf', 'Đã Duyệt', 'Đợi khách hàng mua vật liệu', 'TV001', 'KH010');
 
 -- Bảng CongTrinh (Construction Projects)
 INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, DiaChi, MaHopDong, MaBaoGia, MaLoaiCongTrinh, NgayDuKienHoanThanh) VALUES
 ('CT001', 'Nhà phố Quận 7', 120, 'TK001.pdf', '123 Đường Nguyễn Thị Thập, Quận 7, TP.HCM', 'HD001', 'BG001', 1, '2023-07-15'),
 ('CT002', 'Biệt thự Thủ Đức', 350, 'TK002.pdf', '456 Đường Võ Văn Ngân, Thủ Đức, TP.HCM', 'HD002', 'BG002', 2, '2023-12-20'),
-('CT003', 'Căn hộ Quận 2', 85, 'TK003.pdf', '789 Đường Nguyễn Duy Trinh, Quận 2, TP.HCM', 'HD003', 'BG003', 3, '2023-06-10');
+('CT003', 'Căn hộ Quận 2', 85, 'TK003.pdf', '789 Đường Nguyễn Duy Trinh, Quận 2, TP.HCM', 'HD003', 'BG003', 3, '2023-06-10'),
+('CT004', 'Nhà phố Quận 3', 100, 'TK004.pdf', '274 Đường Võ Thị Sáu, Quận 3, TP.HCM', 'HD004', 'BG001', 1, '2024-10-10'),
+('CT005', 'Nhà trọ Tân Phú', 85, 'TK005.pdf', '35 Đường Tô Hiệu, Quận Tân Phú, TP.HCM', 'HD005', 'BG004', 6, '2024-08-12'),
+('CT006', 'Hàng rào vườn cao su', 20000, 'TK006.pdf', '9 Đường 11, Quận 9, TP.HCM', 'HD006', 'BG005', 7, '2023-06-10'),
+
+;
 
 -- Bảng ThietBiVatTu (Equipment/Materials)
 INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, MaLoaiThietBiVatTu) VALUES
