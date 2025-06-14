@@ -198,7 +198,7 @@ CREATE TABLE `DeXuat` (
   `NgayDuyet` DateTime,
   `MaNhanVien` varchar(20),
   `LoaiDeXuat` varchar(50),
-  `TrangThai` varchar(50) DEFAULT 'Chờ duyệt',
+  `TrangThai` varchar(250),
   `TongTien` float,
   `MaCum` varchar(100),
   `GhiChu` varchar(255),
@@ -211,7 +211,7 @@ CREATE TABLE `ChiTietDeXuat` (
   `MaThietBiVatTu` varchar(20),
   `SoLuong` float,
   `DonGia` float,
-  `TrangThai` varchar(50) DEFAULT 'Chờ duyệt',
+  `TrangThai` varchar(50),
   `MaNhaCungCap` varchar(20),
   FOREIGN KEY (`MaNhaCungCap`) REFERENCES `NhaCungCap` (`MaNhaCungCap`),
   FOREIGN KEY (`MaDeXuat`) REFERENCES `DeXuat` (`MaDeXuat`),
@@ -221,7 +221,7 @@ CREATE TABLE `ChiTietDeXuat` (
 CREATE TABLE `PhieuKiemTraThietBi` (
   `MaPhieuKiemTra` varchar(20) PRIMARY KEY,
   `NgayLap` DateTime,
-  `TrangThai` varchar(50) DEFAULT 'Chờ kiểm tra',
+  `TrangThai` varchar(50),
   `GhiChu` varchar(255),
   `MaNhanVien` varchar(20),
   FOREIGN KEY (`MaNhanVien`) REFERENCES `NhanVien` (`MaNhanVien`)
@@ -333,3 +333,7 @@ FOREIGN KEY (`MaThietBiVatTu`) REFERENCES `ThietBiVatTu` (`MaThietBiVatTu`);
 ALTER TABLE `BangBaoCaoTienDo` 
 ADD CONSTRAINT `fk_BangBaoCaoTienDo_CongTrinh` 
 FOREIGN KEY (`MaCongTrinh`) REFERENCES `CongTrinh` (`MaCongTrinh`);
+
+-- ALTER TABLE `DeXuat` CHANGE `TrangThai` `TrangThai` VARCHAR(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'Chờ duyệt';
+-- ALTER TABLE `ChiTietDeXuat` CHANGE `TrangThai` `TrangThai` VARCHAR(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'Chờ duyệt';
+-- ALTER TABLE `PhieuKiemTraThietBi` CHANGE `TrangThai` `TrangThai` VARCHAR(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'Chờ kiểm tra';
