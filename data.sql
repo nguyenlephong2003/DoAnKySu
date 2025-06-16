@@ -143,6 +143,8 @@ INSERT INTO CongTrinh (MaCongTrinh, TenCongTrinh, Dientich, FileThietKe, DiaChi,
 ('CT004', 'Nhà phố Quận 3', 100, 'TK004.pdf', '274 Đường Võ Thị Sáu, Quận 3, TP.HCM', 'HD004', 'BG001', 1, '2024-10-10'),
 ('CT005', 'Nhà trọ Tân Phú', 85, 'TK005.pdf', '35 Đường Tô Hiệu, Quận Tân Phú, TP.HCM', 'HD005', 'BG004', 6, '2024-08-12'),
 ('CT006', 'Hàng rào vườn cao su', 20000, 'TK006.pdf', '9 Đường 11, Quận 9, TP.HCM', 'HD006', 'BG005', 7, '2023-06-10'),
+('CT007', 'Trường mầm non Cát Tường', 65, 'TK007.pdf', '100 Tân Quý, Quận Tân Phú, TP.HCM', 'HD007', 'BG003', 10, '2024-11-30'),
+('CT008', 'Hàng rào vườn cao su', 20000, 'TK006.pdf', '9 Đường 11, Quận 9, TP.HCM', 'HD006', 'BG005', 7, '2023-06-10')
 
 ;
 
