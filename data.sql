@@ -45,6 +45,13 @@ INSERT INTO NhanVien (MaNhanVien, TenNhanVien, SoDT, CCCD, Email, NgayVao, Luong
 ('TP001', 'Ngô Văn Phụ', '0989012345', '079901234567', 'thophu1@congty.com', '2020-09-01', 0, 7),
 ('TP002', 'Mai Thị Phụ', '0990123456', '079012345678', 'thophu2@congty.com', '2020-10-10', 0, 7),
 ('TP003', 'Mai Hoàng Long', '0901239412', '079124512467', 'longmh@congty.com', '2021-05-10', 0, 7),
+('TP004', 'Nguyễn Văn Tèo', '0983493241', '079792382742', 'teonv@congty.com', '2021-06-10', 0, 7),
+('TP005', 'Trương Thanh Sang', '0901290819', '079991038472', 'sangtt@congty.com', '2021-06-12', 0, 7),
+('TP006', 'Cao Tấn Công', '0983203410', '079932982918', 'congct@congty.com', '2021-06-13', 0, 7),
+('TP007', 'Nguyễn Văn Lành', '0901203402', '079092039257', 'lanhnv@congty.com', '2021-06-17', 0, 7),
+('TP008', 'Nguyễn Mạnh Chiến', '0393394567', '079920193204', 'chiennm@congty.com', '2021-07-10', 0, 7),
+('TP009', 'Trần Minh Thiện', '0895334210', '079202395025534', 'thientm@congty.com', '2021-07-11', 0, 7),
+('TP010', 'Nguyễn Văn Vương', '0909239510', '079910394204', 'vuongnv@congty.com', '2021-07-15', 0, 7),
 ('K001', 'Phạm Văn Kho', '0901111222', '079222333444', 'kho1@congty.com', '2021-01-15', 5500000, 8),
 ('K002', 'Trần Thị Kho', '0902222333', '079333444555', 'kho2@congty.com', '2021-03-20', 5500000, 8),
 ('TV001', 'Lê Văn Tư Vấn', '0903333444', '079444555666', 'tuvan1@congty.com', '2021-02-10', 5500000, 9),
@@ -111,20 +118,38 @@ INSERT INTO LoaiBaoGia (TenLoai) VALUES
 
 -- Bảng LoaiThietBiVatTu (Equipment/Material Types)
 INSERT INTO LoaiThietBiVatTu (TenLoai, DonViTinh, LaThietBi) VALUES
-('Xi măng', 'Bao', 0),
-('Gạch', 'Viên', 0),
-('Cát', 'm³', 0),
-('Đá', 'm³', 0),
-('Bê tông', 'm³', 0),
-('Tôn', 'Tấm', 0),
-('Ngói', 'Viên', 0),
-('Sơn', 'Thùng', 0),
-('Ống nhựa', 'm', 0),
-('Sắt', 'kg', 0),
-('Dây điện', 'm', 0),
-('Sơn ','thùng', 0),
-('Gỗ ','tấm', 0)
-
+('Xi măng', 'Bao', 0), --1
+('Gạch', 'Viên', 0), --2
+('Cát', 'm³', 0), --3
+('Đá', 'm³', 0), --4
+('Bê tông', 'm³', 0), --5
+('Tôn', 'Tấm', 0),  --6
+('Ngói', 'Viên', 0), --7
+('Sơn', 'Thùng', 0), --8
+('Ống nhựa', 'm', 0), --9
+('Sắt', 'kg', 0), --10
+('Dây điện', 'm', 0), -- 11
+('Sơn ','thùng', 0), --12
+('Gỗ ','tấm', 0), --13
+('Vít ','Cây', 0), -- 14
+('Cờ lê ','Cây', 0), -- 15
+('Ốc ','Con', 0), -- 16
+('Đinh ','Cây', 0), -- 17
+('Bu lông ','Con', 0), -- 18
+('Tắt kê','Con', 0), -- 19
+('Khoang ','Cái', 0), -- 20
+('Mũi khoang ','Cái', 0), -- 21
+('Búa ','Cái', 0), -- 22
+('Kéo','Cái', 0), -- 23
+('Ống nhựa','Cây', 0), -- 24
+('Co','Cái', 0), -- 25
+('Máy móc','Cái', 0), -- 26
+('Thước','Cái', 0), -- 27
+('Giàn giáo khung','Cái', 0), -- 28
+('Lưỡi cắt','Cái', 0), -- 29
+('Kẽm ','Cuộn', 0), -- 30
+('Bai','Cái', 0), -- 31
+('Chà ','Cái', 0) -- 32
 ;
 
 -- Bảng BangBaoGia (Quotations)
@@ -193,7 +218,8 @@ INSERT INTO ThietBiVatTu (MaThietBiVatTu, TenThietBiVatTu, MaLoaiThietBiVatTu) V
 ('TBVT008', 'Sơn Jotun nội thất', 12),
 ('TBVT009', 'Sơn Dulux ngoại thất', 12),
 ('TBVT010', 'Gỗ tự nhiên căm xe', 13),
-('TBVT011', 'Đá 2x3 xanh Biên Hòa', 4)
+('TBVT011', 'Đá 2x3 xanh Biên Hòa', 4),
+('TBVT012', 'Vít ba ke', 4)
 ;
 
 -- Bảng ChiTietThiCong (Construction Details)
