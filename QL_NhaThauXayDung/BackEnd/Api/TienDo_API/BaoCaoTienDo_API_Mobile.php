@@ -201,100 +201,210 @@ switch ($method) {
     case 'GET':
     case 'POST': // Handle both GET and POST
         if ($action === "GET") {
-            try {
-                $stmt = $baoCaoTienDo->readAll();
-                $num = $stmt->rowCount();
+            // Lấy dữ liệu từ request body
+            $input = json_decode(file_get_contents("php://input"), true);
+            
+            // Kiểm tra nếu có MaCongTrinh trong body
+            if (isset($input['MaCongTrinh']) && !empty($input['MaCongTrinh'])) {
+                $maCongTrinh = $input['MaCongTrinh'];
+                try {
+                    $stmt = $baoCaoTienDo->readAll();
+                    $num = $stmt->rowCount();
+                    $found = false;
 
-                if ($num > 0) {
-                    $baoCao_arr = array();
-                    $baoCao_arr["data"] = array();
-                    $projects = array();
+                    if ($num > 0) {
+                        $projects = array();
 
-                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                        extract($row);
-                        
-                        if (!isset($projects[$MaCongTrinh])) {
-                            $projects[$MaCongTrinh] = array(
-                                "MaCongTrinh" => $MaCongTrinh,
-                                "TenCongTrinh" => $TenCongTrinh,
-                                "Dientich" => $Dientich,
-                                "FileThietKe" => $FileThietKe,
-                                "MaKhachHang" => $MaKhachHang,
-                                "MaHopDong" => $MaHopDong,
-                                "MaLoaiCongTrinh" => $MaLoaiCongTrinh,
-                                "NgayDuKienHoanThanh" => !empty($NgayDuKienHoanThanh) ? date('d/m/Y', strtotime($NgayDuKienHoanThanh)) : null,
-                                "TongTienDo" => 0,
-                                "NgayHoanThanh" => null,
-                                "SoBaoCao" => 0,
-                                "TrangThai" => "Chưa có báo cáo",
-                                "DanhSachBaoCao" => array()
-                            );
-                        }
+                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            extract($row);
+                            
+                            if ($MaCongTrinh === $maCongTrinh) {
+                                $found = true;
+                                if (!isset($projects[$MaCongTrinh])) {
+                                    $projects[$MaCongTrinh] = array(
+                                        "MaCongTrinh" => $MaCongTrinh,
+                                        "TenCongTrinh" => $TenCongTrinh,
+                                        "Dientich" => $Dientich,
+                                        "FileThietKe" => $FileThietKe,
+                                        "MaKhachHang" => $MaKhachHang,
+                                        "MaHopDong" => $MaHopDong,
+                                        "MaLoaiCongTrinh" => $MaLoaiCongTrinh,
+                                        "NgayDuKienHoanThanh" => !empty($NgayDuKienHoanThanh) ? date('d/m/Y', strtotime($NgayDuKienHoanThanh)) : null,
+                                        "TongTienDo" => 0,
+                                        "NgayHoanThanh" => null,
+                                        "SoBaoCao" => 0,
+                                        "TrangThai" => "Chưa có báo cáo",
+                                        "DanhSachBaoCao" => array()
+                                    );
+                                }
 
-                        if (!empty($MaTienDo)) {
-                            $baoCao_item = array(
-                                "MaTienDo" => $MaTienDo,
-                                "ThoiGianHoanThanhThucTe" => !empty($ThoiGianHoanThanhThucTe) ? date('d/m/Y', strtotime($ThoiGianHoanThanhThucTe)) : null,
-                                "CongViec" => $CongViec,
-                                "NoiDungCongViec" => $NoiDungCongViec,
-                                "NgayBaoCao" => !empty($NgayBaoCao) ? date('d/m/Y', strtotime($NgayBaoCao)) : null,
-                                "TrangThai" => $TrangThai,
-                                "TiLeHoanThanh" => $TiLeHoanThanh,
-                                "HinhAnhTienDo" => $HinhAnhTienDo,
-                                "MaCongTrinh" => $MaCongTrinh
-                            );
+                                if (!empty($MaTienDo)) {
+                                    $baoCao_item = array(
+                                        "MaTienDo" => $MaTienDo,
+                                        "ThoiGianHoanThanhThucTe" => !empty($ThoiGianHoanThanhThucTe) ? date('d/m/Y', strtotime($ThoiGianHoanThanhThucTe)) : null,
+                                        "CongViec" => $CongViec,
+                                        "NoiDungCongViec" => $NoiDungCongViec,
+                                        "NgayBaoCao" => !empty($NgayBaoCao) ? date('d/m/Y', strtotime($NgayBaoCao)) : null,
+                                        "TrangThai" => $TrangThai,
+                                        "TiLeHoanThanh" => $TiLeHoanThanh,
+                                        "HinhAnhTienDo" => $HinhAnhTienDo,
+                                        "MaCongTrinh" => $MaCongTrinh
+                                    );
 
-                            $projects[$MaCongTrinh]["DanhSachBaoCao"][] = $baoCao_item;
-                            $projects[$MaCongTrinh]["SoBaoCao"]++;
-                        }
-                    }
-
-                    foreach ($projects as &$project) {
-                        if (!empty($project["DanhSachBaoCao"])) {
-                            usort($project["DanhSachBaoCao"], function($a, $b) {
-                                return strtotime(str_replace('/', '-', $b["NgayBaoCao"])) - strtotime(str_replace('/', '-', $a["NgayBaoCao"]));
-                            });
-
-                            $tongTiLeHoanThanh = 0;
-                            foreach ($project["DanhSachBaoCao"] as $report) {
-                                $tongTiLeHoanThanh += floatval($report["TiLeHoanThanh"]);
+                                    $projects[$MaCongTrinh]["DanhSachBaoCao"][] = $baoCao_item;
+                                    $projects[$MaCongTrinh]["SoBaoCao"]++;
+                                }
                             }
-                            $project["TongTienDo"] = $tongTiLeHoanThanh;
-                            
-                            $latestReport = $project["DanhSachBaoCao"][0];
-                            
-                            if ($tongTiLeHoanThanh >= 100) {
-                                $project["TrangThai"] = "Hoàn thành";
-                                foreach ($project["DanhSachBaoCao"] as $report) {
-                                    if ($report["TiLeHoanThanh"] >= 100) {
-                                        $project["NgayHoanThanh"] = $report["ThoiGianHoanThanhThucTe"];
-                                        break;
+                        }
+
+                        if ($found) {
+                            foreach ($projects as &$project) {
+                                if (!empty($project["DanhSachBaoCao"])) {
+                                    usort($project["DanhSachBaoCao"], function($a, $b) {
+                                        return strtotime(str_replace('/', '-', $b["NgayBaoCao"])) - strtotime(str_replace('/', '-', $a["NgayBaoCao"]));
+                                    });
+
+                                    $tongTiLeHoanThanh = 0;
+                                    foreach ($project["DanhSachBaoCao"] as $report) {
+                                        $tongTiLeHoanThanh += floatval($report["TiLeHoanThanh"]);
+                                    }
+                                    $project["TongTienDo"] = $tongTiLeHoanThanh;
+                                    
+                                    if ($tongTiLeHoanThanh >= 100) {
+                                        $project["TrangThai"] = "Hoàn thành";
+                                        foreach ($project["DanhSachBaoCao"] as $report) {
+                                            if ($report["TiLeHoanThanh"] >= 100) {
+                                                $project["NgayHoanThanh"] = $report["ThoiGianHoanThanhThucTe"];
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        $project["TrangThai"] = "Đang thực hiện";
+                                        $project["NgayHoanThanh"] = null;
                                     }
                                 }
-                            } else {
-                                $project["TrangThai"] = "Đang thực hiện";
-                                $project["NgayHoanThanh"] = null;
+                            }
+
+                            echo json_encode([
+                                'status' => 'success',
+                                'data' => array_values($projects)[0]
+                            ]);
+                        } else {
+                            echo json_encode([
+                                'status' => 'error',
+                                'message' => 'Không tìm thấy công trình với mã: ' . $maCongTrinh
+                            ]);
+                            http_response_code(404);
+                        }
+                    } else {
+                        echo json_encode([
+                            'status' => 'error',
+                            'message' => 'Không tìm thấy công trình với mã: ' . $maCongTrinh
+                        ]);
+                        http_response_code(404);
+                    }
+                } catch (Exception $e) {
+                    echo json_encode([
+                        'status' => 'error',
+                        'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage()
+                    ]);
+                    http_response_code(500);
+                }
+            } else {
+                // Code xử lý GET tất cả công trình (giữ nguyên code cũ)
+                try {
+                    $stmt = $baoCaoTienDo->readAll();
+                    $num = $stmt->rowCount();
+
+                    if ($num > 0) {
+                        $baoCao_arr = array();
+                        $baoCao_arr["data"] = array();
+                        $projects = array();
+
+                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            extract($row);
+                            
+                            if (!isset($projects[$MaCongTrinh])) {
+                                $projects[$MaCongTrinh] = array(
+                                    "MaCongTrinh" => $MaCongTrinh,
+                                    "TenCongTrinh" => $TenCongTrinh,
+                                    "Dientich" => $Dientich,
+                                    "FileThietKe" => $FileThietKe,
+                                    "MaKhachHang" => $MaKhachHang,
+                                    "MaHopDong" => $MaHopDong,
+                                    "MaLoaiCongTrinh" => $MaLoaiCongTrinh,
+                                    "NgayDuKienHoanThanh" => !empty($NgayDuKienHoanThanh) ? date('d/m/Y', strtotime($NgayDuKienHoanThanh)) : null,
+                                    "TongTienDo" => 0,
+                                    "NgayHoanThanh" => null,
+                                    "SoBaoCao" => 0,
+                                    "TrangThai" => "Chưa có báo cáo",
+                                    "DanhSachBaoCao" => array()
+                                );
+                            }
+
+                            if (!empty($MaTienDo)) {
+                                $baoCao_item = array(
+                                    "MaTienDo" => $MaTienDo,
+                                    "ThoiGianHoanThanhThucTe" => !empty($ThoiGianHoanThanhThucTe) ? date('d/m/Y', strtotime($ThoiGianHoanThanhThucTe)) : null,
+                                    "CongViec" => $CongViec,
+                                    "NoiDungCongViec" => $NoiDungCongViec,
+                                    "NgayBaoCao" => !empty($NgayBaoCao) ? date('d/m/Y', strtotime($NgayBaoCao)) : null,
+                                    "TrangThai" => $TrangThai,
+                                    "TiLeHoanThanh" => $TiLeHoanThanh,
+                                    "HinhAnhTienDo" => $HinhAnhTienDo,
+                                    "MaCongTrinh" => $MaCongTrinh
+                                );
+
+                                $projects[$MaCongTrinh]["DanhSachBaoCao"][] = $baoCao_item;
+                                $projects[$MaCongTrinh]["SoBaoCao"]++;
                             }
                         }
-                    }
 
-                    $baoCao_arr["data"] = array_values($projects);
+                        foreach ($projects as &$project) {
+                            if (!empty($project["DanhSachBaoCao"])) {
+                                usort($project["DanhSachBaoCao"], function($a, $b) {
+                                    return strtotime(str_replace('/', '-', $b["NgayBaoCao"])) - strtotime(str_replace('/', '-', $a["NgayBaoCao"]));
+                                });
+
+                                $tongTiLeHoanThanh = 0;
+                                foreach ($project["DanhSachBaoCao"] as $report) {
+                                    $tongTiLeHoanThanh += floatval($report["TiLeHoanThanh"]);
+                                }
+                                $project["TongTienDo"] = $tongTiLeHoanThanh;
+                                
+                                if ($tongTiLeHoanThanh >= 100) {
+                                    $project["TrangThai"] = "Hoàn thành";
+                                    foreach ($project["DanhSachBaoCao"] as $report) {
+                                        if ($report["TiLeHoanThanh"] >= 100) {
+                                            $project["NgayHoanThanh"] = $report["ThoiGianHoanThanhThucTe"];
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    $project["TrangThai"] = "Đang thực hiện";
+                                    $project["NgayHoanThanh"] = null;
+                                }
+                            }
+                        }
+
+                        $baoCao_arr["data"] = array_values($projects);
+                        echo json_encode([
+                            'status' => 'success',
+                            'data' => $baoCao_arr["data"]
+                        ]);
+                    } else {
+                        echo json_encode([
+                            'status' => 'success',
+                            'data' => []
+                        ]);
+                    }
+                } catch (Exception $e) {
                     echo json_encode([
-                        'status' => 'success',
-                        'data' => $baoCao_arr["data"]
+                        'status' => 'error',
+                        'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage()
                     ]);
-                } else {
-                    echo json_encode([
-                        'status' => 'success',
-                        'data' => []
-                    ]);
+                    http_response_code(500);
                 }
-            } catch (Exception $e) {
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Lỗi khi lấy dữ liệu: ' . $e->getMessage()
-                ]);
-                http_response_code(500);
             }
         } else {
             echo json_encode([
