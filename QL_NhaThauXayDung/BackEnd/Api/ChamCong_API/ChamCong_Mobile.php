@@ -819,12 +819,40 @@ switch ($action) {
                 exit();
             }
 
+            // Xử lý đặc biệt cho NgayKetThuc
+            $ngayKetThuc = null;
+            if (isset($data['NgayKetThuc'])) {
+                if ($data['NgayKetThuc'] === "null" || $data['NgayKetThuc'] === null || $data['NgayKetThuc'] === "") {
+                    $ngayKetThuc = null;
+                } else {
+                    // Kiểm tra định dạng ngày tháng
+                    $date = DateTime::createFromFormat('Y-m-d', $data['NgayKetThuc']);
+                    if ($date && $date->format('Y-m-d') === $data['NgayKetThuc']) {
+                        $ngayKetThuc = $data['NgayKetThuc'];
+                    } else {
+                        echo json_encode([
+                            "status" => "error",
+                            "message" => "Định dạng ngày không hợp lệ. Vui lòng sử dụng định dạng YYYY-MM-DD"
+                        ]);
+                        exit();
+                    }
+                }
+            }
+
+            // Xử lý SoNgayThamGia
+            $soNgayThamGia = null;
+            if (isset($data['SoNgayThamGia'])) {
+                if (is_numeric($data['SoNgayThamGia'])) {
+                    $soNgayThamGia = intval($data['SoNgayThamGia']);
+                }
+            }
+
             // Cập nhật phân công
             $result = $chamCongModel->updateBangPhanCong(
                 $data['MaBangPhanCong'],
                 $data['NgayThamGia'],
-                $data['NgayKetThuc'] ?? null,
-                $data['SoNgayThamGia'] ?? null
+                $ngayKetThuc,
+                $soNgayThamGia
             );
 
             echo json_encode($result);
@@ -898,6 +926,101 @@ switch ($action) {
             echo json_encode([
                 "status" => "error",
                 "message" => "Lỗi khi tạo chấm công: " . $e->getMessage()
+            ]);
+        }
+        break;
+
+    case 'GET_CONG_TRINH_BY_ID':
+        try {
+            // Get construction ID from either query parameter or JSON body
+            $maCongTrinh = null;
+            
+            // Check query parameter first
+            if (isset($_GET['maCongTrinh'])) {
+                $maCongTrinh = $_GET['maCongTrinh'];
+            } else {
+                // If not in query, try to get from JSON body
+                $data = json_decode(file_get_contents("php://input"), true);
+                if (isset($data['maCongTrinh'])) {
+                    $maCongTrinh = $data['maCongTrinh'];
+                }
+            }
+
+            // Validate maCongTrinh
+            if (!$maCongTrinh) {
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Thiếu thông tin mã công trình"
+                ]);
+                exit();
+            }
+
+            // Get construction information
+            $stmt = $chamCongModel->getCongTrinhChiTiet($maCongTrinh);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row) {
+                // Get additional information
+                $stmtNhanVien = $chamCongModel->getChiTietPhanCong($maCongTrinh);
+                $stmtTienDo = $chamCongModel->getChiTietTienDo($maCongTrinh);
+                $stmtTongTienDo = $chamCongModel->getTongTienDo($maCongTrinh);
+
+                // Process employee list
+                $danhSachNhanVien = [];
+                while ($nhanVien = $stmtNhanVien->fetch(PDO::FETCH_ASSOC)) {
+                    $danhSachNhanVien[] = [
+                        "MaBangPhanCong" => $nhanVien['MaBangPhanCong'],
+                        "MaNhanVien" => $nhanVien['MaNhanVien'],
+                        "TenNhanVien" => $nhanVien['TenNhanVien'],
+                        "LoaiNhanVien" => $nhanVien['TenLoai'],
+                        "NgayThamGia" => $nhanVien['NgayThamGia'],
+                        "NgayKetThuc" => $nhanVien['NgayKetThuc'],
+                        "SoNgayThamGia" => $nhanVien['SoNgayThamGia']
+                    ];
+                }
+
+                // Process progress reports
+                $danhSachBaoCao = [];
+                while ($baoCao = $stmtTienDo->fetch(PDO::FETCH_ASSOC)) {
+                    $danhSachBaoCao[] = [
+                        "MaTienDo" => $baoCao['MaTienDo'],
+                        "CongViec" => $baoCao['CongViec'],
+                        "NoiDungCongViec" => $baoCao['NoiDungCongViec'],
+                        "NgayBaoCao" => $baoCao['NgayBaoCao'],
+                        "TiLeHoanThanh" => $baoCao['TiLeHoanThanh']
+                    ];
+                }
+
+                // Get total progress
+                $tongTienDo = $stmtTongTienDo->fetch(PDO::FETCH_ASSOC)['TongTienDo'] ?? 0;
+
+                $result = [
+                    "CongTrinh" => [
+                        "MaCongTrinh" => $row['MaCongTrinh'],
+                        "TenCongTrinh" => $row['TenCongTrinh'],
+                        "Dientich" => $row['Dientich'],
+                        "NgayDuKienHoanThanh" => $row['NgayDuKienHoanThanh'],
+                        "TongTienDo" => $tongTienDo,
+                        "SoNhanVienPhanCong" => $row['SoNhanVienPhanCong'],
+                        "DanhSachNhanVien" => $danhSachNhanVien,
+                        "DanhSachBaoCaoTienDo" => $danhSachBaoCao
+                    ]
+                ];
+
+                echo json_encode([
+                    "status" => "success",
+                    "data" => $result
+                ]);
+            } else {
+                echo json_encode([
+                    "status" => "error",
+                    "message" => "Không tìm thấy công trình"
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Lỗi khi lấy thông tin công trình: " . $e->getMessage()
             ]);
         }
         break;

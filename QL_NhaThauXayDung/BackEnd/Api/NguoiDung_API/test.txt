@@ -1,7 +1,9 @@
 Next
-chưa có
-13 Jun 2025
+-setup chuyển từ flutterflow sang flutter 
+- làm page login
+17 Jun 2025
 FarmTrace
---421-2-chỉnh-lại-các-message-thân-thiện-với-người-dùng-hơn
---422-2-fix-dropdown-không-clear-giá-trị-cũ
---release phiên bản mới cho IOS, Android
+--425-15-kiểm-tra-tài-khoản-đã-có-trong-hệ-thống-đăng-ký
+--426-15-kiểm-tra-tài-khoản-đã-có-trong-hệ-thống-quên-mật-khẩu
+--release bản mới nhất cho ios và android
+-setup chuyển từ flutterflow sang flutter 
